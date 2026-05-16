@@ -27,6 +27,11 @@ jobs:
         with:
           bun-version: latest
 
+      - name: Inject Supabase env vars
+        run: |
+          echo "VITE_SUPABASE_URL=${{ secrets.SUPABASE_URL }}" > .env.production
+          echo "VITE_SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}" >> .env.production
+
       - run: bun install
       - run: bun run build
 
