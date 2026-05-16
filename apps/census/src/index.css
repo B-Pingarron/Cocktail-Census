@@ -1,0 +1,34 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: #0e0e0e;
+    --foreground: #f3efe6;
+    --card: #1a1a1a;
+    --card-foreground: #f3efe6;
+    --muted: #2a2a2a;
+    --muted-foreground: #9ca3af;
+    --gold: #c7a34b;
+    --gold-muted: #a8862e;
+    --forest: #0e2a21;
+    --forest-light: #1a3d30;
+    --destructive: #ef4444;
+    --border: #2a2a2a;
+    --ring: #c7a34b;
+    --radius: 0.75rem;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-[var(--background)] text-[var(--foreground)] font-body antialiased;
+  }
+
+  h1, h2, h3, h4 {
+    font-family: "Playfair Display", serif;
+  }
+}
