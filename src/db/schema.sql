@@ -17,9 +17,14 @@ create table if not exists public.votes (
 create index if not exists idx_votes_cocktail_id on public.votes (cocktail_id);
 create index if not exists idx_votes_recipe_id  on public.votes (recipe_id);
 
--- 2. Row-Level Security: allow anonymous inserts, deny reads
+-- 2. Grant base permissions to the anon role (required by Supabase)
+grant usage on schema public to anon;
+grant select, insert on public.votes to anon;
+
+-- 3. Row-Level Security: allow anonymous inserts, deny reads
 alter table public.votes enable row level security;
 
+drop policy if exists "Anyone can insert a vote" on public.votes;
 create policy "Anyone can insert a vote"
   on public.votes
   for insert
@@ -27,13 +32,14 @@ create policy "Anyone can insert a vote"
   with check (true);
 
 -- Votes are public-read for the stats view in future phases
+drop policy if exists "Anyone can read votes" on public.votes;
 create policy "Anyone can read votes"
   on public.votes
   for select
   to anon
   using (true);
 
--- 3. Optional: prevent duplicate votes from the same browser session
+-- 4. Optional: prevent duplicate votes from the same browser session
 --    (handled client-side; this is a safety net)
 -- create policy "No update, no delete"
 --   on public.votes
