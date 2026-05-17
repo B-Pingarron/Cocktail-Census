@@ -45,9 +45,15 @@ const Census = () => {
   useEffect(() => {
     const saved = loadState();
     if (saved) {
-      setVotes(saved.votes);
-      setCurrentIndex(saved.currentIndex);
-      setFinished(saved.finished);
+      // Validate saved state — currentIndex may be stale if cocktail data changed between sessions
+      const validIndex = Math.min(saved.currentIndex, cocktails.length - 1);
+      // Trim votes that reference cocktails no longer in the data
+      const validVotes = saved.votes.filter((v) =>
+        cocktails.some((c) => c.id === v.cocktailId)
+      );
+      setVotes(validVotes);
+      setCurrentIndex(Math.max(0, validIndex));
+      setFinished(saved.finished && validIndex >= cocktails.length - 1);
     }
     setInitialised(true);
   }, []);
@@ -215,11 +221,23 @@ const Census = () => {
             transitioning ? "opacity-0" : "opacity-100"
           }`}
         >
-          <CocktailCard
-            key={cocktails[currentIndex].id}
-            cocktail={cocktails[currentIndex]}
-            onVote={handleVote}
-          />
+          {cocktails[currentIndex] ? (
+            <CocktailCard
+              key={cocktails[currentIndex].id}
+              cocktail={cocktails[currentIndex]}
+              onVote={handleVote}
+            />
+          ) : (
+            <div data-section="error-state" className="text-center py-12">
+              <p className="text-muted-foreground">No cocktail data available.</p>
+              <button
+                onClick={handleReset}
+                className="mt-4 text-sm text-gold hover:text-gold/80 underline underline-offset-2"
+              >
+                Reset and start over
+              </button>
+            </div>
+          )}
         </div>
       </main>
     </div>
