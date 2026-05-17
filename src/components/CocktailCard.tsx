@@ -1,12 +1,12 @@
 /**
  * CocktailCard - Displays a cocktail card for voting via swipe
- * 
- * Phase 1.1, Wave 3: Swipe-based voting
+ *
+ * Phase 1.1, Wave 4: Swipe-based voting with auto-advance
  *   - Swipe right to agree, left to disagree
  *   - Card follows finger with CSS transform (translateX + rotate)
  *   - 40% threshold triggers fly-off animation and vote callback
  *   - Placeholder icon replaces cocktail photo (no images in Phase 1.1)
- * 
+ *
  * Annotation Convention: data-section attributes map to DevTools → grep
  *   - data-section="swipe-container" → outermost swipeable wrapper
  *   - data-section="card"            → main card container
@@ -28,12 +28,6 @@ const SWIPE_THRESHOLD = 0.4;
 interface CocktailCardProps {
   cocktail: Cocktail;
   onVote: (cocktailId: string, recipeId: string, vote: "agree" | "disagree") => void;
-  /** @deprecated Will be removed in Wave 4 — navigation is now swipe-based */
-  onNext: () => void;
-  /** @deprecated Will be removed in Wave 4 — navigation is now swipe-based */
-  onPrevious?: () => void;
-  /** @deprecated Will be removed in Wave 4 — navigation is now swipe-based */
-  showPrevious?: boolean;
 }
 
 export const CocktailCard = ({
