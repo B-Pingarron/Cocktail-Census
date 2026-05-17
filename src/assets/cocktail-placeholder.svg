@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <!-- Raw concrete background circle -->
+  <circle cx="32" cy="32" r="30" fill="#2D4A36" stroke="#C4A35A" stroke-width="1.5" opacity="0.9"/>
+
+  <!-- Geometric glass outline — simplified coupe/martini -->
+  <path d="M20 18 L26 38 L38 38 L44 18 Z"
+        stroke="#F0ECE3" stroke-width="1.5" fill="none" stroke-linejoin="round"/>
+
+  <!-- Liquid fill — geometric triangle -->
+  <path d="M24 30 L32 38 L40 30 Z"
+        fill="#C4A35A" opacity="0.4" stroke="none"/>
+
+  <!-- Liquid surface line -->
+  <line x1="24" y1="30" x2="40" y2="30"
+        stroke="#C4A35A" stroke-width="1" stroke-linecap="round"/>
+
+  <!-- Stem — single clean line -->
+  <line x1="32" y1="38" x2="32" y2="46"
+        stroke="#F0ECE3" stroke-width="1.5" stroke-linecap="round"/>
+
+  <!-- Base — geometric rectangle -->
+  <rect x="25" y="46" width="14" height="2" rx="0.5"
+        fill="#F0ECE3" opacity="0.7"/>
+
+  <!-- Garnish accent — small geometric circle (olive/cherry) -->
+  <circle cx="40" cy="28" r="2.5"
+          fill="none" stroke="#D4C28A" stroke-width="1"/>
+  <circle cx="40" cy="28" r="1"
+          fill="#D4C28A" opacity="0.6"/>
+</svg>

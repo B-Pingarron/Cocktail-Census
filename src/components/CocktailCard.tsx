@@ -1,80 +1,88 @@
-import { useState, useMemo } from "react";
+/**
+ * CocktailCard - Displays a cocktail card for voting
+ * 
+ * Phase 1.1, Wave 2: Basic card structure with vote buttons
+ *   - Displays cocktail name, recipe label, and placeholder icon
+ *   - Provides Agree/Disagree voting buttons
+ *   - Shows vote confirmation badge after voting
+ *   - Swipe-based navigation comes in Wave 3
+ * 
+ * Annotation Convention: data-section attributes map to DevTools → grep
+ *   - data-section="card"         → outermost card wrapper
+ *   - data-section="card-header" → header flex container
+ *   - data-section="card-vote-buttons" → vote buttons container
+ *   - data-section="card-voted-badge" → vote confirmation badge
+ */
+import { useState } from "react";
 import type { Cocktail } from "@/types/cocktail";
 import { RecipeDetails } from "./RecipeDetails";
-import { Check, X, ArrowRight, ArrowLeft } from "lucide-react";
+import { Check, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import placeholderIcon from "@/assets/cocktail-placeholder.svg";
 
 interface CocktailCardProps {
   cocktail: Cocktail;
   onVote: (cocktailId: string, recipeId: string, vote: "agree" | "disagree") => void;
+  /** @deprecated Will be removed in Wave 4 — navigation is now swipe-based */
   onNext: () => void;
+  /** @deprecated Will be removed in Wave 4 — navigation is now swipe-based */
   onPrevious?: () => void;
+  /** @deprecated Will be removed in Wave 4 — navigation is now swipe-based */
   showPrevious?: boolean;
 }
-
-const layoutVariants = [
-  "layout-classic",
-  "layout-wide",
-  "layout-centered",
-] as const;
 
 export const CocktailCard = ({
   cocktail,
   onVote,
-  onNext,
-  onPrevious,
-  showPrevious,
 }: CocktailCardProps) => {
-  const [selectedAlt, setSelectedAlt] = useState<string | null>(null);
+  // Tracks individual vote per recipe ID (agree/disagree)
   const [voted, setVoted] = useState<Record<string, "agree" | "disagree">>({});
-
-  const layout = useMemo(
-    () => layoutVariants[Math.floor(Math.random() * layoutVariants.length)],
-    [cocktail.id]
-  );
 
   const handleVote = (recipeId: string, vote: "agree" | "disagree") => {
     setVoted((prev) => ({ ...prev, [recipeId]: vote }));
     onVote(cocktail.id, recipeId, vote);
   };
 
+  // Check if standard recipe has been voted on
   const standardVoted = voted[cocktail.standardRecipe.id];
 
   return (
-    <div className={`w-full max-w-lg mx-auto ${layout === "layout-wide" ? "max-w-2xl" : ""}`}>
+    <div className="w-full max-w-lg mx-auto" data-section="card">
       {/* Main card */}
       <div className="relative rounded-2xl border border-gold/30 bg-card overflow-hidden shadow-lg">
-        {/* Gold accent line */}
+        {/* === Gold Accent Line === */}
         <div className="h-[2px] bg-gradient-to-r from-transparent via-gold to-transparent" />
 
-        {/* Image */}
-        {cocktail.image && (
-          <div className="w-full h-48 overflow-hidden bg-muted/30 flex items-center justify-center">
+        <div className="p-6 space-y-5">
+          {/* === Header (Name + Placeholder Image) === */}
+          <div 
+            className="flex items-start justify-between"
+            data-section="card-header"
+          >
+            <div className="flex-1 min-w-0 pr-4">
+              <h2 className="font-display text-2xl font-bold text-foreground tracking-tight">
+                {cocktail.name}
+              </h2>
+              <p className="text-sm text-gold font-body font-medium mt-1 uppercase tracking-widest">
+                {cocktail.standardRecipe.label}
+              </p>
+            </div>
             <img
-              src={cocktail.image}
-              alt={cocktail.name}
-              className="w-full h-full object-cover"
+              src={placeholderIcon}
+              alt="cocktail"
+              className="w-14 h-14 opacity-80 flex-shrink-0"
             />
           </div>
-        )}
 
-        <div className="p-6 space-y-5">
-          {/* Title */}
-          <div className="text-center">
-            <h2 className="font-display text-3xl font-bold text-foreground tracking-tight">
-              {cocktail.name}
-            </h2>
-            <p className="text-sm text-gold font-body font-medium mt-1 uppercase tracking-widest">
-              {cocktail.standardRecipe.label}
-            </p>
-          </div>
-
-          {/* Standard Recipe */}
+          {/* === Recipe Details === */}
           <RecipeDetails recipe={cocktail.standardRecipe} />
 
-          {/* Vote buttons */}
+          {/* === Vote Buttons === */}
           {!standardVoted ? (
-            <div className="flex gap-3 pt-2">
+            <div 
+              className="flex gap-3 pt-2"
+              data-section="card-vote-buttons"
+            >
               <Button
                 variant="outline"
                 className="flex-1 border-forest/40 text-forest hover:bg-forest hover:text-cream transition-all duration-200"
@@ -93,8 +101,10 @@ export const CocktailCard = ({
               </Button>
             </div>
           ) : (
+            /* === Voted Badge === */
             <div className="text-center py-2">
               <span
+                data-section="card-voted-badge"
                 className={`inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium ${
                   standardVoted === "agree"
                     ? "bg-forest/15 text-forest"
@@ -111,98 +121,6 @@ export const CocktailCard = ({
           )}
         </div>
       </div>
-
-      {/* Alternative Recipes */}
-      {standardVoted && cocktail.alternativeRecipes.length > 0 && (
-        <div className="mt-4 space-y-3 animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <p className="text-sm font-body text-muted-foreground text-center uppercase tracking-wider">
-            Alternative recipes
-          </p>
-          {cocktail.alternativeRecipes.map((alt) => (
-            <div
-              key={alt.id}
-              className="rounded-xl border border-gold/20 bg-parchment overflow-hidden"
-            >
-              <button
-                onClick={() => setSelectedAlt(selectedAlt === alt.id ? null : alt.id)}
-                className="w-full px-5 py-3 flex items-center justify-between text-left hover:bg-gold/5 transition-colors"
-              >
-                <div>
-                  <span className="font-display text-lg text-foreground font-semibold">
-                    {alt.label}
-                  </span>
-                  {alt.source && (
-                    <span className="ml-2 text-xs text-gold-muted font-body">
-                      — {alt.source}
-                    </span>
-                  )}
-                </div>
-                <ArrowRight
-                  className={`w-4 h-4 text-gold transition-transform duration-200 ${
-                    selectedAlt === alt.id ? "rotate-90" : ""
-                  }`}
-                />
-              </button>
-
-              {selectedAlt === alt.id && (
-                <div className="px-5 pb-4 space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
-                  <RecipeDetails recipe={alt} compact />
-
-                  {!voted[alt.id] ? (
-                    <div className="flex gap-3">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="flex-1 border-forest/40 text-forest hover:bg-forest hover:text-cream"
-                        onClick={() => handleVote(alt.id, "agree")}
-                      >
-                        <Check className="w-3.5 h-3.5 mr-1.5" />
-                        Prefer this
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="flex-1 border-muted-foreground/30 text-muted-foreground hover:bg-muted"
-                        onClick={() => handleVote(alt.id, "disagree")}
-                      >
-                        <X className="w-3.5 h-3.5 mr-1.5" />
-                        Not for me
-                      </Button>
-                    </div>
-                  ) : (
-                    <p className="text-center text-sm text-muted-foreground">
-                      {voted[alt.id] === "agree" ? "✓ Preferred" : "✗ Passed"}
-                    </p>
-                  )}
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Navigation buttons */}
-      {standardVoted && (
-        <div className="mt-6 flex items-center justify-center gap-3 animate-in fade-in duration-500">
-          {showPrevious && onPrevious && (
-            <Button
-              variant="outline"
-              onClick={onPrevious}
-              className="border-gold/30 text-gold hover:bg-gold/10"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Previous
-            </Button>
-          )}
-          <Button
-            onClick={onNext}
-            className="bg-forest text-cream hover:bg-forest-light px-8"
-          >
-            Next Cocktail
-            <ArrowRight className="w-4 h-4 ml-2" />
-          </Button>
-        </div>
-      )}
     </div>
   );
 };
