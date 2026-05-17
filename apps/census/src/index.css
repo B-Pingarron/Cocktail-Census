@@ -26,6 +26,15 @@
 
   body {
     @apply bg-[var(--background)] text-[var(--foreground)] font-body antialiased;
+
+    /*
+     * Phase 1.1: iOS Safari touch handling
+     * Prevents the 300ms tap delay on touch devices.
+     * Combined with react-swipeable's preventScrollOnSwipe config
+     * to ensure horizontal swipe gestures aren't suppressed.
+     * See: https://developer.mozilla.org/en-US/docs/Web/CSS/touch-action
+     */
+    touch-action: manipulation;
   }
 
   h1, h2, h3, h4 {
