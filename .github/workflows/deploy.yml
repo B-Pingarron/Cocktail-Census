@@ -7,10 +7,6 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: apps/census
-
     permissions:
       contents: read
       pages: write
@@ -32,7 +28,8 @@ jobs:
 
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: apps/census/dist
+          path: dist
 
       - id: deployment
         uses: actions/deploy-pages@v4
+
