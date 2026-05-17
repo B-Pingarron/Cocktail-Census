@@ -43,8 +43,15 @@
 }
 
 /* === Swipe Container Styles (Wave 3) === */
+/*
+ * touch-action omitted intentionally — react-swipeable's
+ * preventScrollOnSwipe: true handles scroll suppression
+ * programmatically. Setting touch-action: pan-y here would
+ * let iOS Safari intercept touch events at the compositor
+ * level, potentially competing with JS-level horizontal
+ * swipe detection.
+ */
 .swipe-container {
   user-select: none;
   -webkit-user-select: none;
-  touch-action: pan-y;
 }

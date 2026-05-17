@@ -12,8 +12,10 @@
  *   - data-section="card"            → main card container
  *   - data-section="card-header"    → header flex container
  *   - data-section="swipe-indicator" → swipe direction overlay
+ *   - data-section="nav-disagree"    → subtle "X" button (left)
+ *   - data-section="nav-agree"       → subtle "✓" button (right)
  */
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import type { Cocktail } from "@/types/cocktail";
 import { RecipeDetails } from "./RecipeDetails";
 import { useSwipeable } from "react-swipeable";
@@ -61,6 +63,31 @@ export const CocktailCard = ({
     [cocktail.id, cocktail.standardRecipe.id, onVote, isFlying]
   );
 
+  // === Keyboard Navigation (Phase 1.1) ===
+  // ArrowLeft = disagree (swipe left), ArrowRight = agree (swipe right)
+  // Added based on user feedback during review — swipe-only was an accessibility gap
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Don't intercept when typing in form elements
+      if (
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement ||
+        e.target instanceof HTMLSelectElement
+      ) return;
+
+      if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        handleSwiped("left");
+      } else if (e.key === "ArrowRight") {
+        e.preventDefault();
+        handleSwiped("right");
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [handleSwiped]);
+
   const swipeHandlers = useSwipeable({
     onSwiping: ({ deltaX }) => {
       if (isFlying) return;
@@ -103,7 +130,7 @@ export const CocktailCard = ({
     <div
       data-section="swipe-container"
       {...swipeHandlers}
-      className="w-full max-w-lg mx-auto cursor-grab active:cursor-grabbing"
+      className="relative w-full max-w-lg mx-auto cursor-grab active:cursor-grabbing"
       style={{
         transform:
           swipeDirection === "left" && isFlying
@@ -159,6 +186,44 @@ export const CocktailCard = ({
             </div>
           )}
         </div>
+
+          {/* === Subtle Nav Buttons (Phase 1.1)
+           * Tinder-style click fallback for non-swipe interaction.
+           * Semi-transparent by default, full opacity on hover.
+           * Hidden during fly-off. data-section attributes for DevTools mapping.
+           * Added after Momus review — swipe-only was an accessibility gap for keyboard users. */}
+          {!isFlying && (
+            <>
+              <button
+                data-section="nav-disagree"
+                onClick={(e) => { e.stopPropagation(); handleSwiped("left"); }}
+                className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full
+                  bg-card/70 border border-gold/20 flex items-center justify-center
+                  text-gold/60 hover:text-gold hover:border-gold/50 hover:bg-card
+                  opacity-50 hover:opacity-100 transition-all duration-200 cursor-pointer z-10
+                  backdrop-blur-sm"
+                aria-label="Disagree (swipe left)"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                  <path d="M18 6 6 18" /><path d="m6 6 12 12" />
+                </svg>
+              </button>
+              <button
+                data-section="nav-agree"
+                onClick={(e) => { e.stopPropagation(); handleSwiped("right"); }}
+                className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full
+                  bg-card/70 border border-gold/20 flex items-center justify-center
+                  text-gold/60 hover:text-gold hover:border-gold/50 hover:bg-card
+                  opacity-50 hover:opacity-100 transition-all duration-200 cursor-pointer z-10
+                  backdrop-blur-sm"
+                aria-label="Agree (swipe right)"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M20 6 9 17l-5-5" />
+                </svg>
+              </button>
+            </>
+          )}
       </div>
     </div>
   );
