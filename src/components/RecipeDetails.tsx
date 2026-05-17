@@ -13,10 +13,10 @@ export const RecipeDetails = ({ recipe, compact }: RecipeDetailsProps) => {
         {recipe.ingredients.map((ing, i) => (
           <div
             key={i}
-            className="flex items-center justify-between text-sm font-body"
+            className="grid grid-cols-[1fr_auto] items-center text-sm font-body"
           >
-            <span className="text-foreground/80">{ing.name}</span>
-            <span className="text-gold font-medium tabular-nums">
+            <span className="text-foreground/80 truncate min-w-0">{ing.name}</span>
+            <span className="text-gold font-medium tabular-nums text-right ml-4">
               {ing.amount}
             </span>
           </div>
@@ -26,26 +26,25 @@ export const RecipeDetails = ({ recipe, compact }: RecipeDetailsProps) => {
       {/* Divider */}
       <div className="h-px bg-gold/20" />
 
-      {/* Method, Glass, Garnish */}
-      <div className="grid grid-cols-3 gap-2 text-xs font-body">
-        <div>
-          <span className="text-muted-foreground block uppercase tracking-wider mb-0.5">
-            Method
-          </span>
-          <span className="text-foreground/90">{recipe.method}</span>
-        </div>
-        <div>
-          <span className="text-muted-foreground block uppercase tracking-wider mb-0.5">
-            Glass
-          </span>
-          <span className="text-foreground/90">{recipe.glass}</span>
-        </div>
-        <div>
-          <span className="text-muted-foreground block uppercase tracking-wider mb-0.5">
-            Garnish
-          </span>
-          <span className="text-foreground/90">{recipe.garnish}</span>
-        </div>
+      {/* Glass */}
+      <div className="flex items-center gap-x-2 text-xs font-body">
+        <span className="text-muted-foreground uppercase tracking-wider">Glass:</span>
+        <span className="text-foreground/90">{recipe.glass}</span>
+      </div>
+
+      {/* Garnish */}
+      <div className="flex items-center gap-x-2 text-xs font-body">
+        <span className="text-muted-foreground uppercase tracking-wider">Garnish:</span>
+        <span className="text-foreground/90">{recipe.garnish}</span>
+      </div>
+
+      {/* Divider */}
+      <div className="h-px bg-gold/20" />
+
+      {/* Method — at the very bottom, muted styling */}
+      <div className="text-xs font-body mb-4">
+        <span className="text-muted-foreground uppercase tracking-wider block mb-1">Method</span>
+        <span className="text-foreground/60 italic leading-relaxed">{recipe.method}</span>
       </div>
     </div>
   );

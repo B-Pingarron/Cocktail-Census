@@ -15,7 +15,7 @@
  *   - data-section="nav-disagree"    → subtle "X" button (left)
  *   - data-section="nav-agree"       → subtle "✓" button (right)
  */
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import type { Cocktail } from "@/types/cocktail";
 import { RecipeDetails } from "./RecipeDetails";
 import { useSwipeable } from "react-swipeable";
@@ -30,14 +30,18 @@ const SWIPE_THRESHOLD = 0.4;
 interface CocktailCardProps {
   cocktail: Cocktail;
   onVote: (cocktailId: string, recipeId: string, vote: "agree" | "disagree") => void;
+  onPrevious?: () => void;
 }
 
 export const CocktailCard = ({
   cocktail,
   onVote,
+  onPrevious,
 }: CocktailCardProps) => {
   // Tracks horizontal swipe progress as percentage of card width (negative=left, positive=right)
   const [swipeOffset, setSwipeOffset] = useState(0);
+  // Ref to always read the latest swipeOffset in event handlers (avoids stale closure)
+  const swipeOffsetRef = useRef(0);
   // Track direction after threshold crossed — "left" for disagree, "right" for agree
   const [swipeDirection, setSwipeDirection] = useState<"left" | "right" | null>(null);
   // Whether card is currently flying off-screen
@@ -91,30 +95,31 @@ export const CocktailCard = ({
   const swipeHandlers = useSwipeable({
     onSwiping: ({ deltaX }) => {
       if (isFlying) return;
-      // Clamp the swipe offset — CSS transforms use percentage, so calculate relative to card width
       const el = document.querySelector("[data-section='swipe-container']") as HTMLElement | null;
       if (el) {
         const cardWidth = el.offsetWidth;
         const percent = (deltaX / cardWidth) * 100;
+        swipeOffsetRef.current = percent;
         setSwipeOffset(percent);
       }
     },
-    onSwiped: (_eventData) => {
+    onSwiped: () => {
       if (isFlying) return;
-      const absPercent = Math.abs(swipeOffset);
+      const currentOffset = swipeOffsetRef.current;
+      const absPercent = Math.abs(currentOffset);
       if (absPercent > SWIPE_THRESHOLD * 100) {
-        handleSwiped(swipeOffset > 0 ? "right" : "left");
+        handleSwiped(currentOffset > 0 ? "right" : "left");
       } else {
-        // Snap back
         setSwipeOffset(0);
         setSwipeDirection(null);
       }
     },
     onTouchEndOrOnMouseUp: () => {
       if (isFlying) return;
-      const absPercent = Math.abs(swipeOffset);
+      const currentOffset = swipeOffsetRef.current;
+      const absPercent = Math.abs(currentOffset);
       if (absPercent > SWIPE_THRESHOLD * 100) {
-        handleSwiped(swipeOffset > 0 ? "right" : "left");
+        handleSwiped(currentOffset > 0 ? "right" : "left");
       } else {
         setSwipeOffset(0);
         setSwipeDirection(null);
@@ -151,9 +156,9 @@ export const CocktailCard = ({
         {/* === Gold Accent Line === */}
         <div className="h-[2px] bg-gradient-to-r from-transparent via-gold to-transparent" />
 
-        <div className="p-6 space-y-5">
+        <div className="p-6">
           {/* === Header (Name + Placeholder Image) === */}
-          <div className="flex items-start justify-between" data-section="card-header">
+          <div className="flex justify-between items-end" data-section="card-header">
             <div className="flex-1 min-w-0 pr-4">
               <h2 className="font-display text-2xl font-bold text-foreground tracking-tight">
                 {cocktail.name}
@@ -169,8 +174,58 @@ export const CocktailCard = ({
             />
           </div>
 
+          {/* === Identity Divider === */}
+          <div className="h-px bg-gold/20 mt-2 mb-4" />
+
           {/* === Recipe Details === */}
           <RecipeDetails recipe={cocktail.standardRecipe} />
+
+          {/* === Vote Buttons === */}
+          {!isFlying && (
+            <div className="flex justify-between items-center pt-3 border-t border-gold/20">
+              <button
+                data-section="nav-disagree"
+                onClick={(e) => { e.stopPropagation(); handleSwiped("left"); }}
+                className="w-12 h-12 rounded-full
+                  bg-card border border-concrete/30 flex items-center justify-center
+                  text-concrete/60 hover:text-concrete hover:border-concrete/50 hover:bg-card
+                  transition-all duration-200 cursor-pointer"
+                aria-label="Disagree (swipe left)"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                  <path d="M18 6 6 18" /><path d="m6 6 12 12" />
+                </svg>
+              </button>
+              {onPrevious && (
+                <button
+                  data-section="nav-previous"
+                  onClick={(e) => { e.stopPropagation(); onPrevious(); }}
+                  className="px-3 py-1.5 rounded-lg
+                    bg-card border border-concrete/20 flex items-center justify-center
+                    text-concrete/40 hover:text-concrete hover:border-concrete/40 hover:bg-card
+                    transition-all duration-200 cursor-pointer"
+                  aria-label="Previous cocktail"
+                >
+                  <span className="text-[10px] uppercase tracking-widest font-body font-bold">
+                    previous drink
+                  </span>
+                </button>
+              )}
+              <button
+                data-section="nav-agree"
+                onClick={(e) => { e.stopPropagation(); handleSwiped("right"); }}
+                className="w-12 h-12 rounded-full
+                  bg-card border border-gold/30 flex items-center justify-center
+                  text-gold/60 hover:text-gold hover:border-gold/50 hover:bg-card
+                  transition-all duration-200 cursor-pointer"
+                aria-label="Agree (swipe right)"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M20 6 9 17l-5-5" />
+                </svg>
+              </button>
+            </div>
+          )}
 
           {/* === Swipe Indicator Overlay === */}
           {swipeOffset !== 0 && !isFlying && (
@@ -187,43 +242,7 @@ export const CocktailCard = ({
           )}
         </div>
 
-          {/* === Subtle Nav Buttons (Phase 1.1)
-           * Tinder-style click fallback for non-swipe interaction.
-           * Semi-transparent by default, full opacity on hover.
-           * Hidden during fly-off. data-section attributes for DevTools mapping.
-           * Added after Momus review — swipe-only was an accessibility gap for keyboard users. */}
-          {!isFlying && (
-            <>
-              <button
-                data-section="nav-disagree"
-                onClick={(e) => { e.stopPropagation(); handleSwiped("left"); }}
-                className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full
-                  bg-card/70 border border-gold/20 flex items-center justify-center
-                  text-gold/60 hover:text-gold hover:border-gold/50 hover:bg-card
-                  opacity-50 hover:opacity-100 transition-all duration-200 cursor-pointer z-10
-                  backdrop-blur-sm"
-                aria-label="Disagree (swipe left)"
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                  <path d="M18 6 6 18" /><path d="m6 6 12 12" />
-                </svg>
-              </button>
-              <button
-                data-section="nav-agree"
-                onClick={(e) => { e.stopPropagation(); handleSwiped("right"); }}
-                className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full
-                  bg-card/70 border border-gold/20 flex items-center justify-center
-                  text-gold/60 hover:text-gold hover:border-gold/50 hover:bg-card
-                  opacity-50 hover:opacity-100 transition-all duration-200 cursor-pointer z-10
-                  backdrop-blur-sm"
-                aria-label="Agree (swipe right)"
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M20 6 9 17l-5-5" />
-                </svg>
-              </button>
-            </>
-          )}
+
       </div>
     </div>
   );

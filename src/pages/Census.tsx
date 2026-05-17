@@ -109,6 +109,12 @@ const Census = () => {
     [currentIndex]
   );
 
+  const handlePrevious = useCallback(() => {
+    setCurrentIndex((i) => Math.max(0, i - 1));
+    setFinished(false);
+    setVotes((prev) => prev.slice(0, -1));
+  }, []);
+
   const handleReset = useCallback(() => {
     localStorage.removeItem(STORAGE_KEY);
     setVotes([]);
@@ -226,6 +232,7 @@ const Census = () => {
               key={cocktails[currentIndex].id}
               cocktail={cocktails[currentIndex]}
               onVote={handleVote}
+              onPrevious={currentIndex > 0 ? handlePrevious : undefined}
             />
           ) : (
             <div data-section="error-state" className="text-center py-12">
