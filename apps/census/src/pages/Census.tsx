@@ -4,6 +4,7 @@ import { CocktailCard } from "@/components/CocktailCard";
 import { ProgressBar } from "@/components/ProgressBar";
 import type { Vote } from "@/types/cocktail";
 import { supabase } from "@/lib/supabase";
+import { SWIPE_FLYOFF_DURATION_MS } from "@/components/CocktailCard";
 
 const STORAGE_KEY = "barnerd-census-state";
 
@@ -38,6 +39,7 @@ const Census = () => {
   const [finished, setFinished] = useState(false);
   const [syncedCount, setSyncedCount] = useState(0);
   const [syncError, setSyncError] = useState<string | null>(null);
+  const [transitioning, setTransitioning] = useState(false);
 
   // Load saved state on mount
   useEffect(() => {
@@ -65,10 +67,8 @@ const Census = () => {
         timestamp: Date.now(),
       };
 
-      // Update local state immediately (optimistic)
       setVotes((prev) => [...prev, newVote]);
 
-      // Sync to Supabase silently — never blocks the UI
       if (supabase) {
         supabase
           .from("votes")
@@ -80,10 +80,7 @@ const Census = () => {
           })
           .then(({ error }) => {
             if (error) {
-              console.warn(
-                "[census] Vote sync failed (saved locally):",
-                error.message
-              );
+              console.warn("[census] Vote sync failed:", error.message);
               setSyncError("Some votes couldn't sync — they're saved locally.");
             } else {
               setSyncedCount((n) => n + 1);
@@ -91,23 +88,20 @@ const Census = () => {
             }
           });
       }
+
+      // Auto-advance after swipe fly-off animation completes
+      if (currentIndex < cocktails.length - 1) {
+        setTransitioning(true);
+        setTimeout(() => {
+          setCurrentIndex((i) => i + 1);
+          setTransitioning(false);
+        }, SWIPE_FLYOFF_DURATION_MS);
+      } else {
+        setFinished(true);
+      }
     },
-    []
+    [currentIndex]
   );
-
-  const handleNext = useCallback(() => {
-    if (currentIndex < cocktails.length - 1) {
-      setCurrentIndex((i) => i + 1);
-    } else {
-      setFinished(true);
-    }
-  }, [currentIndex]);
-
-  const handlePrevious = useCallback(() => {
-    if (currentIndex > 0) {
-      setCurrentIndex((i) => i - 1);
-    }
-  }, [currentIndex]);
 
   const handleReset = useCallback(() => {
     localStorage.removeItem(STORAGE_KEY);
@@ -215,16 +209,19 @@ const Census = () => {
         <ProgressBar current={currentIndex + 1} total={cocktails.length} />
       </div>
 
-      {/* Card */}
+      {/* Card with fade transition */}
       <main className="flex-1 px-4 pb-12">
-        <CocktailCard
-          key={cocktails[currentIndex].id}
-          cocktail={cocktails[currentIndex]}
-          onVote={handleVote}
-          onNext={handleNext}
-          onPrevious={handlePrevious}
-          showPrevious={currentIndex > 0}
-        />
+        <div
+          className={`transition-opacity duration-200 ${
+            transitioning ? "opacity-0" : "opacity-100"
+          }`}
+        >
+          <CocktailCard
+            key={cocktails[currentIndex].id}
+            cocktail={cocktails[currentIndex]}
+            onVote={handleVote}
+          />
+        </div>
       </main>
     </div>
   );
