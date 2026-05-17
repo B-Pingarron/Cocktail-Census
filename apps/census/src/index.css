@@ -41,3 +41,10 @@
     font-family: "Playfair Display", serif;
   }
 }
+
+/* === Swipe Container Styles (Wave 3) === */
+.swipe-container {
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: pan-y;
+}
