@@ -1,0 +1,353 @@
+{
+  "glasses": {
+    "collins": {
+      "scale": 0.26,
+      "offset": {
+        "x": 116,
+        "y": 13
+      },
+      "rotation": 0
+    },
+    "coupe": {
+      "scale": 0.3,
+      "offset": {
+        "x": 59,
+        "y": 180
+      },
+      "rotation": 0
+    },
+    "flute": {
+      "scale": 0.32,
+      "offset": {
+        "x": 160,
+        "y": -3
+      },
+      "rotation": 0
+    },
+    "goblet": {
+      "scale": 0.31,
+      "offset": {
+        "x": 128,
+        "y": 66
+      },
+      "rotation": 0
+    },
+    "hurricane": {
+      "scale": 0.31,
+      "offset": {
+        "x": 98,
+        "y": 13
+      },
+      "rotation": 0
+    },
+    "martini": {
+      "scale": 0.24,
+      "offset": {
+        "x": 92,
+        "y": 196
+      },
+      "rotation": 0
+    },
+    "nic-and-nora": {
+      "scale": 0.29,
+      "offset": {
+        "x": 157,
+        "y": 178
+      },
+      "rotation": 0
+    },
+    "old-fashioned": {
+      "scale": 0.34,
+      "offset": {
+        "x": 87,
+        "y": 187
+      },
+      "rotation": 0
+    },
+    "pint": {
+      "scale": 0.34,
+      "offset": {
+        "x": 91,
+        "y": -8
+      },
+      "rotation": 0
+    },
+    "shot": {
+      "scale": 0.28,
+      "offset": {
+        "x": 105,
+        "y": 281
+      },
+      "rotation": 0
+    },
+    "snifter": {
+      "scale": 0.47,
+      "offset": {
+        "x": 164,
+        "y": 87
+      },
+      "rotation": 0
+    },
+    "toddy": {
+      "scale": 0.37,
+      "offset": {
+        "x": 91,
+        "y": 144
+      },
+      "rotation": 0
+    },
+    "wine": {
+      "scale": 0.33,
+      "offset": {
+        "x": 93,
+        "y": -9
+      },
+      "rotation": 0
+    },
+    "highball-outline": {
+      "scale": 0.31,
+      "offset": {
+        "x": 128,
+        "y": 50
+      },
+      "rotation": 0
+    }
+  },
+  "fillings": {},
+  "garnishes": {
+    "basil": {
+      "scale": 0.53,
+      "offset": {
+        "x": 152,
+        "y": 103
+      },
+      "rotation": 0
+    },
+    "candied-ginger": {
+      "scale": 0.46,
+      "offset": {
+        "x": 176,
+        "y": 140
+      },
+      "rotation": 0
+    },
+    "celerystick": {
+      "scale": 1.14,
+      "offset": {
+        "x": 156,
+        "y": 0
+      },
+      "rotation": 0
+    },
+    "cherry": {
+      "scale": 0.57,
+      "offset": {
+        "x": 173,
+        "y": 58
+      },
+      "rotation": 0
+    },
+    "cinnamon-stick": {
+      "scale": 0.88,
+      "offset": {
+        "x": 156,
+        "y": 37
+      },
+      "rotation": 0
+    },
+    "cinnamon": {
+      "scale": 0.94,
+      "offset": {
+        "x": 140,
+        "y": 33
+      },
+      "rotation": 0
+    },
+    "coffee-beans": {
+      "scale": 0.71,
+      "offset": {
+        "x": 136,
+        "y": 66
+      },
+      "rotation": 0
+    },
+    "cucumber": {
+      "scale": 0.82,
+      "offset": {
+        "x": 123,
+        "y": 37
+      },
+      "rotation": 0
+    },
+    "grapefruit-wedge": {
+      "scale": 0.76,
+      "offset": {
+        "x": 217,
+        "y": 432
+      },
+      "rotation": -128
+    },
+    "lemon-twist": {
+      "scale": 0.76,
+      "offset": {
+        "x": 86,
+        "y": 165
+      },
+      "rotation": 0
+    },
+    "lemon-wedge": {
+      "scale": 0.75,
+      "offset": {
+        "x": 189,
+        "y": 424
+      },
+      "rotation": -131
+    },
+    "lime-twist": {
+      "scale": 0.59,
+      "offset": {
+        "x": 123,
+        "y": 184
+      },
+      "rotation": 0
+    },
+    "lime-wedge": {
+      "scale": 0.67,
+      "offset": {
+        "x": 176,
+        "y": 407
+      },
+      "rotation": -126
+    },
+    "mint1": {
+      "scale": 1,
+      "offset": {
+        "x": 127,
+        "y": 25
+      },
+      "rotation": 0
+    },
+    "mint2": {
+      "scale": 1,
+      "offset": {
+        "x": 160,
+        "y": 21
+      },
+      "rotation": 0
+    },
+    "mint3": {
+      "scale": 1,
+      "offset": {
+        "x": 160,
+        "y": 41
+      },
+      "rotation": 0
+    },
+    "mint4": {
+      "scale": 1,
+      "offset": {
+        "x": 164,
+        "y": 49
+      },
+      "rotation": 0
+    },
+    "nutmeg": {
+      "scale": 0.62,
+      "offset": {
+        "x": 90,
+        "y": 164
+      },
+      "rotation": 0
+    },
+    "olive": {
+      "scale": 0.4,
+      "offset": {
+        "x": 193,
+        "y": 131
+      },
+      "rotation": 0
+    },
+    "orange-twist": {
+      "scale": 0.77,
+      "offset": {
+        "x": 78,
+        "y": 115
+      },
+      "rotation": 0
+    },
+    "orange-wedge": {
+      "scale": 0.92,
+      "offset": {
+        "x": 192,
+        "y": 436
+      },
+      "rotation": -125
+    },
+    "pineapple": {
+      "scale": 1.04,
+      "offset": {
+        "x": -25,
+        "y": 240
+      },
+      "rotation": -51
+    },
+    "raspberry": {
+      "scale": 0.61,
+      "offset": {
+        "x": 160,
+        "y": 111
+      },
+      "rotation": 0
+    },
+    "raspberry1": {
+      "scale": 0.61,
+      "offset": {
+        "x": 123,
+        "y": 82
+      },
+      "rotation": 0
+    },
+    "raspberry2": {
+      "scale": 0.66,
+      "offset": {
+        "x": 99,
+        "y": 99
+      },
+      "rotation": 0
+    },
+    "saltrim": {
+      "scale": 0.75,
+      "offset": {
+        "x": 82,
+        "y": 210
+      },
+      "rotation": 0
+    },
+    "stirrer": {
+      "scale": 1,
+      "offset": {
+        "x": 148,
+        "y": 41
+      },
+      "rotation": 0
+    },
+    "straw": {
+      "scale": 1,
+      "offset": {
+        "x": 226,
+        "y": 49
+      },
+      "rotation": 0
+    },
+    "umbrella": {
+      "scale": 1,
+      "offset": {
+        "x": 95,
+        "y": 49
+      },
+      "rotation": 0
+    }
+  },
+  "foams": {},
+  "ice": {}
+}
