@@ -19,7 +19,7 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import type { Cocktail } from "@/types/cocktail";
 import { RecipeDetails } from "./RecipeDetails";
 import { useSwipeable } from "react-swipeable";
-import placeholderIcon from "@/assets/cocktail-placeholder.svg";
+import { cocktailArt } from "@/lib/cocktailArt";
 
 /** Duration of the fly-off animation in ms — synchronized with SWIPE_FLYOFF_DURATION_MS in Census.tsx (Wave 4) */
 export const SWIPE_FLYOFF_DURATION_MS = 250;
@@ -168,9 +168,9 @@ export const CocktailCard = ({
               </p>
             </div>
             <img
-              src={placeholderIcon}
+              src={cocktailArt(cocktail.id)}
               alt="cocktail"
-              className="w-14 h-14 opacity-80 flex-shrink-0"
+              className="w-14 h-14 flex-shrink-0"
             />
           </div>
 
