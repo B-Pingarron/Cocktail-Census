@@ -2096,86 +2096,86 @@ export const cocktails: Cocktail[] = [
   }
 ,
   {
-    id: "porto-flip",
-    name: "Porto Flip",
+    id: "gin-basil-smash",
+    name: "Gin Basil Smash",
     image: "",
     tier: 3,
     standardRecipe: {
-      id: "porto-flip-std",
+      id: "gin-basil-smash-std",
       label: "Standard",
       ingredients: [
-          { name: "Ruby port", amount: "4.5 cl" },
-          { name: "Cognac", amount: "4.5 cl" },
-          { name: "Egg yolk", amount: "1" },
-          { name: "Simple syrup", amount: "0.75 cl" }
+          { name: "Basil leaves", amount: "12 fresh" },
+          { name: "Rutte Dry Gin", amount: "6 cl" },
+          { name: "Lemon juice (freshly squeezed)", amount: "2.25 cl" },
+          { name: "Sugar syrup", amount: "1 cl" }
+      ],
+      method: "Shake all ingredients with ice. Strain into chilled glass.",
+      glass: "Old-fashioned glass",
+      garnish: "3 basil sprigs",
+    },
+    alternativeRecipes: [],
+  }
+,
+  {
+    id: "bijou",
+    name: "Bijou",
+    image: "",
+    tier: 4,
+    standardRecipe: {
+      id: "bijou-std",
+      label: "Standard",
+      ingredients: [
+          { name: "Rutte Dry Gin", amount: "3 cl" },
+          { name: "Green Chartreuse liqueur", amount: "3 cl" },
+          { name: "Martini Rosso sweet vermouth", amount: "3 cl" }
+      ],
+      method: "Stir all ingredients over ice. Strain into glass.",
+      glass: "Coupe glass",
+      garnish: "Maraschino Cherry",
+    },
+    alternativeRecipes: [],
+  }
+,
+  {
+    id: "lucien-gaudin",
+    name: "Lucien Gaudin",
+    image: "",
+    tier: 4,
+    standardRecipe: {
+      id: "lucien-gaudin-std",
+      label: "Standard",
+      ingredients: [
+          { name: "Rutte Dry Gin", amount: "4 cl" },
+          { name: "De Kuyper Triple Sec (40%)", amount: "2 cl" },
+          { name: "Italian red bitter liqueur", amount: "2 cl" },
+          { name: "Martini Extra Dry vermouth", amount: "2 cl" }
+      ],
+      method: "Stir all ingredients over ice. Strain into glass.",
+      glass: "Coupe glass",
+      garnish: "Orange twist",
+    },
+    alternativeRecipes: [],
+  }
+,
+  {
+    id: "scofflaw",
+    name: "Scofflaw",
+    image: "",
+    tier: 4,
+    standardRecipe: {
+      id: "scofflaw-std",
+      label: "Standard",
+      ingredients: [
+          { name: "Bourbon whiskey", amount: "4.5 cl" },
+          { name: "Martini Extra Dry vermouth", amount: "4.5 cl" },
+          { name: "Lemon juice (freshly squeezed)", amount: "1.5 cl" },
+          { name: "Giffard Grenadine syrup", amount: "0.5 cl" },
+          { name: "Sugar syrup", amount: "0.5 cl" },
+          { name: "Angostura Aromatic Bitters", amount: "1 dash" }
       ],
       method: "Shake all ingredients with ice. Strain into chilled glass.",
       glass: "Coupe glass",
-      garnish: "Fresh nutmeg",
-    },
-    alternativeRecipes: [],
-  }
-,
-  {
-    id: "angostura-colada",
-    name: "Angostura Colada",
-    image: "",
-    tier: 4,
-    standardRecipe: {
-      id: "angostura-colada-std",
-      label: "Standard",
-      ingredients: [
-          { name: "Angostura bitters", amount: "4.5 cl" },
-          { name: "Pineapple juice", amount: "3 cl" },
-          { name: "Coconut cream", amount: "3 cl" },
-          { name: "Lime juice (freshly squeezed)", amount: "1.5 cl" }
-      ],
-      method: "Blend all ingredients with crushed ice. Pour into glass.",
-      glass: "Hurricane glass",
-      garnish: "Pineapple wedge & cherry",
-    },
-    alternativeRecipes: [],
-  }
-,
-  {
-    id: "la-louisiana",
-    name: "La Louisiana",
-    image: "",
-    tier: 4,
-    standardRecipe: {
-      id: "la-louisiana-std",
-      label: "Standard",
-      ingredients: [
-          { name: "Rye whiskey", amount: "3 cl" },
-          { name: "Sweet vermouth", amount: "3 cl" },
-          { name: "Bénédictine", amount: "1.5 cl" },
-          { name: "Peychaud\'s bitters", amount: "2 dash" },
-          { name: "Absinthe", amount: "2 dash" }
-      ],
-      method: "Stir all ingredients over ice. Strain into chilled glass.",
-      glass: "Coupe glass",
-      garnish: "Lemon twist",
-    },
-    alternativeRecipes: [],
-  }
-,
-  {
-    id: "cucumber-gimlet",
-    name: "Cucumber Gimlet",
-    image: "",
-    tier: 4,
-    standardRecipe: {
-      id: "cucumber-gimlet-std",
-      label: "Standard",
-      ingredients: [
-          { name: "Gin", amount: "6 cl" },
-          { name: "Lime juice (freshly squeezed)", amount: "2 cl" },
-          { name: "Simple syrup", amount: "1.5 cl" },
-          { name: "Cucumber", amount: "3 slice" }
-      ],
-      method: "Muddle cucumber with simple syrup. Add gin and lime. Shake with ice. Fine strain into glass.",
-      glass: "Coupe glass",
-      garnish: "Cucumber slice",
+      garnish: "Lemon zest twist",
     },
     alternativeRecipes: [],
   }

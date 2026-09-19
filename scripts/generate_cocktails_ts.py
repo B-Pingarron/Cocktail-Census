@@ -9,8 +9,8 @@ import re
 
 # Paths
 CSV_PATH = os.path.join(os.path.dirname(__file__), "..", "Data", "cocktails-100.csv")
-ASSETS_DIR = os.path.join(os.path.dirname(__file__), "..", "apps", "census", "src", "assets")
-OUTPUT_PATH = os.path.join(os.path.dirname(__file__), "..", "apps", "census", "src", "data", "cocktails.ts")
+ASSETS_DIR = os.path.join(os.path.dirname(__file__), "..", "src", "assets")
+OUTPUT_PATH = os.path.join(os.path.dirname(__file__), "..", "src", "data", "cocktails.ts")
 
 # IDs that should always get images if they exist — these are the 50 original IBA cocktails
 EXISTING_ASSETS = set()
