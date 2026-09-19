@@ -2,36 +2,13 @@ import { useState, useCallback, useEffect } from "react";
 import { cocktails } from "@/data/cocktails";
 import { CocktailCard } from "@/components/CocktailCard";
 import { ProgressBar } from "@/components/ProgressBar";
+import CensusResults from "@/components/CensusResults";
 import type { Vote } from "@/types/cocktail";
 import { supabase } from "@/lib/supabase";
 import { SWIPE_FLYOFF_DURATION_MS } from "@/components/CocktailCard";
-
-const STORAGE_KEY = "barnerd-census-state";
-
-interface SavedState {
-  votes: Vote[];
-  currentIndex: number;
-  finished: boolean;
-  syncedCount?: number;
-}
-
-function loadState(): SavedState | null {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return null;
-    return JSON.parse(raw) as SavedState;
-  } catch {
-    return null;
-  }
-}
-
-function saveState(state: SavedState): void {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  } catch {
-    // localStorage full or unavailable — silently ignore
-  }
-}
+// Local census state lives in one module so the landing page can read saved progress
+// without duplicating the storage key.
+import { clearState, loadState, saveState } from "@/lib/censusState";
 
 const Census = () => {
   const [initialised, setInitialised] = useState(false);
@@ -120,7 +97,7 @@ const Census = () => {
   }, []);
 
   const handleReset = useCallback(() => {
-    localStorage.removeItem(STORAGE_KEY);
+    clearState();
     setVotes([]);
     setCurrentIndex(0);
     setFinished(false);
@@ -172,6 +149,9 @@ const Census = () => {
               </div>
             </div>
           </div>
+          {/* Rankings, read from the aggregate tally view. Fail-soft: renders nothing
+              at all when the query is unavailable, so the stats above always survive. */}
+          <CensusResults />
           {/* Sync status */}
           {supabase && (
             <p className="text-xs text-muted-foreground/60">

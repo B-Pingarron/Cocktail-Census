@@ -49,6 +49,30 @@ create policy "Anyone can read votes"
 --   with check (false);
 
 -- ============================================================
+-- 5. Aggregate tally view — feeds the "top loved / top hated" tables on the results page.
+--
+--    A view, NOT a table or a materialized view. It is a stored query: every SELECT
+--    re-runs it against current data, so there is nothing to refresh and it cannot go
+--    stale. A materialized view would need REFRESH MATERIALIZED VIEW, which the anon
+--    role cannot run — exposing that through a SECURITY DEFINER function would let any
+--    visitor trigger a full recompute.
+--
+--    Kept identical to src/db/add-cocktail-tally-view.sql, which is the migration to run
+--    against an already-provisioned database. Change one, change the other.
+-- ============================================================
+
+create or replace view public.cocktail_tally as
+select
+  cocktail_id,
+  count(*) filter (where vote = 'agree')    as agrees,
+  count(*) filter (where vote = 'disagree') as disagrees,
+  count(*)                                  as total
+from public.votes
+group by cocktail_id;
+
+grant select on public.cocktail_tally to anon;
+
+-- ============================================================
 -- Done. Your app can now insert votes via:
 --   supabase.from('votes').insert({ cocktail_id, recipe_id, vote, timestamp })
 -- ============================================================
