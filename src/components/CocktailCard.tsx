@@ -172,7 +172,7 @@ export const CocktailCard = ({
                   same HEIGHT made drawn area proportional to aspect ratio, so wide drinks carried
                   2.5x the visual weight of tall ones; this cap brings that to 1.57x. 97/124 =
                   0.782. Tall drinks now keep full height and the wide ones give some back. */}
-              <div className="absolute inset-0 m-auto h-[74px] w-[74px] -translate-x-2 translate-y-2 rounded-full border-2 border-gold/40 bg-[#2b3a4a]" />
+              <div className="absolute inset-0 m-auto h-[74px] w-[74px] -translate-x-1 translate-y-2 rounded-full border-2 border-gold/40 bg-[#2b3a4a]" />
               <img
                 src={cocktailArt(cocktail.id)}
                 alt="cocktail"

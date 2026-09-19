@@ -12,6 +12,7 @@ interface SavedState {
   votes: Vote[];
   currentIndex: number;
   finished: boolean;
+  syncedCount?: number;
 }
 
 function loadState(): SavedState | null {
@@ -54,6 +55,9 @@ const Census = () => {
       setVotes(validVotes);
       setCurrentIndex(Math.max(0, validIndex));
       setFinished(saved.finished && validIndex >= cocktails.length - 1);
+      // A restored session has no in-flight syncs. Without this the completion screen
+      // claims "Syncing votes… (0/N)" forever after a reload.
+      setSyncedCount(saved.syncedCount ?? 0);
     }
     setInitialised(true);
   }, []);
@@ -61,8 +65,8 @@ const Census = () => {
   // Persist state whenever votes/index/finished change (but not before initial load)
   useEffect(() => {
     if (!initialised) return;
-    saveState({ votes, currentIndex, finished });
-  }, [votes, currentIndex, finished, initialised]);
+    saveState({ votes, currentIndex, finished, syncedCount });
+  }, [votes, currentIndex, finished, syncedCount, initialised]);
 
   const handleVote = useCallback(
     (cocktailId: string, recipeId: string, vote: "agree" | "disagree") => {
@@ -120,6 +124,9 @@ const Census = () => {
     setVotes([]);
     setCurrentIndex(0);
     setFinished(false);
+    // Zero the counter as well, or a second run reports more synced than votes cast.
+    setSyncedCount(0);
+    setSyncError(null);
   }, []);
 
   if (!initialised) {
@@ -170,7 +177,7 @@ const Census = () => {
             <p className="text-xs text-muted-foreground/60">
               {syncedCount === votes.length
                 ? `✓ ${syncedCount} votes synced to cloud`
-                : `Syncing votes… (${syncedCount}/${votes.length})`}
+                : `${syncedCount} of ${votes.length} votes synced to cloud`}
             </p>
           )}
           {syncError && (
