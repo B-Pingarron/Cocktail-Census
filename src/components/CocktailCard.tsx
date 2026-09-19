@@ -167,11 +167,18 @@ export const CocktailCard = ({
                 {cocktail.standardRecipe.label}
               </p>
             </div>
-            <img
-              src={cocktailArt(cocktail.id)}
-              alt="cocktail"
-              className="h-16 w-20 flex-shrink-0 object-contain"
-            />
+            <div className="relative flex h-[124px] w-[105px] flex-shrink-0 items-center justify-center">
+              {/* Sizing rule: width is capped at 0.78x the box height. Sizing every drink to the
+                  same HEIGHT made drawn area proportional to aspect ratio, so wide drinks carried
+                  2.5x the visual weight of tall ones; this cap brings that to 1.57x. 97/124 =
+                  0.782. Tall drinks now keep full height and the wide ones give some back. */}
+              <div className="absolute inset-0 m-auto h-[74px] w-[74px] -translate-x-2 translate-y-2 rounded-full border-2 border-gold/40 bg-[#2b3a4a]" />
+              <img
+                src={cocktailArt(cocktail.id)}
+                alt="cocktail"
+                className="relative h-auto max-h-[124px] w-[97px] rotate-3 object-contain"
+              />
+            </div>
           </div>
 
           {/* === Identity Divider === */}
