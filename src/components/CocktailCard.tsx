@@ -170,7 +170,7 @@ export const CocktailCard = ({
             <img
               src={cocktailArt(cocktail.id)}
               alt="cocktail"
-              className="w-14 h-14 flex-shrink-0"
+              className="h-16 w-20 flex-shrink-0 object-contain"
             />
           </div>
 
