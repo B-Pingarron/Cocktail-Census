@@ -46,11 +46,22 @@ export const CocktailCard = ({
   const [swipeDirection, setSwipeDirection] = useState<"left" | "right" | null>(null);
   // Whether card is currently flying off-screen
   const [isFlying, setIsFlying] = useState(false);
+  // Synchronous mutex for "this card has already committed a vote".
+  //
+  // `isFlying` above is STATE, so it is still false for every handler running in the same
+  // tick. react-swipeable fires BOTH onSwiped and onTouchEndOrOnMouseUp for one touch
+  // gesture, so a state guard let both through: two onVote calls, two cards advanced, and
+  // two rows written per swipe. A ref is read and written synchronously, so the second path
+  // sees that the first already claimed the gesture. Both paths are kept deliberately.
+  //
+  // No reset needed on unmount — Census remounts the card per cocktail via `key`.
+  const flyingRef = useRef(false);
 
   /** Handle swipe completion — called when user releases past threshold */
   const handleSwiped = useCallback(
     (direction: "left" | "right") => {
-      if (isFlying) return;
+      if (flyingRef.current) return;
+      flyingRef.current = true;
       setIsFlying(true);
       setSwipeDirection(direction);
 
@@ -64,7 +75,7 @@ export const CocktailCard = ({
         // Note: Wave 4 adds auto-advance to next cocktail here
       }, SWIPE_FLYOFF_DURATION_MS);
     },
-    [cocktail.id, cocktail.standardRecipe.id, onVote, isFlying]
+    [cocktail.id, cocktail.standardRecipe.id, onVote]
   );
 
   // === Keyboard Navigation (Phase 1.1) ===
@@ -94,7 +105,7 @@ export const CocktailCard = ({
 
   const swipeHandlers = useSwipeable({
     onSwiping: ({ deltaX }) => {
-      if (isFlying) return;
+      if (flyingRef.current) return;
       const el = document.querySelector("[data-section='swipe-container']") as HTMLElement | null;
       if (el) {
         const cardWidth = el.offsetWidth;
@@ -104,7 +115,7 @@ export const CocktailCard = ({
       }
     },
     onSwiped: () => {
-      if (isFlying) return;
+      if (flyingRef.current) return;
       const currentOffset = swipeOffsetRef.current;
       const absPercent = Math.abs(currentOffset);
       if (absPercent > SWIPE_THRESHOLD * 100) {
@@ -115,7 +126,7 @@ export const CocktailCard = ({
       }
     },
     onTouchEndOrOnMouseUp: () => {
-      if (isFlying) return;
+      if (flyingRef.current) return;
       const currentOffset = swipeOffsetRef.current;
       const absPercent = Math.abs(currentOffset);
       if (absPercent > SWIPE_THRESHOLD * 100) {

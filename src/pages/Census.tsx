@@ -137,13 +137,13 @@ const Census = () => {
             </p>
             <div className="flex gap-6 text-center">
               <div>
-                <p className="text-2xl font-display font-bold text-forest">
+                <p className="text-2xl font-display font-bold text-gold">
                   {votes.filter((v) => v.vote === "agree").length}
                 </p>
                 <p className="text-xs text-muted-foreground">Agreed</p>
               </div>
               <div>
-                <p className="text-2xl font-display font-bold text-destructive">
+                <p className="text-2xl font-display font-bold text-gold">
                   {votes.filter((v) => v.vote === "disagree").length}
                 </p>
                 <p className="text-xs text-muted-foreground">Disagreed</p>
@@ -162,7 +162,7 @@ const Census = () => {
             </p>
           )}
           {syncError && (
-            <p className="text-xs text-destructive/80">{syncError}</p>
+            <p className="text-xs text-destructive">{syncError}</p>
           )}
           {/* Replaces the old GitHub-issues link: a stranger will type a sentence, but will
               not open a GitHub account. Deliberately NOT fail-soft — a silently lost message

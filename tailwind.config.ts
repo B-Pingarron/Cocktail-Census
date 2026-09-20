@@ -26,6 +26,11 @@ export default {
         concrete: "#8A8780",
         // Gold-light — softer gold for hover states, subtle glow effects, garnish accents
         "gold-light": "#D4C28A",
+
+        // Destructive — error text only. Defined 2026-09-20: it was already being used in
+        // Census.tsx, but with no entry here `text-destructive` generated no CSS rule and
+        // silently did nothing. Matches --destructive in index.css.
+        destructive: "#ef4444",
       },
       borderColor: {
         border: "var(--border)",

@@ -77,7 +77,7 @@ const FeedbackForm = () => {
             {status === "sending" ? "Sending…" : "Send"}
           </button>
           {status === "failed" && (
-            <p className="font-body text-xs text-[var(--destructive)]">
+            <p className="font-body text-xs text-destructive">
               Couldn't send that. Check your connection and try again.
             </p>
           )}
