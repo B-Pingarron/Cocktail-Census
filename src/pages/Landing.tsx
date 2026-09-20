@@ -59,12 +59,15 @@ const Landing = () => {
           <h2 className="text-xs uppercase tracking-widest text-gold">How it works</h2>
           <ul className="space-y-2 leading-relaxed">
             <li>
-              <span className="text-foreground">Swipe right</span> if the recipe looks right to
-              you, <span className="text-foreground">swipe left</span> if it does not.
+              You are judging the <span className="text-foreground">recipe</span>, not the
+              drink: the ingredients, the method, the glass, the garnish. Agree if that is how
+              you would make it.
             </li>
             <li>
-              On a keyboard, <span className="text-foreground">→</span> agrees and{" "}
-              <span className="text-foreground">←</span> disagrees.
+              <span className="text-foreground">Swipe right</span> to agree,{" "}
+              <span className="text-foreground">swipe left</span> to disagree. On a keyboard,{" "}
+              <span className="text-foreground">→</span> and{" "}
+              <span className="text-foreground">←</span> do the same.
             </li>
             <li>
               Changed your mind? <span className="text-foreground">Previous drink</span> steps

@@ -73,6 +73,39 @@ group by cocktail_id;
 grant select on public.cocktail_tally to anon;
 
 -- ============================================================
+-- 6. Feedback — free text from visitors, shown on the results screen.
+--
+--    Opposite read policy to votes, deliberately. Votes carry no identity and their
+--    aggregate IS the deliverable, so votes are publicly readable. Feedback is free text
+--    a stranger typed and must stay private: anon gets INSERT only, never SELECT. Read it
+--    in the dashboard table editor.
+--
+--    Kept identical to src/db/add-feedback-table.sql, the migration for a live database.
+--    Change one, change the other.
+-- ============================================================
+
+create table if not exists public.feedback (
+  id         uuid        not null default gen_random_uuid() primary key,
+  message    text        not null,
+  created_at timestamptz not null default now(),
+  -- Bounds the damage from a public write endpoint with a free-text field.
+  constraint feedback_message_length check (char_length(message) between 1 and 2000)
+);
+
+grant insert on public.feedback to anon;
+
+alter table public.feedback enable row level security;
+
+drop policy if exists "Anyone can leave feedback" on public.feedback;
+create policy "Anyone can leave feedback"
+  on public.feedback
+  for insert
+  to anon
+  with check (true);
+
+-- No select policy for anon: intentional.
+
+-- ============================================================
 -- Done. Your app can now insert votes via:
 --   supabase.from('votes').insert({ cocktail_id, recipe_id, vote, timestamp })
 -- ============================================================

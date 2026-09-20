@@ -101,11 +101,11 @@ const CensusResults = () => {
 
   return (
     <div className="space-y-6" data-section="census-results">
-      {table("Most agreed with", "Cocktails with the most agreement so far", byAgrees, (r) => r.agrees)}
-      {table("Most disagreed with", "Cocktails with the most disagreement so far", byDisagrees, (r) => r.disagrees)}
+      {table("Recipes most agreed with", "Recipes with the most agreement so far", byAgrees, (r) => r.agrees)}
+      {table("Recipes most disagreed with", "Recipes with the most disagreement so far", byDisagrees, (r) => r.disagrees)}
       <p className="text-xs text-muted-foreground/60">
-        Based on {censusSize.toLocaleString()} votes so far. A cocktail needs at least {MIN_SAMPLE} votes
-        to appear.
+        Based on {censusSize.toLocaleString()} votes so far — an early picture, not a verdict.
+        A recipe needs at least {MIN_SAMPLE} votes to appear.
       </p>
     </div>
   );

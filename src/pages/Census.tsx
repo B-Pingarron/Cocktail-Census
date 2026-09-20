@@ -3,6 +3,7 @@ import { cocktails } from "@/data/cocktails";
 import { CocktailCard } from "@/components/CocktailCard";
 import { ProgressBar } from "@/components/ProgressBar";
 import CensusResults from "@/components/CensusResults";
+import FeedbackForm from "@/components/FeedbackForm";
 import type { Vote } from "@/types/cocktail";
 import { supabase } from "@/lib/supabase";
 import { SWIPE_FLYOFF_DURATION_MS } from "@/components/CocktailCard";
@@ -163,6 +164,10 @@ const Census = () => {
           {syncError && (
             <p className="text-xs text-destructive/80">{syncError}</p>
           )}
+          {/* Replaces the old GitHub-issues link: a stranger will type a sentence, but will
+              not open a GitHub account. Deliberately NOT fail-soft — a silently lost message
+              is worse than an error, so this one reports failure and keeps the text. */}
+          <FeedbackForm />
           <div className="flex flex-col items-center gap-3" data-section="completion-actions">
             <button
               onClick={handleReset}
@@ -170,14 +175,6 @@ const Census = () => {
             >
               Retry
             </button>
-            <a
-              href="https://github.com/B-Pingarron/Cocktail-Census/issues"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-sm text-muted-foreground hover:text-gold transition-colors underline underline-offset-2"
-            >
-              Feedback
-            </a>
           </div>
         </div>
       </div>
