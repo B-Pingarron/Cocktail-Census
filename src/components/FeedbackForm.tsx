@@ -52,7 +52,7 @@ const FeedbackForm = () => {
 
       {status === "sent" ? (
         <p className="font-body text-sm text-muted-foreground">
-          Thanks — that helps.
+          Thanks for the tip!
         </p>
       ) : (
         <>
