@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { cocktails } from "@/data/cocktails";
 import { clearState, loadState } from "@/lib/censusState";
+import Wordmark from "@/components/Wordmark";
 
 /**
  * Landing page — the first thing a visitor sees, and the target for a single QR code.
@@ -34,6 +35,8 @@ const Landing = () => {
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-md space-y-8">
+        <Wordmark />
+
         <header className="space-y-3 text-center">
           <h1 className="font-display text-4xl font-bold text-gold">The Cocktail Census</h1>
           <p className="font-body text-muted-foreground">Vote on recipes. Shape the standard.</p>
@@ -87,6 +90,43 @@ const Landing = () => {
           >
             {label}
           </button>
+
+          {/*
+           * Wave 6: the honest effort estimate.
+           *
+           * The page asked for a hundred judgements and never said how long that takes. For a
+           * survey this size the effort is the main drop-off risk: a visitor who assumes "this
+           * will take forever" leaves before the first card, and one who assumes two minutes
+           * feels misled by card twenty. Saying the number up front — and saying that stopping is
+           * allowed — costs a little click-through and buys the completion rate, which is the
+           * only metric that matters here.
+           */}
+          <p className="font-body text-xs text-muted-foreground/70">
+            About 3 minutes for all 100 — and you can stop any time.
+          </p>
+
+          {/*
+           * Wave 6: the keyboard hint row, desktop only.
+           *
+           * `trackMouse: false` on the swipe container is deliberate — mouse-drag swiping fights
+           * text selection and feels wrong on desktop — so a desktop visitor CANNOT drag the card
+           * at all. Their only fast path is the arrow keys, and until now nothing next to the CTA
+           * said so: the only mention lived inside the "How it works" list further up the page.
+           * Hidden below `md:` because a phone has a thumb and no arrow keys, and the hint would
+           * be noise there.
+           */}
+          <div className="hidden md:flex items-center justify-center gap-2 font-body text-[11px] text-muted-foreground/60">
+            <kbd className="rounded border border-concrete/30 bg-muted px-1.5 py-0.5 font-body text-[11px] leading-none text-foreground/80">
+              ←
+            </kbd>
+            <span>disagree</span>
+            <span className="text-muted-foreground/30">·</span>
+            <kbd className="rounded border border-concrete/30 bg-muted px-1.5 py-0.5 font-body text-[11px] leading-none text-foreground/80">
+              →
+            </kbd>
+            <span>agree</span>
+          </div>
+
           {voted > 0 && (
             <p className="text-xs text-muted-foreground/60">
               {voted} of {cocktails.length} done.{" "}

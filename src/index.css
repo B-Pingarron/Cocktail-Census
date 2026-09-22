@@ -1,3 +1,21 @@
+/*
+ * Wave 6 (UI/UX): the edge-angle custom property MUST be declared before anything else.
+ *
+ * CSS gradients are not interpolatable — a browser cannot tween `conic-gradient(from 0deg…)`
+ * into `conic-gradient(from 360deg…)`, it can only swap between them. To animate the angle the
+ * angle has to live in a *typed* custom property, and `@property` is what gives it a type
+ * (`<angle>`) and an initial value. With that registration the browser can interpolate the
+ * number behind the gradient and re-resolve the gradient on every frame.
+ *
+ * Declared at the very top of the file, outside any layer, so it is registered before any rule
+ * that reads it and cannot be reordered by a later cascade decision.
+ */
+@property --edge-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -18,6 +36,18 @@
     --border: #2a2a2a;
     --ring: #c7a34b;
     --radius: 0.75rem;
+
+    /*
+     * Plain fallback for --edge-angle, matching the initial-value above.
+     *
+     * @property is not implemented everywhere. A browser without it sees an *unregistered*
+     * custom property, which is just a token substitution — so `var(--edge-angle)` still needs
+     * a value on the element or the whole `conic-gradient()` is invalid and the card border
+     * disappears entirely. Declaring it here means those browsers render a valid, static
+     * gradient; they simply do not animate it. Animation is progressive enhancement, the
+     * border is not.
+     */
+    --edge-angle: 0deg;
   }
 
   * {
@@ -40,6 +70,157 @@
   h1, h2, h3, h4 {
     font-family: "Playfair Display", serif;
   }
+
+  /*
+   * Keyboard focus ring (Wave 6).
+   *
+   * There was no focus styling anywhere in the app: the vote buttons, "previous drink", "Reset
+   * progress" and the landing CTA all rendered with the browser default suppressed by the dark
+   * palette, and a keyboard user tabbing through the card got no indication of where they were.
+   * A single global rule fixes every rendered control at once, which is why it lives here and
+   * not on individual buttons.
+   *
+   * `:focus-visible` rather than `:focus` so a mouse click or a swipe does not leave a ring
+   * behind — the ring only appears for keyboard/AT navigation.
+   */
+  :focus-visible {
+    outline: 2px solid var(--gold);
+    outline-offset: 2px;
+  }
+}
+
+/*
+ * Reduced-motion guard (Wave 6).
+ *
+ * Declared BEFORE any of the animations below and at top level, so every keyframe animation and
+ * every transition added in this wave (edge-spin, card-enter, stamp-in, receipt-in, shimmer, the
+ * progress-bar fill, the swipe fly-off) is already covered the moment it is defined. Nothing
+ * below needs to remember to opt out.
+ *
+ * `0.001ms` rather than `0s`: a zero-duration animation still fires `animationend`, while
+ * `animation-play-state: paused` or `animation: none` can strand code that waits on the event.
+ * `animation-iteration-count: 1` stops the infinite edge-spin and shimmer loops. Fill modes are
+ * left alone, so an animation with `both` still lands on its final keyframe (the stamp stays
+ * rotated, the card stays revealed) instead of snapping back to the from-state.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* === Wave 6: Animated Card Edge === */
+
+/*
+ * The conic border that travels around the card.
+ *
+ * A conic-gradient is not interpolatable, so `edge-spin` animates the registered custom
+ * property `--edge-angle` instead of the gradient itself. Because `--edge-angle` is typed as
+ * `<angle>`, the browser re-resolves the gradient each frame and the highlight sweeps around the
+ * card. The 2px of `padding` is the border: the child card sits on top of it and only that ring
+ * of the wrapper's background shows through.
+ */
+@keyframes edge-spin {
+  to { --edge-angle: 360deg; }
+}
+
+.card-edge {
+  position: relative;
+  padding: 2px;
+  border-radius: 1rem;
+  background: conic-gradient(from var(--edge-angle), #c7a34b, #0e2a21, #c7a34b, #8A8780, #c7a34b);
+  animation: edge-spin 8s linear infinite;
+}
+
+/* Agree: warmer and faster — the sweep picks up speed as the visitor leans right. */
+.card-edge--agree {
+  background: conic-gradient(from var(--edge-angle), #c7a34b, #f3d98a, #c7a34b, #f3d98a, #c7a34b);
+  animation-duration: 3s;
+}
+
+/* Disagree: desaturated and slower — the card visibly cools off as the visitor leans left. */
+.card-edge--disagree {
+  background: conic-gradient(from var(--edge-angle), #8A8780, #3a3a3a, #8A8780, #5a5a5a, #8A8780);
+  animation-duration: 12s;
+}
+
+/*
+ * Film-grain overlay, drawn entirely in CSS.
+ *
+ * Business rule 14 forbids generated artwork, so the texture cannot be a PNG/JPEG asset: it has
+ * to be synthesised. `feTurbulence type='fractalNoise'` is an SVG filter primitive that produces
+ * noise procedurally, and an inline SVG data URI can carry it without a network request, a
+ * second file, or a build step. URL-encoded because a raw `#`, `<` or `>` is not valid inside a
+ * CSS `url()` token.
+ *
+ * `mix-blend-mode: overlay` keeps it a texture rather than a grey wash, and `pointer-events:
+ * none` keeps it from swallowing the swipe gesture.
+ */
+.grain {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: .5;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='grain'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23grain)'/%3E%3C/svg%3E");
+}
+
+/* === Wave 6: Skeleton Shimmer === */
+
+/*
+ * The sweep used by CardSkeleton while saved progress is being read from localStorage.
+ *
+ * The highlight is a background-image that is wider than its box (220%) and slides across it,
+ * so the block reads as "loading" rather than as a solid grey placeholder. Declared at top level
+ * rather than in a @layer, so it always outranks Tailwind utilities: callers size the block with
+ * `h-*`/`w-*` and this rule owns only the paint.
+ */
+@keyframes shimmer {
+  0% { background-position: 150% 0; }
+  100% { background-position: -50% 0; }
+}
+
+.shimmer-block {
+  background: linear-gradient(100deg, rgba(255,255,255,.05) 30%, rgba(255,255,255,.13) 50%, rgba(255,255,255,.05) 70%);
+  background-size: 220% 100%;
+  animation: shimmer 1.4s linear infinite;
+  border-radius: 5px;
+}
+
+/* === Wave 6: Card Entrance, Commit Stamp, Vote Receipt === */
+
+/*
+ * The "pour": the card's illustration reveals from the bottom up.
+ *
+ * `clip-path` rather than opacity, because the reveal should read as the glass filling, not as
+ * a fade. `both` holds the from-state before the animation starts (so the art is never briefly
+ * visible at full height) and the to-state after it ends.
+ */
+@keyframes card-enter {
+  from { opacity: 0; clip-path: inset(100% 0 0 0); }
+  to { opacity: 1; clip-path: inset(0 0 0 0); }
+}
+
+/*
+ * The commit stamp landing: overshoot then settle.
+ *
+ * The rotation is part of the keyframes rather than a separate transform, because an animation
+ * on `transform` replaces any transform declared by a utility class on the same element.
+ * Overshooting to `scale(2.1)` and settling through `0.96` is what makes it read as a stamp
+ * hitting the paper instead of a label fading in.
+ */
+@keyframes stamp-in {
+  0% { opacity: 0; transform: rotate(-11deg) scale(2.1); }
+  62% { opacity: 1; transform: rotate(-11deg) scale(0.96); }
+  100% { transform: rotate(-11deg) scale(1); }
+}
+
+/* The vote receipt chip arriving: short rise with a slight scale-up. */
+@keyframes receipt-in {
+  from { opacity: 0; transform: translateY(10px) scale(0.94); }
+  to { opacity: 1; transform: none; }
 }
 
 /* === Swipe Container Styles (Wave 3) === */

@@ -8,9 +8,32 @@ import os
 import re
 
 # Paths
-CSV_PATH = os.path.join(os.path.dirname(__file__), "..", "Data", "cocktails-100.csv")
-ASSETS_DIR = os.path.join(os.path.dirname(__file__), "..", "src", "assets")
-OUTPUT_PATH = os.path.join(os.path.dirname(__file__), "..", "src", "data", "cocktails.ts")
+def _find_app_dir(start):
+    """Walk up to apps/census so this file works from either scripts/ directory.
+
+    This file exists in two places (the app repo and the spoke). Resolving by a fixed number
+    of ".." segments makes the two copies textually different by necessity, which means the
+    duplication cannot be verified with a hash. Walking up instead keeps them byte-identical:
+    if sha256 differs, they have genuinely diverged.
+    """
+    p = os.path.abspath(start)
+    while True:
+        # Either this directory is the app, or the app is an apps/census child of it.
+        for cand in (p, os.path.join(p, "apps", "census")):
+            if os.path.isdir(os.path.join(cand, "src", "data")) and os.path.isdir(
+                os.path.join(cand, "src", "assets")
+            ):
+                return cand
+        parent = os.path.dirname(p)
+        if parent == p:
+            raise RuntimeError("could not locate the apps/census directory")
+        p = parent
+
+
+APP_DIR = _find_app_dir(os.path.dirname(__file__))
+CSV_PATH = os.path.join(APP_DIR, "Data", "cocktails-100.csv")
+ASSETS_DIR = os.path.join(APP_DIR, "src", "assets")
+OUTPUT_PATH = os.path.join(APP_DIR, "src", "data", "cocktails.ts")
 
 # IDs that should always get images if they exist — these are the 50 original IBA cocktails
 EXISTING_ASSETS = set()
