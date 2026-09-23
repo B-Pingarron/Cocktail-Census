@@ -13,6 +13,7 @@ import { SWIPE_FLYOFF_DURATION_MS } from "@/components/CocktailCard";
 // Local census state lives in one module so the landing page can read saved progress
 // without duplicating the storage key.
 import { clearState, loadState, saveState } from "@/lib/censusState";
+import { getSessionId } from "@/lib/session";
 
 /** How long the vote receipt stays on screen, in ms. Long enough to read both lines. */
 const RECEIPT_VISIBLE_MS = 2600;
@@ -86,6 +87,7 @@ const Census = () => {
         recipeId,
         vote,
         timestamp: Date.now(),
+        sessionId: getSessionId(),
       };
 
       setVotes((prev) => [...prev, newVote]);
@@ -114,6 +116,7 @@ const Census = () => {
             recipe_id: recipeId,
             vote,
             timestamp: newVote.timestamp,
+            session_id: newVote.sessionId,
           })
           .then(({ error }) => {
             if (error) {

@@ -27,4 +27,6 @@ export interface Vote {
   recipeId: string;
   vote: "agree" | "disagree";
   timestamp: number;
+  /** The anonymous session id that cast this vote (ADR-035). */
+  sessionId: string;
 }
