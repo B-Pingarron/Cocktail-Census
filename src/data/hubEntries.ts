@@ -1,4 +1,4 @@
-/**
+ /**
  * Hub copy — the single source for the lounge.
  *
  * Every string the hub lounge renders lives here, not in a component. The cover,
@@ -39,6 +39,10 @@ export const HUB_STANDFIRST =
 /**
  * The five seats.
  *
+ * WHY ROAST IS FIRST: it is the primary door and the Census is the second. The Census is
+ * the pipeline, Roast is the game, and the funnel runs toward the data rather than away from
+ * it. The order of this array is the order of the menu, so it is a decision, not a sort.
+ *
  * Census and Roast are live. Compositor and Recipe Manager are not built yet, so
  * their primary door points at the same coming-soon room as their "learn more" —
  * there is no honest second destination to offer.
@@ -48,21 +52,21 @@ export const HUB_STANDFIRST =
  */
 export const HUB_ENTRIES: HubEntry[] = [
   {
-    id: "census",
-    title: "Census",
-    blurb: "The 100 classics. Agree or disagree.",
-    doors: [
-      { label: "straight in", to: "/census", primary: true },
-      { label: "learn more", to: "/census/learn-more", primary: false },
-    ],
-  },
-  {
     id: "roast",
     title: "Roast",
     blurb: "My 15 specs. Roast them.",
     doors: [
       { label: "straight in", to: "/roast/enter", primary: true },
       { label: "learn more", to: "/soon/roast", primary: false },
+    ],
+  },
+  {
+    id: "census",
+    title: "Census",
+    blurb: "The 100 classics. Agree or disagree.",
+    doors: [
+      { label: "straight in", to: "/census", primary: true },
+      { label: "learn more", to: "/census/learn-more", primary: false },
     ],
   },
   {

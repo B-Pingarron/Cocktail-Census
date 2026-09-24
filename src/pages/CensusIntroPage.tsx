@@ -15,7 +15,7 @@ import MenuCard from "@/components/MenuCard";
  * No turn when this page arrives: a turn needs two sheets, and a route change only ever has one.
  * That is why the hub's own face changes are animated and this is not — see the note in MenuCard.
  */
-const Landing = () => (
+const CensusIntroPage = () => (
   <div className="relative flex min-h-screen items-center justify-center overflow-x-clip px-6 py-12">
     {/* Texture belongs to the room, not to the card — the same backdrop the hub uses, so arriving
         here still feels like the same object. */}
@@ -27,4 +27,4 @@ const Landing = () => (
   </div>
 );
 
-export default Landing;
+export default CensusIntroPage;

@@ -2,7 +2,7 @@ import { HashRouter, Routes, Route } from "react-router-dom";
 import Census from "@/pages/Census";
 import ComingSoon from "@/pages/ComingSoon";
 import Hub from "@/pages/Hub";
-import Landing from "@/pages/Landing";
+import CensusIntroPage from "@/pages/CensusIntroPage";
 import LearnMore from "@/pages/LearnMore";
 import RoastEnter from "@/pages/RoastEnter";
 
@@ -24,7 +24,7 @@ const App = () => {
          * and every room hangs off it.
          */}
         <Route path="/" element={<Hub />} />
-        <Route path="/census" element={<Landing />} />
+        <Route path="/census" element={<CensusIntroPage />} />
           <Route path="/census/learn-more" element={<LearnMore />} />
         <Route path="/census/vote" element={<Census />} />
         <Route path="/roast/enter" element={<RoastEnter />} />

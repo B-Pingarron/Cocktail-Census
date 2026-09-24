@@ -7,3 +7,30 @@ Thumbs.db
 coverage/
 .vite/
 dist-ssr/
+
+# Environment files.
+
+# `.env` is untracked: it holds local values, and the point is that no NEW secret added
+
+# there ever reaches the repository. `.env.example` stays tracked — it is the template.
+
+.env
+
+.env.local
+
+.env.*.local
+
+!.env.example
+
+#
+
+# NOT listed, deliberately: `.env.production`. The deploy workflow has no `env:` block, so
+
+# the production build reads the Supabase URL and publishable key from that file IN the
+
+# repository. Untracking it before moving those values into Actions secrets, and referencing
+
+# them from the workflow, would ship a build with a null Supabase client — and supabase.ts
+
+# fails soft, so votes would stop being recorded with nothing visibly broken.
+
