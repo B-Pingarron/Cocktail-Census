@@ -66,7 +66,7 @@ const FeedbackForm = () => {
             onChange={(e) => setMessage(e.target.value)}
             rows={3}
             placeholder="Anything wrong with a recipe, or missing from the list?"
-            className="w-full resize-none rounded-lg border border-concrete/30 bg-card p-3 font-body text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-gold/50 focus:outline-none"
+            className="w-full resize-none rounded-lg border border-concrete/30 bg-card p-3 font-body text-sm text-foreground placeholder:text-muted-foreground focus:border-gold/50 focus:outline-none"
           />
           <button
             type="button"
@@ -81,7 +81,7 @@ const FeedbackForm = () => {
               Couldn't send that. Check your connection and try again.
             </p>
           )}
-          <p className="font-body text-xs text-muted-foreground/50">
+          <p className="font-body text-xs text-muted-foreground">
             Anonymous — no name or email needed.
           </p>
         </>

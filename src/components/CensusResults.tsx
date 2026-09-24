@@ -32,7 +32,7 @@ const listRow = (label: string, value: number, total: number) => (
     <td className="py-1.5 font-body text-sm text-foreground">{label}</td>
     <td className="py-1.5 text-right font-body text-sm text-gold">
       {value}
-      <span className="text-muted-foreground/50"> / {total}</span>
+      <span className="text-muted-foreground"> / {total}</span>
     </td>
   </tr>
 );
@@ -103,7 +103,7 @@ const CensusResults = () => {
     <div className="space-y-6" data-section="census-results">
       {table("Recipes most agreed with", "Recipes with the most agreement so far", byAgrees, (r) => r.agrees)}
       {table("Recipes most disagreed with", "Recipes with the most disagreement so far", byDisagrees, (r) => r.disagrees)}
-      <p className="text-xs text-muted-foreground/60">
+      <p className="text-xs text-muted-foreground">
         Based on {censusSize.toLocaleString()} votes so far — an early picture, not a verdict.
         A recipe needs at least {MIN_SAMPLE} votes to appear.
       </p>

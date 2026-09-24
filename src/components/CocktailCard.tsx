@@ -311,7 +311,7 @@ export const CocktailCard = ({
 
             {/* The census judges the written spec, not the drink. Said at the moment of
                 decision, because a first-time reader naturally reads the card as a drink. */}
-            <p className="mt-4 text-center text-[10px] font-body uppercase tracking-widest text-muted-foreground/50">
+            <p className="mt-4 text-center text-[10px] font-body uppercase tracking-widest text-muted-foreground">
               Rate the recipe, not the drink
             </p>
             {/* === Vote Buttons ===

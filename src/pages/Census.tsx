@@ -188,7 +188,7 @@ const Census = () => {
       </p>
       <button
         onClick={handleReset}
-        className="mt-2 text-xs text-muted-foreground/50 hover:text-muted-foreground transition-colors underline underline-offset-2"
+        className="mt-2 text-xs text-muted-foreground hover:text-cream transition-colors underline underline-offset-2"
       >
         Reset progress
       </button>
@@ -254,7 +254,7 @@ const Census = () => {
           <CensusResults />
           {/* Sync status */}
           {supabase && (
-            <p className="text-xs text-muted-foreground/60">
+            <p className="text-xs text-muted-foreground">
               {syncedCount === votes.length
                 ? `✓ ${syncedCount} votes synced to cloud`
                 : `${syncedCount} of ${votes.length} votes synced to cloud`}
@@ -298,7 +298,7 @@ const Census = () => {
           <div className="mt-2 flex justify-center">
             <span
               data-section="sync-pill"
-              className="inline-flex items-center gap-2 rounded-full border border-concrete/25 px-3 py-1 font-body text-[10px] uppercase tracking-widest text-muted-foreground/70"
+              className="inline-flex items-center gap-2 rounded-full border border-concrete/25 px-3 py-1 font-body text-[10px] uppercase tracking-widest text-muted-foreground"
             >
               <span
                 aria-hidden="true"

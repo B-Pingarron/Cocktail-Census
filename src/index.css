@@ -22,6 +22,9 @@
 
 @layer base {
   :root {
+      /* The turn curve, in one place: the hub's cover swing, the navigation sheet, and*/
+      /* anything that turns a page later all read this rather than restating a bezier. */
+      --turn-easing: cubic-bezier(0.35, 0, 0.25, 1);
     --background: #0e0e0e;
     --foreground: #f3efe6;
     --card: #1a1a1a;

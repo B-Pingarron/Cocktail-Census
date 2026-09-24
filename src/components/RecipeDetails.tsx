@@ -44,7 +44,7 @@ export const RecipeDetails = ({ recipe, compact }: RecipeDetailsProps) => {
       {/* Method — at the very bottom, muted styling */}
       <div className="text-xs font-body mb-4">
         <span className="text-muted-foreground uppercase tracking-wider block mb-1">Method</span>
-        <span className="text-foreground/60 italic leading-relaxed">{recipe.method}</span>
+        <span className="text-foreground italic leading-relaxed">{recipe.method}</span>
       </div>
     </div>
   );
