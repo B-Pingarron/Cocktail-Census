@@ -4,7 +4,9 @@ import ComingSoon from "@/pages/ComingSoon";
 import Hub from "@/pages/Hub";
 import CensusIntroPage from "@/pages/CensusIntroPage";
 import LearnMore from "@/pages/LearnMore";
+import RoastDeck from "@/pages/RoastDeck";
 import RoastEnter from "@/pages/RoastEnter";
+import RoastVerdict from "@/pages/RoastVerdict";
 
 /**
  * WHY THERE IS NO ROUTE-TRANSITION WRAPPER HERE:
@@ -28,6 +30,8 @@ const App = () => {
           <Route path="/census/learn-more" element={<LearnMore />} />
         <Route path="/census/vote" element={<Census />} />
         <Route path="/roast/enter" element={<RoastEnter />} />
+        <Route path="/roast/deck" element={<RoastDeck />} />
+        <Route path="/roast/verdict" element={<RoastVerdict />} />
         {/*
          * Every not-yet-built room lands on the same page, which reads its own name out of the
          * URL. One route covers /soon/census, /soon/roast, /soon/compositor, /soon/recipe-manager

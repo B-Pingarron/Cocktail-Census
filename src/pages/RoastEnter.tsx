@@ -1,6 +1,13 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { generateHandles } from "@/lib/handleGenerator";
+
+/**
+ * How many handles the rail offers. Five, plus Anonymous: the author's read was that
+ * eighteen chips is a decision the visitor has to make before they can make the one they
+ * came for. A short rail is a suggestion; a long one is a menu.
+ */
+const HANDLE_COUNT = 5;
 import { clearNickname, setNickname } from "@/lib/nickname";
 import { cn } from "@/lib/utils";
 import MenuCard from "@/components/MenuCard";
@@ -33,7 +40,7 @@ const chipClass = (selected: boolean) =>
 const RoastEnter = () => {
   const navigate = useNavigate();
   const [value, setValue] = useState("");
-  const [handles, setHandles] = useState<string[]>(() => generateHandles());
+  const [handles, setHandles] = useState<string[]>(() => generateHandles(HANDLE_COUNT));
 
   /** Persist a name (or the absence of one). Never throws — see lib/nickname.ts. */
   const save = (raw: string) => {
@@ -44,13 +51,13 @@ const RoastEnter = () => {
 
   const commit = () => {
     save(value);
-    navigate("/soon/roast");
+    navigate("/roast/deck");
   };
 
   const skip = () => {
     setValue("");
     save("");
-    navigate("/soon/roast");
+    navigate("/roast/deck");
   };
 
   return (
@@ -65,9 +72,35 @@ const RoastEnter = () => {
           back
         </Link>
 
-        <MartiniMark />
+        {/*
+          * WHAT AND HOW, then WHY A NAME, then the question.
+          *
+          * The page opened straight into "What should we call you?" at 24px — the largest thing on
+          * the page was the form, and the subject of the page was the smallest. The title below is an
+          * h1 now and the question is an h2, so the document outline matches what the eye sees.
+          * The two middle lines are the author's own, verbatim.
+          */}
+        <div className="space-y-3">
+          <h1 className="font-display text-3xl font-bold text-gold">The roast</h1>
+          <p className="font-body text-base leading-relaxed text-cream">
+          ROAST is the arena where specs get measured — by peers, not some office dude.
+          </p>
+          <p className="font-display text-xl font-bold text-gold">
+          My specs, your taste. No mercy.
+          </p>
+        {/*
+          * WHY A NAME IS ASKED FOR, in one line, BEFORE the question it answers.
+          * TODO(copy session): this one is mine, not the author's — it says what the code does (the
+          * name rides along with the verdicts and never leaves the device) and it is written to be
+          * replaced.
+          */}
+          <p className="font-body text-sm leading-relaxed text-muted-foreground">
+          The name goes on your verdicts so the room knows whose taste it was. No account, no
+          email — it stays on this device.
+          </p>
+        </div>
 
-        <h1 className="font-display text-3xl font-bold text-gold">What should we call you?</h1>
+        <h2 className="font-body text-base font-semibold text-cream">What should we call you?</h2>
 
         <input
           type="text"
@@ -107,7 +140,7 @@ const RoastEnter = () => {
 
           <button
             type="button"
-            onClick={() => setHandles(generateHandles())}
+            onClick={() => setHandles(generateHandles(HANDLE_COUNT))}
             className="inline-flex min-h-[44px] items-center font-body text-xs uppercase tracking-widest text-gold transition-colors hover:text-gold-light"
           >
             roll again

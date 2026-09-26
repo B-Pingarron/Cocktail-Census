@@ -227,10 +227,49 @@ grant select, insert on public.collection_specs to anon;
 
 
 -- ============================================================
--- 3. ROAST — the vote table for "ROAST my spec"
+-- 3. ROAST — the list and the vote table for "ROAST my spec"
 -- ============================================================
 
--- 3a. Roast votes — separate from census votes (different lifecycle, different payload)
+-- 3a. Roast lists — the list a set of roast specs belongs to
+--     Rung 1 has exactly one list. It is a table rather than a constant in the app because
+--     roast_votes.list_id already points at an id: rung 2 makes that id real, and the votes do
+--     not change — only where the list's name comes from.
+--
+--     Deliberately NOT a foreign key from roast_votes.list_id, on the same reasoning as
+--     spec_ref: the vote table stays independent of the table it names, and rung 2 decides
+--     whether the constraint is worth having.
+--
+--     select ONLY. A visitor reads the list; nobody creates one from the client. Rung 2, where
+--     a list becomes something a bartender makes, is where an insert policy belongs.
+--
+--     RECONSTRUCTED, NOT DUMPED: the live table already exists and the anon key cannot read
+--     PostgREST's OpenAPI, so this matches the row that is in there (barnerd-15 / barnerd /
+--     "BarNerd_420 roast list") and the conventions of this file. Verify with the two queries in
+--     the notes below before trusting the constraints.
+create table if not exists public.roast_lists (
+  id            text        not null primary key,  -- slug: "barnerd-15"
+  session_id    text,                              -- who owns the list
+  name          text        not null,              -- display name: "BarNerd_420 roast list"
+  created_at    timestamptz not null default now()
+);
+
+comment on table  public.roast_lists is 'A list of roast specs. One row at rung 1; roast_votes.list_id points at its id.';
+comment on column public.roast_lists.id is 'Slug used by roast_votes.list_id (e.g. "barnerd-15").';
+comment on column public.roast_lists.session_id is 'The session that owns the list. Nullable, matching collections.session_id.';
+
+grant select on public.roast_lists to anon;
+
+alter table public.roast_lists enable row level security;
+
+drop policy if exists "Anyone can read roast lists" on public.roast_lists;
+create policy "Anyone can read roast lists"
+  on public.roast_lists
+  for select
+  to anon
+  using (true);
+
+
+-- 3b. Roast votes — separate from census votes (different lifecycle, different payload)
 --     spec_ref is NOT a foreign key: a static app spec ("old-fashioned") and a future
 --     DB row (uuid) are both just strings to this table. Rung 2 becomes a data problem,
 --     not a migration.
@@ -391,13 +430,14 @@ create policy "Anyone can insert collection specs"
 --     specs, spec_ingredients, spec_garnishes,
 --     collections, collection_specs
 --
---   Roast (1 table):
---     roast_votes
+--   Roast (2 tables):
+--     roast_lists, roast_votes
 --
 --   Alteration (1 column):
 --     votes.session_id (text, nullable)
 --
--- All tables have RLS enabled with anon read + insert policies.
+-- All tables have RLS enabled with anon read + insert policies,
+-- except roast_lists, which is read-only to anon by design.
 -- All tables are granted to the anon role.
 -- The child-table pattern (spec_ingredients, spec_garnishes, collection_specs)
 -- is used three times for "ordered list of references."

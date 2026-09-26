@@ -11,6 +11,12 @@ import placeholderIcon from '@/assets/cocktail-placeholder.svg'
  * `import.meta.glob` at build time rather than a hand-written import list: adding a cocktail should not need an edit
  * here, and a missing illustration should be visible as one placeholder rather than a type error. Vite emits each SVG
  * as its own file, so a reader downloads the one card they are looking at, not the set.
+
+ * A FILE ADDED WHILE THE DEV SERVER IS RUNNING IS NOT IN THE GLOB. Vite resolves
+ * `import.meta.glob` when it transforms this module, so an illustration copied in afterwards is absent
+ * from the map and its card silently falls back to the placeholder — everything else keeps working, which
+ * is what makes it look like the wrong image rather than a missing one. Restart the server after adding a
+ * file. Measured: 100 entries before the restart, 101 after.
  *
  * The id is the file name, which is also the id the vote is posted under — so the picture and the vote can never
  * disagree about which cocktail they are for.

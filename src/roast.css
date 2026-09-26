@@ -1,0 +1,631 @@
+/*
+ * ROAST — the card's visual system, ported from the v10 visual reference
+ * (.pi/visual-companion/roast-mockup/content/card-starter-10-standalone.html).
+ *
+ * Scoped under a single `.roast` root, and that is not tidiness: this surface is deliberately a
+ * different language from the Dark Academia menu (gold hairline, Playfair, 6px corners) that the hub,
+ * the Census and the roast entry are written in. A roast card is a loud object pasted onto the menu,
+ * so its rules must not leak into the rooms that share the app.
+ *
+ * The palette is custom properties rather than five copies of every rule. The geometry — corner
+ * angles, tube breaks, drips — is seeded and identical across palettes; only these tokens and the
+ * card's text move. `heat` is the deck's default.
+ *
+ * Written dense, one rule per line, as the reference writes its own stylesheet: this file is a port
+ * of that stylesheet's rules one for one, and the layout of the two is meant to be comparable. The
+ * comments stay in full — the reading cost of a rule is the rule, and the reading cost of why it is
+ * there is the comment.
+ *
+ * Two selectors here are NOT in the reference: `.skip` and `.next`. The reference is a study of the
+ * card, not an exhaustive control inventory, and the deck needs both controls; they are written in
+ * this file's language on purpose. See RoastDeck.tsx for why they exist.
+ */
+
+.roast {
+  /* The yikes red, pulled a little toward pink at the author's read. `--a` also paints the misregister
+     plates and the neon, so this moves the whole card's red, not just the button — which is the point:
+     the button was the only red the eye compared against the green. */
+  --a: #ff3366; --b: #ffd400; --c: #ff8a1e; --d: #ff4fa3;
+  --dim: #b8aed0; --txt: #f2eeff; --plate: #151327; --edge: 3px;
+  /*
+   * The agreement green, and why it is its own token instead of `--b`.
+   *
+   * `--b` is the palette's second DECORATIVE colour: it paints the amounts, the name's offset shadow
+   * and the verdict's highlight. Agreement is SEMANTIC — it has to stay the same colour when the
+   * palette moves — so it gets `--ok`.
+   *
+   * The tone is the author's: `#BDF524`, a chartreuse that leans into the yellow the palette already
+   * runs on (`--b` is `#ffd400`, `--c` is `#ff8a1e`). The first attempt was the neon `#39ff14` lifted
+   * from the mockup, and the author's read was that it did not sit in this palette — too green, too
+   * loud against the red. It is still green enough to read as agreement at a glance.
+   *
+   * NOTE: the star on the level chips carries this same colour hardcoded inside a data URI, because an
+   * SVG in a `url()` cannot read a custom property. Changing this token means changing that string too.
+   */
+  --ok: #BDF524;
+  /* The glass, as two knobs. Both of them are a trade and neither can be derived: more fill reads
+     as frosted and hides more of the pixel field, more blur turns that field to mush. The pair is a
+     judgement the author makes by eye, so it lives here rather than buried in the panel rule. */
+  /*
+   * THE TYPE SCALE.
+   *
+   * These replaced seventeen distinct pixel values, seven of which sat within 4px of each other —
+   * 9, 10, 10.5, 11, 11.5, 12.5, 13. Nobody can see the difference between 10 and 10.5, so the
+   * near-duplicates were not a hierarchy, they were noise: every new line of CSS had a new size to
+   * pick, and no two pages agreed on which.
+   *
+   * Eight steps, each with one job, so a size is now a decision with an answer rather than a guess.
+   * The ladder is small on purpose: this is a card read at arm's length on a phone, and the jump
+   * between adjacent steps has to be visible or the step is not doing anything.
+   *
+   * The mapping was chosen to be nearly invisible on purpose — no existing size moved more than 3px
+   * — because the point was to remove the noise, not to redesign the page.
+   */
+  --fs-micro: 10px;      /* footnotes, the waiting states, the dry-run note */
+  --fs-label: 11px;      /* small caps labels: kick, axis, kv, method, skip */
+  --fs-small: 13px;      /* dense body: ingredients, chips, counts, list rows */
+  --fs-body: 15px;       /* reading body: the verdict's own line, the readout number */
+  --fs-action: 17px;     /* buttons: the votes, next, the calls to action */
+  --fs-display-xs: 24px; /* the verdict word on the back of the card */
+  --fs-display-sm: 30px; /* the verdict's numbers, the stamp glyph */
+  --fs-display: 36px;    /* the card's name, the verdict's title */
+
+  --glass-fill: 0.14;
+  --glass-blur: 10px;
+  position: relative; min-height: 100vh; background: #050409; color: var(--txt);
+}
+
+/*
+ * The other three palettes. `--plate` is restated rather than left to inherit, because the base
+ * declares heat's and a palette that silently inherited a colour it never chose is the kind of
+ * thing that reads as a rendering bug six months later.
+ *
+ * A descendant selector, not `.roast[data-palette]`: the palette belongs to the card, so the card
+ * carries the attribute and every token below it inherits. The page root keeps heat's values for the
+ * few things outside the card (the deck's own note line).
+ */
+/*
+ * `--dim` is the small-label colour, and it is coupled to the glass. Measured against the recipe
+ * panel, the old #8d7fa8 sat at 4.4:1 — already under the 4.5:1 AA floor — and the frosted fill took
+ * it to 3.6:1, which washed the GLASS and GARNISH labels out. #b8aed0 measures 6.2:1 on this fill and
+ * still 5.0:1 on the next step of frost, so the knob can be turned without the labels breaking.
+ * White body text is not the constraint here: it measures 13:1 and holds at every fill tried.
+ */
+.roast [data-palette="mag"] { --a: #ff2d95; --b: #00e5ff; --c: #00e5ff; --d: #00e5ff; --dim: #b8aed0; --plate: #0b0813; }
+.roast [data-palette="lime"] { --a: #39ff14; --b: #7b5cff; --c: #39ff14; --d: #7b5cff; --dim: #b8aed0; --plate: #0b0813; }
+.roast [data-palette="amber"] { --a: #ffe600; --b: #ff2d95; --c: #ff2d95; --d: #ffe600; --dim: #b8aed0; --plate: #0b0813; }
+
+/* ── the flip ─────────────────────────────────────────────────────────────
+ * Both faces are always mounted. A CSS transition cannot start from the value an element mounts
+ * with, so a face that is created on demand appears already turned with nothing to interpolate —
+ * the flip only exists if the face being turned to was already there.
+ */
+.roast .deck { transform: rotate(-1.35deg); }
+.roast .persp { perspective: 1300px; -webkit-perspective: 1300px; }
+.roast .inner {
+  position: relative; transform-style: preserve-3d; -webkit-transform-style: preserve-3d;
+  transition: transform 0.55s cubic-bezier(0.28, 0, 0.18, 1);
+}
+.roast .inner.flip { transform: rotateY(180deg); }
+/*
+ * THE FRONT CARRIES AN EXPLICIT 3D TRANSFORM, and the swap is also done with `visibility`.
+ *
+ * Two engines, two failure modes, one belt and braces. `backface-visibility` only applies to an
+ * element that participates in a 3D context, and WebKit has long required the element to carry a
+ * transform of its own for that to hold — an untransformed front face can keep painting its mirrored
+ * self through the turned card, which reads exactly like the card is mounted on glass. `rotateY(0)`
+ * is a no-op visually and puts the front in the same 3D layer as the back.
+ *
+ * The `visibility` swap is the part that cannot fail: even in an engine that ignores
+ * `backface-visibility` entirely, the face that must not be seen is not painted. It is delayed by half
+ * the turn (0.28s of 0.55s) so the swap lands when the card is edge-on and the turn still reads as a
+ * turn rather than a cut. It also takes the hidden face out of hit testing, which is the same intent
+ * as the pointer-events rules below, reached a different way.
+ */
+.roast .face {
+  position: relative; backface-visibility: hidden; -webkit-backface-visibility: hidden;
+  transform: rotateY(0deg); transition: visibility 0s linear 0.28s;
+}
+.roast .inner:not(.flip) .face.back,
+.roast .inner.flip .face.front { visibility: hidden; }
+
+/*
+ * The back face is out of flow, so the inner's height is the FRONT face's height.
+ *
+ * THE CARD IS A RIGID OBJECT: it does not change size when it is turned over. It did, because the
+ * back's stack was its own content height — the card shrank on the flip, its frame was cut for a
+ * shorter card, and the notes sat in the top half with a dead band underneath.
+ *
+ * `min-height` rather than `height`, because a back whose content genuinely needs more room must grow
+ * the card rather than spill out of its frame. With that, the stack fills the front's box and both
+ * faces are measured on the same height — see the note in RoastSpecCard.tsx.
+ */
+.roast .face.back { position: absolute; inset: 0; transform: rotateY(180deg); }
+.roast .face.back .stack { display: flex; flex-direction: column; min-height: 100%; }
+
+/*
+ * The content then has to USE the height it was given, rather than sitting at the top of it.
+ *
+ * The one action on this face is anchored to the card's bottom edge with an automatic top margin: on
+ * a card, the button is where the button is, at the edge the thumb reaches. The slack lands between
+ * the notes and the button instead of below it. `:nth-last-child(2)` carries the minimum gap, because
+ * an automatic margin collapses to zero when the content fills the height, and the button would then
+ * touch the chips.
+ */
+.roast .face.back .content { flex: 1 0 auto; display: flex; flex-direction: column; }
+.roast .face.back .content > :nth-last-child(2) { margin-bottom: 16px; }
+.roast .face.back .next { margin-top: auto; }
+
+/*
+ * ONE FACE IS TOUCHABLE AT A TIME, AND IT IS THE ONE THAT IS VISIBLE.
+ *
+ * `backface-visibility: hidden` takes a face out of the PAINT but not out of hit testing — measured
+ * in Chromium 1234, `document.elementFromPoint` over the back face's chips returned a `<span>`
+ * inside the front face once the card was turned, so every chip and the next control on the back of
+ * the deck were dead to the mouse and to touch. The reference has the same defect; it is not visible
+ * in a screenshot, which is why it survived the mockup.
+ *
+ * `.inner.flip` already says which face is in front, so that is what decides it. Both faces are
+ * stated rather than only the front, because hit testing across a 3D transform is the browser's
+ * business and the two rules are what make the intent explicit either way round.
+ */
+.roast .face.front, .roast .face.back { pointer-events: none; }
+.roast .inner:not(.flip) .face.front, .roast .inner.flip .face.back { pointer-events: auto; }
+
+/* ── the measured frame ───────────────────────────────────────────────────
+ * Every layer below is clipped to the quad the component measures off this stack at runtime, so the
+ * frame follows the card's real size instead of a size written here.
+ */
+.roast .stack { position: relative; padding: 6px; }
+.roast .pixbg, .roast .mis-a, .roast .mis-b, .roast .inkfr { position: absolute; pointer-events: none; }
+.roast .pixbg { inset: 0; width: 100%; height: 100%; image-rendering: pixelated; }
+.roast .mis-plate { inset: 0; }
+.roast .inkfr { inset: 0; background: var(--plate, #0b0813); filter: url(#roast-rough); }
+.roast .keyline { position: absolute; inset: 10px; border: 1px solid rgba(255, 255, 255, 0.5); pointer-events: none; }
+.roast .keyline.dbl { inset: 7px; border-color: rgba(255, 255, 255, 0.3); }
+.roast .keyline.dbl::after { content: ""; position: absolute; inset: 5px; border: 1px solid rgba(255, 255, 255, 0.48); }
+
+/* Ambient bloom: light spilling off the plates onto the backdrop, away from the text. */
+.roast .grit {
+  position: absolute; inset: 0; pointer-events: none; opacity: 0.45; mix-blend-mode: screen;
+  background:
+    radial-gradient(38% 26% at 84% 6%, color-mix(in srgb, var(--a) 55%, transparent) 0%, transparent 72%),
+    radial-gradient(30% 22% at 4% 94%, color-mix(in srgb, var(--b) 48%, transparent) 0%, transparent 74%);
+}
+
+.roast .content { position: relative; z-index: 6; padding: 16px 17px 17px; }
+.roast .cardtop { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+
+/* ── the glass panels ─────────────────────────────────────────────────────
+ * The material settled in the mockup round —
+ * `.pi/visual-companion/roast-mockup/content/glass-lens-13.html`, the FALLBACK card. That is the
+ * variant the author picked over the refracting one.
+ *
+ * WHY THE FALLBACK AND NOT THE REFRACTION: `backdrop-filter: url(#filter)` carrying a
+ * `feDisplacementMap` renders only in Chromium. Safari parses it and does not displace (WebKit bug
+ * 245510), Firefox parses the url() and does not paint it, and the standard leaves it undefined
+ * (w3c/svgwg#1142). This deck is opened from a QR code at a bar, so most of its readers are on an
+ * iPhone. The blur is the material every browser gets. The refraction, once it is tuned, goes in an
+ * `@supports` block of its own — never into these rules — so that no panel depends on it.
+ *
+ * The panel is the FILL and the frame stays hard: the ring is a 2px `box-shadow` at full opacity, and
+ * the 2px transparent border is the gap that holds it off the fill. The author's reference pen draws
+ * it the same way, and it is what keeps a bubble from reading as a soft UI surface on a printed card.
+ *
+ * `box-sizing` because the art band below has a fixed height: padding on a content-box element would
+ * make the band taller than the constant the deck's rhythm is built on.
+ */
+.roast .glass {
+  position: relative; box-sizing: border-box; border-radius: 14px;
+  background: rgba(255, 255, 255, var(--glass-fill));
+  border: 2px solid transparent;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.55), 0 14px 30px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(var(--glass-blur)) saturate(1.35);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.35);
+}
+
+/* The title bar: the name and its neon underline are one object, so they are one panel. */
+.roast .titlebox { padding: 12px 13px 10px; margin: 13px 0 0; }
+.roast .titlebox .name { margin: 0; }
+.roast .titlebox .nline { margin: 8px 0 0; }
+
+/* The recipe box: the ingredients, the two facts and the method are one reading block, so the
+   dividers between them stay inside the panel where they belong to the block. */
+.roast .textbox { padding: 11px 13px 12px; }
+
+/* The back's notes drawer: both axes in one panel, because they are one question asked twice. */
+.roast .notesbox { padding: 12px 13px 14px; }
+/*
+ * `:first-child` matched BOTH labels, not the first one.
+ *
+ * Each `.axis` is the first child of its OWN wrapper div, so both lost the 14px top margin and
+ * "What's up" ended up 12px higher, under the chip row above it — measured: the label's top at 471
+ * against the chips' bottom at 475, and `elementFromPoint` over that band returns the chip. The
+ * wrapper is what the selector has to name.
+ */
+.roast .notesbox > div:first-child > .axis { margin-top: 2px; }
+
+/*
+ * The back is CENTRED between its two fixed ends.
+ *
+ * The front is a dense spec sheet and the back is a short form, so once the front grew its three
+ * panels the back had ~245px of slack. Two fills were tried and rejected: an unconditional void under
+ * the drawer, and a drawer stretched to 410px — which is the same void with a frame around it. The
+ * form is what the back IS, so the slack goes above and below it and reads as centring. Two `auto`
+ * margins share the free space equally; `next` already carries the other one.
+ */
+.roast .face.back .content > .markrow { margin-top: auto; }
+
+/*
+ * The illustration band.
+ *
+ * A fixed height with `contain`, because the artwork's aspect is not one number: the Census set is
+ * portrait (americano is 0.68) and the newly drawn Lion's Tail is landscape (1.22). A band that sized
+ * itself to the picture would make every card a different height, and the deck is read by swiping
+ * through it — so the band is the constant and the picture fits inside it.
+ */
+.roast .art {
+  height: 152px; display: flex; align-items: center; justify-content: center;
+  margin: 12px 0 12px; padding: 8px;
+}
+.roast .art img { max-height: 100%; max-width: 100%; object-fit: contain; display: block; }
+
+/*
+ * THE STICKER.
+ *
+ * `url(#roast-sticker)` is a dilate filter declared in the component (see `FrameFilters`): it grows the
+ * artwork's alpha by a uniform radius and floods the result white behind the drawing. That is a real
+ * sticker border — one width everywhere, following the drawing's own contour.
+ *
+ * A scaled-up copy was tried first and failed, which is why this comment is long: scaling displaces
+ * every stroke away from the centre, so on a line drawing the internal lines get a white halo as well
+ * and the drink reads as a white ghost. The measured copy also came out at 1.46x rather than the 1.3x
+ * asked for, because an absolutely positioned element resolves its percentages against the padding box
+ * while the in-flow artwork resolves against the content box.
+ *
+ * The artwork keeps its box and its size. The filter region is opened wide, so the border paints
+ * outside that box and over the panel's ring — a sticker stuck on top of the thing, which is the
+ * author's own description of what these were always meant to be.
+ */
+.roast .art img { filter: url(#roast-sticker); }
+
+.roast .drip {
+  position: absolute; background: var(--a); pointer-events: none; z-index: 4;
+  border-radius: 0 0 58% 58% / 0 0 26% 26%;
+}
+.roast .tape {
+  position: absolute; width: 62px; height: 20px; background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.28); pointer-events: none; z-index: 7;
+}
+/* z-index 5, UNDER the content: the scribble is part of the surface the panels sit on, so the glass
+   blurs it instead of a yellow bar crossing the art panel. Ink still sits above the pixels. */
+.roast .scrib {
+  position: absolute; height: 3px; background: var(--b); opacity: 0.55;
+  transform-origin: left center; pointer-events: none; z-index: 5;
+}
+.roast .brk { position: absolute; width: 20px; height: 20px; border: 3px solid var(--b); pointer-events: none; z-index: 7; opacity: 0.9; }
+.roast .neonwrap { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; z-index: 8; }
+.roast .n-flick { animation: roast-flick 2.8s steps(1, end) infinite; }
+
+/* Steps, not a fade: a failing tube cuts in and out. */
+@keyframes roast-flick {
+  0%, 6% { opacity: 1; }
+  7%, 10% { opacity: 0.12; }
+  11%, 37% { opacity: 1; }
+  38%, 40% { opacity: 0.28; }
+  41%, 69% { opacity: 1; }
+  70%, 72% { opacity: 0.08; }
+  73%, 100% { opacity: 1; }
+}
+
+/* ── the card's own typography ─────────────────────────────────────────── */
+/*
+ * The small caps labels, at a size a phone can resolve.
+ *
+ * The author named four of them as hard to read — GLASS, GARNISH, HOW MUCH, WHAT'S UP — and they all
+ * shared one cause: 9-10px with 0.2-0.3em of tracking pulls a four-letter word into four marks. The
+ * colour was already fixed (see `--dim`); this is the other half. Tracking comes down and the size
+ * goes up, and the small-caps voice survives both.
+ */
+.roast .kick { display: block; font-size: var(--fs-label); letter-spacing: 0.16em; text-transform: uppercase; color: var(--dim); }
+.roast .prog { display: flex; align-items: center; gap: 9px; }
+/*
+ * The readout number, with a STICKER EDGE.
+ *
+ * It used to carry a single offset copy (`2px 2px 0 #000`), and the author's read was that it still got
+ * lost. The reason is that one copy only thickens the glyph on two sides: white type on a dark field
+ * has plenty of contrast of its own, so what it needed was separation from the LIGHT pixel blocks
+ * behind it, and a shadow that falls only down-right leaves the other six directions exposed.
+ *
+ * Eight copies at 2px, one per direction, is a hard outline all the way round — the same die-cut edge
+ * the sticker on the artwork and the labels on the buttons carry, so it is the card's own idiom by now
+ * rather than a new one.
+ */
+.roast .pnum {
+  font-family: Impact, "Arial Black", sans-serif; font-style: italic; font-size: var(--fs-body);
+  color: #fff; letter-spacing: 0.02em;
+  text-shadow:
+    2px 0 0 #000, -2px 0 0 #000, 0 2px 0 #000, 0 -2px 0 #000,
+    2px 2px 0 #000, -2px 2px 0 #000, 2px -2px 0 #000, -2px -2px 0 #000;
+}
+
+/*
+ * The healthbar. Three alternating heights rather than one flat row, and the number is not
+ * decoration: the blocks are read at a glance for position, the number for how far is left.
+ */
+.roast .hp { display: flex; gap: 2px; align-items: flex-end; }
+.roast .hp i { display: block; width: 8px; border: 2px solid #000; background: #1c1828; }
+/*
+ * The counter, read as a RECORD rather than a meter.
+ *
+ * Every lit block used to be red, so the bar said "seen" and nothing more. Now each block carries the
+ * vote its spec got: agreement takes `--ok`, disagreement takes `--a`, and a spec seen without an
+ * opinion takes the palette's own orange (`--c`).
+ *
+ * The neutral was a violet first, and the author's read was that it belonged to no palette here — a
+ * colour invented for one state rather than one the card already speaks. Orange is the palette's
+ * middle, which is what "no opinion" is: between the two answers, not a third one.
+ *
+ * A skip is NOT a disagreement. Painting it red would invent a vote the visitor never cast.
+ *
+ * The verdict's bar states its own colours with `.hp.vd-hp`, which outranks these, so the two screens
+ * keep their own meaning: here a block is one SPEC, there a block is one VOTE.
+ */
+.roast .hp i.on { background: var(--c); box-shadow: inset 0 0 0 2px color-mix(in srgb, #000 32%, transparent); }
+.roast .hp i.on.ag { background: var(--ok); }
+.roast .hp i.on.dg { background: var(--a); }
+.roast .hp i.hi { height: 16px; }
+.roast .hp i.md { height: 12px; }
+.roast .hp i.lo { height: 9px; }
+
+.roast .nline {
+  height: 4px; width: 58%; background: var(--c); margin: 7px 0 3px;
+  box-shadow: 0 0 12px var(--c), 0 0 28px var(--c); transform: skewX(-14deg) rotate(-0.6deg);
+}
+.roast .name {
+  font-family: Impact, "Arial Black", sans-serif; font-style: italic; text-transform: uppercase;
+  font-size: var(--fs-display); line-height: 0.94; margin: 13px 0 2px; color: #fff; letter-spacing: -0.012em;
+  text-shadow: 3px 3px 0 #000, 5px 5px 0 var(--b); transform: rotate(-0.5deg);
+}
+.roast .rule { height: 2px; background: linear-gradient(90deg, var(--a), rgba(255, 255, 255, 0.08)); margin: 11px 0; transform: rotate(-0.4deg); }
+.roast .ing { display: flex; justify-content: space-between; font-size: var(--fs-small); padding: 2.5px 0; }
+.roast .ing b { font-weight: 600; }
+.roast .ing span { color: var(--b); font-variant-numeric: tabular-nums; font-weight: 600; }
+.roast .kv { display: flex; gap: 9px; font-size: var(--fs-label); margin: 4px 0; align-items: baseline; }
+.roast .kv i { color: var(--dim); font-style: normal; width: 62px; letter-spacing: 0.1em; font-weight: 600; }
+.roast .method { font-size: var(--fs-label); line-height: 1.6; color: #c2bcdc; }
+
+/* ── the two votes ─────────────────────────────────────────────────────── */
+.roast .btnrow { display: flex; gap: 13px; margin-top: 17px; }
+.roast .vbtn {
+  flex: 1; border: var(--edge) solid #000; cursor: pointer; user-select: none; padding: 12px 0;
+  box-shadow: 5px 5px 0 #000; font-family: Impact, "Arial Black", sans-serif; font-style: italic;
+  text-transform: uppercase; font-size: var(--fs-action); text-align: center;
+}
+.roast .b1 { transform: skewX(-11deg) rotate(-1.7deg); background: var(--a); color: #12000b; }
+.roast .b2 { transform: skewX(-11deg) rotate(1.3deg); background: var(--ok); color: #04120a; }
+
+/*
+ * The vote and next labels, printed twice: the black word with one white copy stepped behind it.
+ *
+ * The cocktail name carries three prints (white, black, `--b`). The author read a third colour here
+ * as too much, so this is ONE extra layer — black over white. The block keeps its own black step, so
+ * the button reads as a sticker: a cut line around the word, a shadow under the block.
+ */
+.roast .vbtn, .roast .next { text-shadow: 2px 2px 0 #fff; }
+.roast .vbtn:active { transform: translate(3px, 3px) skewX(-11deg) !important; box-shadow: 2px 2px 0 #000; }
+
+/*
+ * Skip. Deliberately NOT a third vote button: a visual peer of YIKES/LIKES would read as a third
+ * answer, and "no opinion" is not an answer — it is the absence of one. A dim text link at the
+ * weight of a footnote is what it is.
+ */
+.roast .skip {
+  display: block; margin: 11px auto 0; background: none; border: 0; padding: 2px 4px;
+  font-family: inherit; font-size: var(--fs-label); letter-spacing: 0.22em; text-transform: uppercase;
+  color: var(--dim); text-decoration: underline; text-underline-offset: 3px; cursor: pointer;
+}
+.roast .skip:hover { color: var(--a); }
+
+/* ── the back face: the notes ─────────────────────────────────────────── */
+.roast .markrow { display: flex; gap: 14px; align-items: center; margin: 15px 0 4px; }
+.roast .markrow .kick { margin-top: 4px; }
+.roast .axis { margin: 14px 0 8px; font-size: var(--fs-label); letter-spacing: 0.14em; font-weight: 600; }
+.roast .chips { display: flex; flex-wrap: wrap; gap: 11px; }
+.roast .chip { border: 2.5px solid #000; padding: 9px 15px; cursor: pointer; font-family: inherit; font-size: var(--fs-small); box-shadow: 3px 3px 0 #000; }
+/*
+ * `background-color`, not the `background` shorthand, on all four chip states.
+ *
+ * The shorthand resets `background-image`; the first pass put the sticker sheet in exactly that
+ * property, and the shorthand wiped it off every chip that had a colour of its own. The sheet is drawn
+ * as elements now, but the rule stays: the shorthand is the wrong tool on a chip.
+ *
+ * The level chips' label is near-white rather than the lavender it was. Measured against the chip's own
+ * #221a33 the lavender already passed AA at 9:1, so the contrast was never the problem — the STICKERS
+ * were, sitting behind the word and taking the edge off it. Fixing both ends: the sheet came down in
+ * opacity and the label came up in brightness.
+ */
+.roast .c-a { background-color: #221a33; color: #f2eeff; }
+.roast .c-b { background-color: #131a26; color: var(--b); }
+.roast .chip.c-a.c-on { background-color: var(--a); color: #12000b; }
+/*
+ * A level chip on a LIKES vote was turning the disagreement red.
+ *
+ * `.c-a.c-on` was written when the level chips only ever appeared under a yikes vote, so it hardcoded
+ * `--a`. They appear under both, and the chip that says how much the visitor liked something was
+ * painted in the colour of not liking it. `s-likes` is already on the element, so the side is a
+ * selector rather than new state.
+ */
+.roast .chip.c-a.s-likes.c-on { background-color: var(--ok); color: #04120a; }
+.roast .chip.c-b.c-on { background-color: var(--b); color: #00131c; }
+
+/*
+ * THE STICKER SHEET on the level chips — placement and tone only.
+ *
+ * The elements are drawn in the component (`StickerSheet`): scattered by a seeded generator, hairline
+ * outlines, three at level 1 (the author's "one to three") up to fourteen at level 3. This block is
+ * only how they are pinned to the chip and what colour they take.
+ *
+ * THE TONE IS THE CHIP'S OWN, one step away from it: brighter than the chip while the chip is dark and
+ * unselected, darker than it once the chip is lit in the side's colour. The first pass painted them in
+ * the full saturated green and red with a white cut line, and the author's read was that they belonged
+ * to a different palette than the card they sat on. Nothing here is a saturated colour of its own.
+ */
+.roast .chip { position: relative; }
+.roast .chip .sheet { position: absolute; inset: 0; pointer-events: none; }
+.roast .chip .stk { position: absolute; width: 13px; height: 13px; opacity: 0.55; }
+/* The label paints above the sheet, so density never costs the word. */
+.roast .chip .lbl { position: relative; z-index: 1; }
+
+.roast .chip.s-likes { --stk: color-mix(in srgb, var(--ok) 46%, #2a2440); }
+.roast .chip.s-likes.c-on { --stk: color-mix(in srgb, var(--ok) 42%, #101a00); }
+.roast .chip.s-yikes { --stk: color-mix(in srgb, var(--a) 44%, #2a2440); }
+.roast .chip.s-yikes.c-on { --stk: color-mix(in srgb, var(--a) 40%, #17000a); }
+.roast .chip .stk path { stroke: var(--stk); }
+
+/* The chips sit by hand: four rotations on a repeating cycle. */
+.roast .chips .chip:nth-child(4n + 1) { transform: rotate(-2.6deg) skewX(-4deg); }
+.roast .chips .chip:nth-child(4n + 2) { transform: rotate(1.8deg) skewX(-9deg); }
+.roast .chips .chip:nth-child(4n + 3) { transform: rotate(-1.2deg) skewX(-6deg); }
+.roast .chips .chip:nth-child(4n + 4) { transform: rotate(2.9deg) skewX(-3deg); }
+
+.roast .mark {
+  width: 48px; height: 48px; border: var(--edge) solid #000; background: #08060e; display: flex;
+  align-items: center; justify-content: center; font-size: var(--fs-display-sm); box-shadow: 4px 4px 0 var(--a);
+  transform: rotate(-5deg) skewX(-4deg);
+}
+/* The stamp cast a red shadow on both sides, so a "likes" vote carried the disagreement colour in
+   the one place the card states its verdict. Glyph and shadow both. */
+.roast .mark.m-ag { box-shadow: 4px 4px 0 var(--ok); color: var(--ok); }
+/*
+ * The verdict word as a sticker label: the side's own colour as a block, the word cut into it, and the
+ * same two-layer print the vote buttons carry — the dark word with one white copy stepped behind it.
+ * It used to be white on nothing, so the word that states the verdict was the one element with no
+ * colour of its own.
+ */
+.roast .markword {
+  font-family: Impact, "Arial Black", sans-serif; font-style: italic; text-transform: uppercase;
+  font-size: var(--fs-display-xs); display: inline-block; padding: 1px 10px 3px; box-shadow: 4px 4px 0 #000;
+  text-shadow: 2px 2px 0 #fff; transform: rotate(-2deg);
+}
+.roast .markword.mw-likes { background: var(--ok); color: #04120a; }
+.roast .markword.mw-yikes { background: var(--a); color: #12000b; }
+
+/*
+ * The composed sentence. Present only when there is one: an empty chip pair is a legal vote, and an
+ * empty dashed box would read as something that failed to load.
+ */
+.roast .phrase { margin-top: 14px; border: 2px dashed #4a3f6e; padding: 9px 11px; font-size: var(--fs-label); color: #c4bfdd; transform: skewX(-6deg) rotate(0.6deg); }
+.roast .phrase > span { display: block; transform: skewX(6deg); }
+
+/*
+ * Next. It is the card's own language because it is the card's own action, and it sits on the back
+ * face where the vote buttons are not visible — so it cannot be mistaken for a third vote.
+ */
+.roast .next {
+  display: block; width: 100%; margin-top: 16px; border: var(--edge) solid #000; background: var(--c);
+  color: #1a0a00; cursor: pointer; padding: 11px 0; box-shadow: 5px 5px 0 #000;
+  font-family: Impact, "Arial Black", sans-serif; font-style: italic; text-transform: uppercase;
+  font-size: var(--fs-action); text-align: center; transform: skewX(-11deg) rotate(1deg);
+}
+.roast .next:active { transform: translate(3px, 3px) skewX(-11deg) rotate(1deg); box-shadow: 2px 2px 0 #000; }
+
+/*
+ * The deck's own footer: the write is fire-and-forget, so the only honest place for its state is a
+ * line under the card that never blocks the visitor.
+ */
+.roast .decknote {
+  margin: 18px auto 0; max-width: 360px; text-align: center; font-size: var(--fs-micro);
+  letter-spacing: 0.18em; text-transform: uppercase; color: var(--dim);
+}
+.roast .decknote.warn { color: var(--a); }
+
+/* ── the verdict ─────────────────────────────────────────────────────────
+ * The same tokens and the same type as the card, and none of its frame machinery: the verdict is a
+ * readout, not an object, so nothing here is measured or cut. The card's control idioms carry over —
+ * 3px black borders, hard offset shadows, a hand-placed rotation — so the screen reads as the back of
+ * the same card rather than as a new surface.
+ */
+.vd { min-height: 100vh; padding: 30px 16px 48px; }
+.vd-wrap { width: 100%; max-width: 420px; margin: 0 auto; }
+.vd-title {
+  font-family: Impact, "Arial Black", sans-serif; font-style: italic; text-transform: uppercase;
+  font-size: var(--fs-display); line-height: 0.98; letter-spacing: -0.01em; color: #fff; margin: 6px 0 14px;
+  text-shadow: 3px 3px 0 #000, 5px 5px 0 var(--b); transform: rotate(-0.6deg);
+}
+
+/* The visitor's own line — the author's voice, given the weight of an answer. */
+.vd-line {
+  background: var(--plate); border: var(--edge) solid #000; box-shadow: 5px 5px 0 #000, 0 0 30px -6px var(--a);
+  padding: 13px 14px; font-size: var(--fs-body); line-height: 1.5; color: var(--txt); transform: rotate(-0.5deg);
+}
+
+/* The two rates, side by side. Both are flex:1 with min-width:0, so a long sample line wraps inside
+   its own panel instead of widening the row on a narrow phone. */
+.vd-tallies { display: flex; gap: 11px; margin-top: 17px; }
+.vd-tally {
+  flex: 1 1 0; min-width: 0; background: var(--plate); border: var(--edge) solid #000;
+  box-shadow: 4px 4px 0 #000; padding: 10px 11px 11px;
+}
+.vd-tally:nth-child(1) { transform: rotate(-1.1deg); }
+.vd-tally:nth-child(2) { transform: rotate(0.9deg); }
+.vd-pct {
+  display: block; font-family: Impact, "Arial Black", sans-serif; font-style: italic; font-size: var(--fs-display-sm);
+  color: var(--b); text-shadow: 2px 2px 0 #000; margin: 4px 0 1px; font-variant-numeric: tabular-nums;
+}
+.vd-sample { display: block; font-size: var(--fs-label); line-height: 1.4; color: var(--dim); }
+
+.vd-hint {
+  margin: 13px 0 0; text-align: center; font-size: var(--fs-micro); letter-spacing: 0.16em;
+  text-transform: uppercase; color: var(--dim);
+}
+
+/* The cross-comparison, in the language of the card's composed sentence: dashed, skewed, and read as
+   a remark rather than as a control. */
+.vd-cross {
+  margin: 15px 0 0; border: 2px dashed #4a3f6e; padding: 10px 12px; font-size: var(--fs-small); line-height: 1.5;
+  color: #c4bfdd; transform: skewX(-5deg) rotate(0.4deg);
+}
+.vd-cross > span { display: block; transform: skewX(5deg); }
+
+.vd-sub {
+  font-family: Impact, "Arial Black", sans-serif; font-style: italic; text-transform: uppercase;
+  font-size: var(--fs-action); color: #fff; text-shadow: 2px 2px 0 #000; margin: 26px 0 2px;
+}
+.vd-fight { margin: 6px 0 0; font-size: var(--fs-small); line-height: 1.45; color: var(--b); }
+
+.vd-specs { list-style: none; margin: 11px 0 0; padding: 0; display: flex; flex-direction: column; gap: 9px; }
+.vd-spec { background: color-mix(in srgb, var(--plate) 80%, #000); border: 2px solid #000; padding: 7px 10px 8px; }
+.vd-specname { display: flex; justify-content: space-between; align-items: baseline; gap: 9px; font-size: var(--fs-small); }
+.vd-specname b { font-weight: 600; }
+.vd-count { flex-shrink: 0; font-size: var(--fs-label); color: var(--dim); font-variant-numeric: tabular-nums; }
+.vd-wait { flex-shrink: 0; font-size: var(--fs-micro); letter-spacing: 0.22em; text-transform: uppercase; color: var(--dim); }
+.vd-hp { margin-top: 6px; }
+
+/* The two lit colours of the split, on the deck's own blocks: agreement takes the green that also
+   paints LIKES, disagreement the red that also paints YIKES. Stated with `.hp.vd-hp` and three
+   classes so they outrank `.roast .hp i.on`, which paints every lit block red.
+   Agreement is semantic, so it is `--ok` and not the palette's `--b`: the bar has to stay green when
+   the palette moves. */
+.roast .hp.vd-hp i.on.ag { background: var(--ok); }
+.roast .hp.vd-hp i.on.dg { background: var(--a); }
+
+.vd-exits { margin-top: 28px; display: flex; flex-direction: column; gap: 11px; }
+.vd-cta {
+  display: block; border: var(--edge) solid #000; background: var(--b); color: #00131c; text-align: center;
+  padding: 12px 0; box-shadow: 5px 5px 0 #000; font-family: Impact, "Arial Black", sans-serif;
+  font-style: italic; text-transform: uppercase; font-size: var(--fs-action); transform: skewX(-8deg) rotate(-0.6deg);
+}
+.vd-cta:active { transform: translate(3px, 3px) skewX(-8deg) rotate(-0.6deg); box-shadow: 2px 2px 0 #000; }
+/* The provisional door: a footnote, deliberately not a peer of the Census button. */
+.vd-beta {
+  display: block; text-align: center; font-size: var(--fs-micro); letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--dim); text-decoration: underline; text-underline-offset: 3px;
+}
+.vd-beta:hover { color: var(--a); }
+
+/* The two honest not-a-verdict states: no client, and a read that did not answer. */
+.vd-state {
+  background: var(--plate); border: var(--edge) solid #000; padding: 14px; font-size: var(--fs-small);
+  line-height: 1.55; color: #c4bfdc;
+}

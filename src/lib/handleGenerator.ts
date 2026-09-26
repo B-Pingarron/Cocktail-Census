@@ -90,7 +90,6 @@ const WORDS_B: string[] = [
   "defender",
   "historian",
   "disaster",
-  "supremacy",
   "andy",
   "energy",
 ];
