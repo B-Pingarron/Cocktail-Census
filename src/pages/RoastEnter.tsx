@@ -9,9 +9,11 @@ import { generateHandles } from "@/lib/handleGenerator";
  */
 const HANDLE_COUNT = 5;
 import { clearNickname, setNickname } from "@/lib/nickname";
+import { prefersReducedMotion } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 import MenuCard from "@/components/MenuCard";
 import MartiniMark from "@/components/MartiniMark";
+import { playRoastWipe } from "@/lib/roastWipe";
 
 /**
  * The roast entry step: what to call the visitor.
@@ -41,6 +43,47 @@ const RoastEnter = () => {
   const navigate = useNavigate();
   const [value, setValue] = useState("");
   const [handles, setHandles] = useState<string[]>(() => generateHandles(HANDLE_COUNT));
+  /*
+   * The DoubleCircle wipe, out to the deck. Started by the two handlers below and by nothing else in
+   * the app: not by the router, not by the deck, not on the way back.
+   *
+   * WHY IT LIVES HERE AND NOT AT THE ROUTER:
+   *   A page change in this product is a page of the menu arriving, and that already belongs to
+   *   MenuCard, which turns itself in on mount. This is a different gesture and it belongs to a
+   *   different thing: ONE deliberate press of "Let's go", the single action on this page that
+   *   commits the visitor to the room, arriving at a loud card. It is a transition between two
+   *   specific surfaces, and a router-level wrapper could only have expressed it as "every route
+   *   change" — including the ones where it would be wrong. Card to card, back to the hub, the
+   *   verdict out to anywhere.
+   *
+   *   The router-level version was written and cut twice; App.tsx lines 12-19 are the record of it.
+   *   The reason is not taste. A sheet laid over a route change freezes a blank full-screen rectangle
+   *   for the length of the turn, and a blank rectangle during a page change reads as LOADING. That
+   *   sheet covered the wrong thing, for the wrong length, over the wrong number of navigations.
+   *   Here it covers a page that is deliberately being left, for about a second and a half, once.
+   *   And the black it ends on is the black the deck opens ON, not the black it opens after: the
+   *   wipe closes, changes the page underneath itself while it is fully closed, and then reopens.
+   *   The deck arrives out of black instead of appearing after a pause on it, so there is no frame
+   *   anywhere in the sequence a visitor could read as a stall — which is the same reading that
+   *   killed the router sheet, arrived at from the other direction.
+   *
+   *   WHICH IS WHY THE OVERLAY IS NOT PART OF THIS TREE, and why that is not an implementation
+   *   detail. A wipe that reopens has to still be on screen after the navigation, and a component
+   *   mounted here is unmounted by that navigation — the reveal would have had nothing to reveal.
+   *   So the overlay is appended to `document.body` by a plain module (`lib/roastWipe.ts`) and
+   *   outlives the route change by construction: React's reconciler can only remove nodes that are
+   *   reachable from its roots, and that one is above them. What this page does is hand the
+   *   transition the page change to make, not render it.
+   *
+   *   `prefersReducedMotion` is the same call the hub's cover makes (see pages/Hub.tsx, `goTo`): the
+   *   effect being opted out of is the wipe itself, and holding the page for a second and a half with
+   *   nothing on it is a stall rather than a transition. So the reduced path is a plain navigate,
+   *   below, and `wiping` is never set at all — not set and then immediately cleared, which would be
+   *   the same stall with a wasted render attached. `playRoastWipe` checks the setting itself too and
+   *   returns without creating an overlay; the check is repeated here because this one is what stops
+   *   the page starting a transition that will not run, and the transition cannot do that for itself.
+   */
+  const [wiping, setWiping] = useState(false);
 
   /** Persist a name (or the absence of one). Never throws — see lib/nickname.ts. */
   const save = (raw: string) => {
@@ -49,15 +92,61 @@ const RoastEnter = () => {
     else clearNickname();
   };
 
+
+  /*
+   * THE GUARD, and the reason it is here rather than only on the buttons.
+   *
+   * The wipe's canvas covers the screen for about a second and a half and takes pointer events, so
+   * in practice a second press cannot reach this page at all. But the canvas is the mitigation for
+   * the click, and the click is not the only way to get here: a keyboard on the button, a script, or
+   * a stylesheet that failed to load all arrive at these handlers directly. If `wiping` is true the
+   * intent has already been acted on, and acting on it twice would run a second transition and push
+   * a history entry the visitor never made — which on a browser back button means leaving the roast
+   * and having to come back in. The cheapest check that cannot be wrong.
+   *
+   * `wiping` no longer decides whether anything is rendered — there is nothing of the transition in
+   * this tree to render. It is purely a latch now: set once, and never cleared, because the page it
+   * belongs to is unmounted about a second and a half later by the navigation the transition makes
+   * itself. It stays state rather than becoming a ref because a ref is not a latch a render can see,
+   * and a latch a render can see is one that survives anything a future render might do to the page.
+   *
+   * Both handlers, and both buttons, because skip and commit are the same action: the same page, the
+   * same destination, the same second and a half. A guard on one of them would leave the other open.
+   *
+   * PERSISTENCE IS BEFORE THE ANIMATION, in both, and that ordering is the load-bearing part of
+   * this block rather than a style preference. `setNickname` is the only write on this page and it
+   * happens before a single frame is painted, so a visitor whose tab dies, whose battery gives out
+   * or whose browser throws away the transition's promise has still told the room who they are. The
+   * animation is the one part of this action that is allowed to fail; the name is not.
+   */
   const commit = () => {
+    if (wiping) return;
     save(value);
-    navigate("/roast/deck");
+    if (prefersReducedMotion()) {
+      navigate("/roast/deck");
+      return;
+    }
+    setWiping(true);
+    // Fire-and-forget, deliberately. Nothing on this page renders from the resolution — the page
+    // change is made BY the transition, mid-sequence, not by this promise — so there is nothing to
+    // await and nothing to store. The `void` says so out loud, because a floating promise that
+    // cannot reject (see lib/roastWipe.ts) is otherwise the first thing a reviewer would ask about.
+    void playRoastWipe(() => navigate("/roast/deck"));
   };
 
   const skip = () => {
+    if (wiping) return;
     setValue("");
     save("");
-    navigate("/roast/deck");
+    if (prefersReducedMotion()) {
+      navigate("/roast/deck");
+      return;
+    }
+    setWiping(true);
+    // Same three steps as commit, same order, same reasons. The cleared name is written before the
+    // transition starts, so a half-finished animation cannot leave behind a nickname the visitor
+    // meant to drop.
+    void playRoastWipe(() => navigate("/roast/deck"));
   };
 
   return (

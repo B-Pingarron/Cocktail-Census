@@ -1,0 +1,65 @@
+/*
+ * ROAST WIPE — positioning and layering for the DoubleCircle transition out of /roast/enter.
+ * See the header of `roast.css` for the rule this file follows, and the reason it exists: the roast
+ * surface is deliberately a different language from the Dark Academia menu it is pasted onto, so its
+ * rules are scoped and must not reach the rooms that share this app. That applies to the transition
+ * as much as to the card — the wipe is a roast-surface object, it is drawn in the card's solid black
+ * rather than in the menu's gold, and it is mounted by one page and no other.
+ *
+ * WHICH MEANS THIS FILE IS NOT `.roast` AND DOES NOT DEPEND ON IT. The wipe is started by RoastEnter,
+ * which is a menu page: it has no `.roast` ancestor, and giving it one to borrow a z-index from would
+ * put the card's palette on a page that has no card. Hence a root of its own, one level up from the
+ * card's, with the same scoping discipline.
+ *
+ * AND IT IS IMPORTED BY THE MODULE THAT BUILDS THE OVERLAY, not by the app entry point. A module
+ * that creates DOM owns the CSS for that DOM: `lib/roastWipe.ts` is the only thing in the project
+ * that can put a `.roast-wipe` in the document, and a lib that silently depends on some other file
+ * happening to import a sheet globally is a trap for whoever reads it next.
+ *
+ * THERE IS NOTHING ELSE IN HERE. No keyframes, no colour ramp, no easing: every pixel and every
+ * frame of this transition is drawn on the canvas in lib/roastWipe.ts, which is the only place the ROM
+ * data lives. CSS that animated the same thing as the canvas would be a second source of truth for
+ * a frame table that has to match the ROM's exactly — and two things that have to agree about timing
+ * are how a transition ends up a frame out on the cut. This file exists to say where the thing is
+ * and what it does to input, and nothing else.
+ */
+
+.roast-wipe {
+  /*
+   * Above everything, and full-bleed. A transition that is briefly shorter than the viewport is not a
+   * transition, it is a card over a page, which is precisely the reading the router-level version of
+   * this was rejected for (see App.tsx).
+   *
+   * `inset: 0` rather than explicit offsets so there is one declaration saying "the whole viewport"
+   * instead of four that could disagree. The canvas below sizes its backing store from
+   * `window.innerWidth/Height` and its CSS box to the same numbers, so this element is the
+   * positioning context and nothing about it can make the painted size and the hit area differ.
+   */
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+
+  /*
+   * The root does not take the pointer; the canvas does. A full-screen element that swallows input
+   * is a modal, and this is not one — the page underneath stays live and its state is unchanged, only
+   * unclickable for the second this is up. A modal is the wrong claim to make: it implies somewhere
+   * to send focus, an escape hatch, and a reason for `aria-modal`, and there is none of those here.
+   * The wipe is a picture that happens to be in the way.
+   */
+  pointer-events: none;
+}
+
+.roast-wipe__canvas {
+  /*
+   * `pointer-events: auto` on the canvas, not on the root: the canvas is the thing that has to eat
+   * the click. Without it, a second press on "Let's go" during the second and a half the wipe is up
+   * would land on the button underneath and queue a second transition. The overlay covering the
+   * screen is the only thing standing between the visitor and a double navigation, and it is
+   * invisible — which is why the caller ALSO guards on its own state (see RoastEnter.tsx). Belt,
+   * braces, and the guard is the one that would still hold if this stylesheet failed to load.
+   */
+  pointer-events: auto;
+  display: block;
+
+  /* No transition, no animation, no transform here. See the header. */
+}
