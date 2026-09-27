@@ -114,43 +114,37 @@ const FLASH_STEPS: number[] = [0.25, 0.50, 0.75, 0.75, 0.50, 0.25];
 const FLASH_FRAMES_PER_STEP = 4;
 const FLASH_FRAMES = FLASH_STEPS.length * FLASH_FRAMES_PER_STEP; // 24
 
-/**
- * The wipe runs for 30 frames: ten steps of the circle, three frames each. The same 30 frames run
- * again backwards as the reveal.
- */
-const WIPE_STEPS = 10;
-const FRAMES_PER_WIPE_STEP = 3;
-const WIPE_FRAMES = WIPE_STEPS * FRAMES_PER_WIPE_STEP;
+    /**
+     * THE REVEAL IS CAPPED AT 30 FRAMES, whatever the close took.
+     *
+     * It used to be the close's own length, which was free when there was one wipe. With four of
+     * them the cap earns its keep: a faithful Spiral inward close is 156 frames, and a reveal that
+     * mirrored it would put the whole transition at 339 frames — five and a half seconds on a single
+     * press. That is a stall, and a stall is the exact thing the two rejected router-level transitions
+     * were rejected for (App.tsx lines 12-19).
+     *
+     * So the close runs at its authentic tempo and the reveal does not. Thirty frames is the
+     * DoubleCircle's own reveal length — the one that was watched and approved — and holding it fixed
+     * means every variant ends on the same hand. A long close therefore reveals at more than one step
+     * per frame, which is invisible: the reveal is a smooth un-cover either way.
+     */
+    const REVEAL_FRAMES = 30;
 
-/**
- * The reveal is the SAME 30 frames of the same ten cumulative snapshots, read from the other end:
- * step 9 down to step 0. It is not a re-walk of the run-length tables and it is not a second copy
- * of the geometry — the reveal is the close, backwards, over the same `steps[]` array. Reading a
- * snapshot rather than inverting one is what makes step 0 of the reveal identical to the frame the
- * ROM's wipe starts from, which is also the frame the clear phase below exists to leave behind.
- */
-const REVEAL_FRAMES = WIPE_FRAMES;
-
-/**
- * THE CLEAR PHASE, three frames with NOTHING painted, and it is load-bearing rather than padding.
- *
- * Snapshot 0 is not empty. It is 32 of 360 cells — the ROM's first record is a real wedge opening
- * out of the centre, not a point, which is the same fact the coverage curve starts on. So the
- * reveal's last three frames are the first step of the wipe, and the instant the clear phase starts
- * the canvas goes from "32 cells of black in the middle of the deck" to "nothing", which is a pop of
- * exactly that wedge, three times a second, on the frame the transition is supposed to have ended
- * on. Three frames of nothing lets the compositor retire the last painted frame first.
- */
-const CLEAR_FRAMES = 3;
-
-/**
- * The frame the page change happens on: the last frame of the close, which is a full black screen.
- * 24 + 30 = 54. The swap runs on this frame and the first reveal frame is painted on the next one.
- */
-const SWAP_FRAME = FLASH_FRAMES + WIPE_FRAMES;
-
-/** 87 frames, about 1.46s at the DMG rate. rAF will land it on whatever the display actually runs. */
-const TOTAL_FRAMES = FLASH_FRAMES + WIPE_FRAMES + REVEAL_FRAMES + CLEAR_FRAMES;
+    /**
+     * THE CLEAR PHASE, three frames with NOTHING painted, and it is load-bearing rather than padding.
+     *
+     * Snapshot 0 is not empty. It is 32 of 360 cells — the ROM's first record is a real wedge opening
+     * out of the centre, not a point, which is the same fact the coverage curve starts on. So the
+     * reveal's last three frames are the first step of the wipe, and the instant the clear phase starts
+     * the canvas goes from "32 cells of black in the middle of the deck" to "nothing", which is a pop of
+     * exactly that wedge, on the frame the transition is supposed to have ended on. Three frames of
+     * nothing lets the compositor retire the last painted frame first.
+     *
+     * The longer variants leave more than 32 cells in snapshot 0 and so pop more, but the clear frame
+     * is still the right place for the discontinuity: it is already three frames of nothing, and a
+     * reveal that eased all the way to a perfect zero would be a lie about the ROM's data.
+     */
+    const CLEAR_FRAMES = 3;
 
 /**
  * THE REVEAL IS NOT WHAT THE HARDWARE DOES. Say so before the tables below, because everything in
@@ -352,21 +346,165 @@ function paintRecord(
  * — no node in the document, no frame painted, no promise waiting on a loop that will never run —
  * instead of mounting a canvas and tearing it back down.
  */
-function buildSteps(): Uint8Array[] {
-  const black = new Uint8Array(CELLS);
-  const steps: Uint8Array[] = [];
-  for (let s = 0; s < WIPE_STEPS; s++) {
-    // The index IS the quadrant-Y flag: 0 for the first half-circle and 1 for the second, which is
-    // what the ROMs xor-a / ld-a-1 pair amounts to. Both halves step in the same iteration because
-    // record N of one is the same radial band as record N of the other.
-    for (const [halfIndex, half] of [HALF_CIRCLE_1, HALF_CIRCLE_2].entries()) {
-      const r = half[s];
-      paintRecord(black, r[0], halfIndex, r[1], r[2], r[3]);
-    }
-    steps.push(black.slice());
-  }
-  return steps;
-}
+
+    /**
+     * THE FOUR WIPES, and why the choice is random.
+     *
+     * All four are ports of BattleTransition_* from pret/pokered, and all four are painted by the
+     * same paintRecord and the same cumulative-snapshot machinery. The first three are three
+     * traversals of one idea and the fourth is that idea with no table at all; what differs is only
+     * how many records the ROM walks and how long it pauses between them.
+     *
+     *   doublecircle  10 records x 3f =  30f   %000  wild, non-dungeon, enemy not stronger
+     *   circle        20 records x 3f =  60f   %010  wild, non-dungeon, enemy 3+ levels stronger
+     *   hstripes      20 steps   x 3f =  60f   %100  wild, dungeon
+     *   spiral-in     52 steps   x 3f = 156f   %001  trainer, non-dungeon
+     *
+     * RANDOM PER PRESS, and the reason is not variety for its own sake. Four wipes of very different
+     * lengths and shapes, seen once each, cannot be compared: a visitor who draws the 156-frame spiral
+     * once concludes the transition is slow, and a visitor who draws the 30-frame DoubleCircle once
+     * concludes it is punchy. Randomising says neither, and it is the more honest model of the
+     * product anyway - these are four renderings of the same encounter and none of them is canonical,
+     * so picking arbitrarily is truer than pretending the grass encounter has one fixed animation.
+     *
+     * Note what is NOT here: a declared step count. The frame budget is derived from what each
+     * builder actually returns, because a hand-written 10 here would be a second source of truth
+     * about a table that already has one, and the two would drift the first time a data edit landed.
+     */
+    type VariantId = "doublecircle" | "circle" | "hstripes" | "spiral-in";
+
+    type Variant = {
+      id: VariantId;
+      label: string;
+      /** The ROM's own pause between records. Every variant here is three frames; the spiral's is three too. */
+      framesPerStep: number;
+      build: () => Uint8Array[];
+    };
+
+    const VARIANTS: Variant[] = [
+      {
+        id: "doublecircle",
+        label: "DoubleCircle",
+        framesPerStep: 3,
+        build: () => {
+          const black = new Uint8Array(CELLS);
+          const steps: Uint8Array[] = [];
+          for (let s = 0; s < 10; s++) {
+            // The index IS the quadrant-Y flag: 0 for the first half-circle, 1 for the second, which is
+            // what the ROM's xor-a / ld-a-1 amounts to. Both halves step in the same iteration because
+            // record N of one is the same radial band as record N of the other.
+            for (const [halfIndex, half] of [HALF_CIRCLE_1, HALF_CIRCLE_2].entries()) {
+              const r = half[s];
+              paintRecord(black, r[0], halfIndex, r[1], r[2], r[3]);
+            }
+            steps.push(black.slice());
+          }
+          return steps;
+        },
+      },
+      {
+        id: "circle",
+        label: "Circle",
+        framesPerStep: 3,
+        build: () => {
+          // Same tables, opposite traversal. BattleTransition_Circle plays the two half-circles
+          // SEQUENTIALLY where DoubleCircle plays them in lockstep, so it is one full circle instead
+          // of two, and it takes twice as many records to get there. Its tell is in the coverage
+          // curve: 16, 30, 54 ... 180 ... 360, sitting near exactly half for ten straight records
+          // while the second half-circle plays. That long unbalanced sweep is the whole effect.
+          const black = new Uint8Array(CELLS);
+          const steps: Uint8Array[] = [];
+          for (const [halfIndex, half] of [HALF_CIRCLE_1, HALF_CIRCLE_2].entries()) {
+            for (let s = 0; s < 10; s++) {
+              const r = half[s];
+              paintRecord(black, r[0], halfIndex, r[1], r[2], r[3]);
+              steps.push(black.slice());
+            }
+          }
+          return steps;
+        },
+      },
+      {
+        id: "hstripes",
+        label: "HorizontalStripes",
+        framesPerStep: 3,
+        build: () => {
+          // The literal black-bar curtain. Two columns march inward from the left and right edges
+          // together: the left pointer fills every other tile ROW and the right pointer the
+          // interleaved rows, so the bars interleave rather than meet. BattleTransition_
+          // HorizontalStripes_ paints nine tiles at stride SCREEN_WIDTH*2 - every other row - from
+          // hlcoord 0,0 walking right and decoord 19,1 walking left, twenty times.
+          const black = new Uint8Array(CELLS);
+          const steps: Uint8Array[] = [];
+          for (let s = 0; s < COLS; s++) {
+            for (let k = 0; k < ROWS / 2; k++) {
+              black[(k * 2) * COLS + s] = 1;
+              black[(k * 2 + 1) * COLS + (COLS - 1 - s)] = 1;
+            }
+            steps.push(black.slice());
+          }
+          return steps;
+        },
+      },
+      {
+        id: "spiral-in",
+        label: "Spiral (inward)",
+        framesPerStep: 3,
+        build: () => {
+          // BattleTransition_InwardSpiral: a rectangular ring at a time, walked exactly as the
+          // assembly does - down a column, right a row, up a column, left a row, each ring two tiles
+          // tighter than the last.
+          //
+          // TWO THINGS THAT ARE EASY TO GET WRONG, both of which produce a shape that looks almost
+          // right and is not. First, jr .skip: the loop body's down-a-column leg is skipped on the
+          // first pass only, and running it on every pass walks hl off the bottom of the map and
+          // stalls the whole thing at 18 cells. Second, the pacing is not a fixed step at all -
+          // InwardSpiral_ carries a counter starting at 7 and calls TransferDelay3 whenever it hits
+          // zero, so a frame happens every EIGHTH cell painted. One snapshot per delay is the
+          // faithful unit, which is why this is 52 steps and not 9.
+          const black = new Uint8Array(CELLS);
+          const steps: Uint8Array[] = [];
+          let hl = 0;
+          let c = ROWS - 1;
+          let counter = 7;
+          let guard = 0;
+          const paint = (count: number, stride: number) => {
+            for (let i = 0; i < count; i++) {
+              if (++guard > 40000) throw new Error("InwardSpiral walk did not terminate");
+              if (hl >= 0 && hl < CELLS) black[hl] = 1;
+              hl += stride;
+              if (--counter === 0) {
+                counter = 7;
+                steps.push(black.slice());
+              }
+            }
+          };
+          paint(c, COLS);
+          c += 1;
+          let firstPass = true;
+          for (;;) {
+            if (!firstPass) paint(c, COLS);
+            firstPass = false;
+            c += 1;
+            paint(c, 1);
+            c -= 2;
+            paint(c, -COLS);
+            c += 1;
+            paint(c, -1);
+            c -= 2;
+            if (c === 0) break;
+          }
+          // The ROM leaves the centre tile unpainted, because every caller follows the walk with
+          // BattleTransition_BlackScreen (ld a,$ff / ldh [rBGP],a) which blacks the whole screen and
+          // takes that cell with it. This module has no such caller, so it is painted here; without
+          // it the shape ends at 359 of 360.
+          if (hl >= 0 && hl < CELLS) black[hl] = 1;
+          steps.push(black.slice());
+          return steps;
+        },
+      },
+    ];
+
 
 /**
  * The whole transition, and it is a single call because a single call is the whole point.
@@ -398,7 +536,7 @@ function buildSteps(): Uint8Array[] {
  * that is painted and immediately torn down — because the failure mode of that is a frame of black
  * over a live page, which is a flash, which is the one thing the setting asked not to see.
  */
-export async function playRoastWipe(swap: () => void): Promise<void> {
+    export async function playRoastWipe(swap: () => void, pick?: VariantId): Promise<void> {
   // Nothing below can throw out of this function. `resolve` is captured up front so that every
   // early return can take the same exit, and `safeSwap` is the only way `swap` is ever called.
   await new Promise<void>((resolve) => {
@@ -468,13 +606,35 @@ export async function playRoastWipe(swap: () => void): Promise<void> {
      * (there is no effect), but the argument is unchanged and so is the fallback: degrade to the
      * no-transition case by calling `swap` and resolving, rather than to nothing at all.
      */
-    let steps: Uint8Array[];
-    try {
-      steps = buildSteps();
-    } catch {
-      bail();
-      return;
-    }
+        // PICKED HERE, ONCE, BEFORE ANYTHING IS PAINTED. The choice is not a property of the session
+        // and nothing reads it back, so it is not persisted: persisting it would make the wipe
+        // predictable across a reload for no benefit. `pick` is an override for a caller that wants
+        // one specific variant, so the wipe can be pinned in a test without a seed.
+        // PICKED HERE, ONCE, BEFORE ANYTHING IS PAINTED. The choice is not a property of the session
+        // and nothing reads it back, so it is not persisted: persisting it would make the wipe
+        // predictable across a reload for no benefit. `pick` is an override for a caller that wants
+        // one specific variant, so the wipe can be pinned in a test without a seed.
+        //
+        // Resolved THROUGH the table rather than trusted, so a stale id from a caller falls back to
+        // the first variant instead of reading a property off a string.
+        const variant =
+          (pick ? VARIANTS.find((v) => v.id === pick) : undefined) ??
+          VARIANTS[Math.floor(Math.random() * VARIANTS.length)];
+        let steps: Uint8Array[];
+        try {
+          steps = variant.build();
+        } catch {
+          bail();
+          return;
+        }
+        /*
+         * The frame budget, DERIVED rather than declared. `steps.length` is what the builder actually
+         * produced, so a variant cannot disagree with itself about how long it is - which is exactly
+         * the failure a hand-written `steps: 10` in the table below would invite.
+         */
+        const closeFrames = steps.length * variant.framesPerStep;
+        const swapFrame = FLASH_FRAMES + closeFrames;
+        const totalFrames = swapFrame + REVEAL_FRAMES + CLEAR_FRAMES;
 
     // Built the long way round for the same reason `buildSteps` runs first: every check that can
     // fail without painting anything happens before the overlay exists, so the only way an overlay
@@ -597,7 +757,7 @@ export async function playRoastWipe(swap: () => void): Promise<void> {
         // visually even though the new page is not committed to the DOM until React gets a task
         // of its own after this callback returns. From the second reveal frame the deck is
         // mounted and what the wipe opens onto is the destination.
-        if (frame === SWAP_FRAME) runSwap();
+            if (frame === swapFrame) runSwap();
 
         if (frame < FLASH_FRAMES) {
           // Six steps, four frames each, one pass, black only. Clamped rather than trusted so a
@@ -608,33 +768,35 @@ export async function playRoastWipe(swap: () => void): Promise<void> {
             ctx.fillStyle = "rgba(0,0,0," + alpha + ")";
             ctx.fillRect(0, 0, W, H);
           }
-        } else if (frame < SWAP_FRAME) {
-          // The close: the ROM's ten cumulative snapshots, forwards.
-          const local = frame - FLASH_FRAMES;
-          // Clamped rather than trusted: 30 frames at 3 per step lands exactly on 9, and a future
-          // edit to WIPE_FRAMES that runs long should repeat the last step rather than read past
-          // the table.
-          const step = Math.min(
-            WIPE_STEPS - 1,
-            Math.max(0, Math.floor(local / FRAMES_PER_WIPE_STEP))
-          );
-          ctx.fillStyle = "#000";
-          paintStep(steps[step]);
-        } else if (frame < SWAP_FRAME + REVEAL_FRAMES) {
-          // The reveal: THE SAME TEN SNAPSHOTS, BACKWARDS. `step = 9 - floor(local / 3)` is
-          // `WIPE_STEPS - 1 - floor(local / FRAMES_PER_WIPE_STEP)`, and it is written that way only
-          // so the two phases cannot drift apart if the step count or the tempo changes — they
-          // paint the same array and must stay the same length or the reveal would not land on the
-          // frame the close started from.
-          const local = frame - SWAP_FRAME;
-          const step = WIPE_STEPS - 1 - Math.floor(local / FRAMES_PER_WIPE_STEP);
-          ctx.fillStyle = "#000";
-          paintStep(steps[step]);
-        }
+            } else if (frame < swapFrame) {
+              // The close: this variant's cumulative snapshots, forwards, at its own tempo.
+              const local = frame - FLASH_FRAMES;
+              // Clamped rather than trusted, so a variant whose builder returns fewer steps than its
+              // frame budget assumes repeats the last step instead of reading past the table.
+              const step = Math.min(
+                steps.length - 1,
+                Math.max(0, Math.floor(local / variant.framesPerStep))
+              );
+              ctx.fillStyle = "#000";
+              paintStep(steps[step]);
+            } else if (frame < swapFrame + REVEAL_FRAMES) {
+              // The reveal: THE SAME SNAPSHOTS, BACKWARDS, and CAPPED at REVEAL_FRAMES regardless of
+              // how long the close took - see that constant for why. The mapping is written over
+              // (REVEAL_FRAMES - 1) rather than per-step so the LAST reveal frame is always step 0,
+              // which is the frame the clear phase exists to leave behind. Dividing by the step count
+              // instead would leave a long variant stranded on step 1 and pop the rest of it.
+              const local = frame - swapFrame;
+              const step = Math.max(
+                0,
+                steps.length - 1 - Math.round((local * (steps.length - 1)) / (REVEAL_FRAMES - 1))
+              );
+              ctx.fillStyle = "#000";
+              paintStep(steps[step]);
+            }
         // Else: the clear phase. Nothing is painted, and that is the point — see CLEAR_FRAMES.
 
         frame += 1;
-        if (frame >= TOTAL_FRAMES) {
+            if (frame >= totalFrames) {
           // The frame after the last one, so the final painted frame is the last frame of the
           // clear phase rather than a stray partial. `settle` is what makes the completion path
           // run exactly once: see the note on it above.
