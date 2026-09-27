@@ -5,6 +5,7 @@ import { clearState, loadState } from "@/lib/censusState";
 import MartiniMark from "@/components/MartiniMark";
 import { setIntroHidden } from "@/lib/intro";
 import MenuCard from "@/components/MenuCard";
+import ExitLink from "@/components/ExitLink";
 
 /**
  * Landing page — the first thing a visitor sees, and the target for a single QR code.
@@ -44,6 +45,16 @@ const LearnMore = () => {
         <header className="space-y-3 text-center">
           <h1 className="font-display text-4xl font-bold text-gold">The Cocktail Census</h1>
           <p className="font-body text-muted-foreground">Vote on recipes. Shape the standard.</p>
+          {/*
+            The emergency exit, in the header. The intro sends you here and the CTA sends you
+            into the vote, so a visitor who came to read and then changed their mind was left
+            with only the browser's back gesture — and at the foot of a long page it is not an
+            escape hatch, it is a footer. Same reasoning as the ROAST verdict: the way out
+            belongs where it is already on screen, not at the end.
+          */}
+          <div className="flex justify-center">
+            <ExitLink />
+          </div>
         </header>
 
         <section className="space-y-4 font-body text-sm leading-relaxed text-muted-foreground">

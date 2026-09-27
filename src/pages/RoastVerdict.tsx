@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
+import ExitLink from "@/components/ExitLink";
 import { noteById, roastNotes } from "@/data/roastNotes";
 import { ROAST_LIST_ID, roastSpecs } from "@/data/roastSpecs";
 import { getSessionId } from "@/lib/session";
@@ -148,17 +149,21 @@ const SpecRow = ({ name, t }: { name: string; t: Tally | null }) => (
  * The way onward, rendered in every state — including the two that cannot show a verdict. A visitor
  * who arrives while the database is unreachable must still be able to leave the room.
  *
- * "Now do the classics." is the author's own copy for the Census door (plan §5). The beta door is
- * PROVISIONAL: the ask form is phase 4 and does not exist yet, so it points at the hub's honest dead
- * end for unbuilt rooms and its label says so rather than borrowing a working door's confidence.
+ * "Now do the classics." is the author's own copy for the Census door (plan §5).
+ *
+ * The beta door used to be a placeholder pointing at /soon/beta, on the reasoning that the
+ * ask form is phase 4 and did not exist yet. It does now, and /soon/:room is gone, so that
+ * link would have landed on no route at all. It points at the Recipe Manager room, which is
+ * where the ask actually is, and its label stops claiming the ask is closed: the beta is not
+ * open, but the ask is, and "ask for the beta" says exactly that without over-claiming.
  */
 const exits = (
   <div className="vd-exits">
     <Link to="/census" className="vd-cta">
       Now do the classics.
     </Link>
-    <Link to="/soon/beta" className="vd-beta">
-      ask for the beta — not open yet
+    <Link to="/room/recipe-manager" className="vd-beta">
+      ask for the beta
     </Link>
   </div>
 );
@@ -240,6 +245,16 @@ const RoastVerdict = () => {
       <div className="vd-wrap">
         <span className="kick">Roast · the verdict</span>
         <h1 className="vd-title">The verdict</h1>
+      {/*
+        The emergency exit, in the header rather than with the doors below. The two forward
+        doors belong at the end of the page — you read the result, then you choose where to go —
+        but an escape hatch that only appears after scrolling a fifteen-row tally is not an
+        escape hatch. This leaves the doors where they are and puts the way out where it is
+        already on screen.
+      */}
+      <div className="mb-2">
+        <ExitLink />
+      </div>
         {children}
         {exits}
       </div>

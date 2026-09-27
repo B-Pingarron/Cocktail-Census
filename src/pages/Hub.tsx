@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import CensusIntro from "@/components/CensusIntro";
 import LoungeEntry from "@/components/LoungeEntry";
+import PartyAsk from "@/components/PartyAsk";
 import MartiniMark from "@/components/MartiniMark";
 import MenuCard from "@/components/MenuCard";
 import { HUB_ENTRIES, HUB_STANDFIRST } from "@/data/hubEntries";
@@ -277,6 +278,15 @@ const Hub = () => {
             <LoungeEntry key={entry.id} entry={entry} onDoorActivate={onDoorActivate} />
           ))}
         </div>
+
+        {/*
+          The ask, in the lounge as well as at the end of every room. Same component, one form,
+          one set of words for all of it — the visitor decides once whichever door they came
+          through. It sits after the list rather than above it: the lounge's job is to let someone
+          pick a seat, and a form before the list is a form you scroll past to reach the thing you
+          came for.
+        */}
+        <PartyAsk className="mt-10" />
       </>
     );
   };

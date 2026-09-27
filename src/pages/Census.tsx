@@ -7,6 +7,7 @@ import { VoteReceipt } from "@/components/VoteReceipt";
 import CensusResults from "@/components/CensusResults";
 import FeedbackForm from "@/components/FeedbackForm";
 import Wordmark from "@/components/Wordmark";
+import ExitLink from "@/components/ExitLink";
 import type { Vote } from "@/types/cocktail";
 import { supabase } from "@/lib/supabase";
 import { SWIPE_FLYOFF_DURATION_MS } from "@/components/CocktailCard";
@@ -192,6 +193,13 @@ const Census = () => {
       >
         Reset progress
       </button>
+      {/*
+        The emergency exit. This screen is full-bleed and thumb-driven, and before this the only
+        way out of a hundred-card census was the browser's back gesture. It lives in the header
+        so it is present in the skeleton state and the voting state alike, and it is above the
+        swipe container, where a tap can never be read as a vote.
+      */}
+      <ExitLink className="mt-1" />
     </header>
   );
 

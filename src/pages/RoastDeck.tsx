@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import RoastSpecCard from "@/components/RoastSpecCard";
+import ExitLink from "@/components/ExitLink";
 import { noteById } from "@/data/roastNotes";
 import { ROAST_LIST_ID, roastSpecs } from "@/data/roastSpecs";
 import { getSessionId } from "@/lib/session";
@@ -157,6 +158,16 @@ const RoastDeck = () => {
   return (
     <div className="roast flex items-center justify-center px-4 py-10">
       <div className="w-full max-w-[360px]">
+        {/*
+          The emergency exit. The deck is fifteen full-height cards with horizontal drag on every
+          one of them, and before this there was no way off the screen at all. It sits above the
+          card and outside the card's gesture surface, so a tap here can never be counted as a
+          vote or a skip. A menu screen for the ROAST is still to come; until it exists the hub
+          is the honest place to land.
+        */}
+        <div className="flex justify-center pb-2">
+          <ExitLink />
+        </div>
         <RoastSpecCard
           // Remounting per spec is what keeps a neighbour's chips and side out of the next card.
           key={spec.id}

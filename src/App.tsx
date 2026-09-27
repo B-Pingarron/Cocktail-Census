@@ -1,12 +1,13 @@
 import { HashRouter, Routes, Route } from "react-router-dom";
+import About from "@/pages/About";
 import Census from "@/pages/Census";
-import ComingSoon from "@/pages/ComingSoon";
 import Hub from "@/pages/Hub";
 import CensusIntroPage from "@/pages/CensusIntroPage";
 import LearnMore from "@/pages/LearnMore";
 import RoastDeck from "@/pages/RoastDeck";
 import RoastEnter from "@/pages/RoastEnter";
 import RoastVerdict from "@/pages/RoastVerdict";
+import Room from "@/pages/Room";
 
 /**
  * WHY THERE IS NO ROUTE-TRANSITION WRAPPER HERE:
@@ -33,11 +34,12 @@ const App = () => {
         <Route path="/roast/deck" element={<RoastDeck />} />
         <Route path="/roast/verdict" element={<RoastVerdict />} />
         {/*
-         * Every not-yet-built room lands on the same page, which reads its own name out of the
-         * URL. One route covers /soon/census, /soon/roast, /soon/compositor, /soon/recipe-manager
-         * and /soon/about without five near-identical entries.
+         * The four room explainers. One route, the room out of the URL, the copy out of
+         * data/roomCopy — so a room is a data entry, not a page component.
          */}
-        <Route path="/soon/:room" element={<ComingSoon />} />
+        <Route path="/room/:room" element={<Room />} />
+        {/* About is reachable from the lounge, never from the cover. */}
+        <Route path="/about" element={<About />} />
       </Routes>
     </HashRouter>
   );
