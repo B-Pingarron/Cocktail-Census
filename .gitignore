@@ -34,3 +34,4 @@ dist-ssr/
 
 # fails soft, so votes would stop being recorded with nothing visibly broken.
 
+*.pyc
