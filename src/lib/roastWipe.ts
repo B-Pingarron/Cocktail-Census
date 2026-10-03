@@ -44,17 +44,25 @@
  * of integers here. The whole effect is a frame table and a painter, and a dependency would be a
  * larger diff than the effect.
  *
- * THE CLOCK IS AN INTEGER, NOT A TIMESTAMP:
- *   The DMG ran its LCD at 59.7275 Hz, so a frame is 1000/59.7275 ms — the number the phase table
- *   below was written against. Nothing here subtracts it from an accumulator: the loop advances ONE
- *   integer frame per `requestAnimationFrame` tick and the phase boundaries are compared against that
- *   integer. The accumulator version was tried first and it drifts — a long frame early in the
- *   dimmer shifts every later step, and the reveal's last step is the frame the visitor is left
- *   looking at, so drift there is drift on the landing. Comparing integers cannot drift; it also
- *   cannot skip, which is the behaviour the ROM has and the one that makes the cut land on a full
- *   black frame.
- *
- * THE 7-FRAME PROLOGUE IS CUT, AND THAT IS THE ONLY CUT:
+     * THE CLOCK IS AN INTEGER, NOT A TIMESTAMP:
+     *   The DMG ran its LCD at 59.7275 Hz, so a frame is 1000/59.7275 ms — the number the phase table
+     *   below was written against. Elapsed REAL TIME feeds an accumulator; the accumulator says how
+     *   many whole frames are DUE, and every phase boundary is compared against that integer, never
+     *   against a timestamp. Comparing integers cannot drift: a long frame in the dimmer costs a
+     *   skipped frame later rather than shifting every subsequent boundary, and the reveal's last
+     *   step is the frame the visitor is left looking at, so drift there would be drift on the
+     *   landing.
+     *   An accumulator DOES reintroduce the one thing a one-frame-per-tick loop could not do, which
+     *   is skip, and skipping is a hazard at exactly one place: the frame the page change fires on.
+     *   That is clamped rather than hoped for — see the seam clamp in the tick.
+     *   What the accumulator bought, MEASURED: the old loop advanced one frame per display tick, so
+     *   the same 87-frame transition took 1450ms at 60Hz, 725ms at 120Hz and 604ms at 144Hz — twice
+     *   as fast on a modern phone, silently, and unnoticed because every machine anyone looked at is
+     *   60Hz. The accumulator makes it 850 / 842 / 840ms across those three rates: a 10ms spread,
+     *   under one display tick, which is the floor. The seam clamp can cost one more tick, so the
+     *   worst spread measured across the seven variants is 21ms.
+     *
+     * THE 7-FRAME PROLOGUE IS CUT, AND THAT IS THE ONLY CUT:
  *   The original spends seven frames letting the tiles settle before the flash starts. On a DMG that
  *   is the LCD's own latency being waited out; on the web rAF has already presented the frame we
  *   asked for, so it is seven frames (~117 ms) of nothing between the click and the effect. The rest
@@ -64,6 +72,56 @@
 // The stylesheet is imported by the module that creates the overlay, not by the app entry point.
 // See the header: four positioning declarations that describe exactly the DOM built below, and
 // nothing else in the project paints this transition.
+/* ══ the clock ═══════════════════════════════════════════════════════════════
+ *
+ * SPEED, and the one thing that had to be given up to have it.
+ *
+ * The loop used to advance exactly ONE integer frame per requestAnimationFrame tick, and the comment
+ * above said why that was a decision and not an accident: an accumulator drifts, and the wipe's last
+ * frame is the frame the navigation lands on, so drift there is drift on the cut. It also could not
+ * skip, and not skipping is what makes the cut happen on a full black screen.
+ *
+     * Skipping is now allowed, everywhere EXCEPT at the seam, which is the whole trade. The
+     * accumulator is also what makes this frame-rate independent: measured across 60, 120 and 144Hz
+     * the same transition spans 850 / 842 / 840ms — a 10ms spread, under one display tick — where the
+     * old one-frame-per-tick loop ran 1450 / 725 / 604ms. The seam clamp is the one thing that can
+     * still cost a tick, and it only fires once, on the frame the page changes.
+ *
+ * THE SEAM IS PROTECTED EXPLICITLY. If the advance would carry the counter PAST the swap frame, it
+ * is cut back to land exactly on it. So the full black frame is always painted, the page change
+ * always happens under it, and the reveal always starts on the frame after. That is the guarantee
+ * the old comment was protecting, and it survives; what was given up is only that intermediate
+ * frames inside a phase are no longer all painted, which at 1.75x is one skipped frame in eleven
+ * somewhere in the middle of a dimmer.
+ *
+ * 1.75x is a judgement and a one-line change. It puts the DoubleCircle at 0.83s and the Spiral
+ * inward at 2.04s, which is the shortest the longest variant can be without the close reading as a
+ * snap rather than a wipe.
+ */
+const SPEED = 1.75;
+/*
+ * THE REVEAL RUNS SLOWER, ON PURPOSE, and this is not an inconsistency — it is the asymmetry the
+ * author asked for after watching the symmetric version.
+ *
+ * The close is the event: the door shuts, it should feel like it lands. The reveal is the arrival:
+ * the room comes back and the visitor is meant to read it. Compressed to match the close, the second
+ * half was over before it registered, and a curtain that goes on slower than it comes off (or, before
+ * that, one that came off 1.7x slower than it went on for the short variants) is the wrong shape for
+ * either job.
+ *
+ * So the reveal is UNBUMPED: it plays at 1.0x, the authentic DMG rate, while the close plays at
+ * SPEED. On the DoubleCircle that is 287ms of close against 502ms of reveal. The two halves are
+ * deliberately not equal and this constant is the only thing that says so.
+ *
+ * One number, and it is a multiplier on the DMG rate rather than a frame count, so a variant with
+ * more steps automatically gets a proportionally longer reveal without anything being re-derived.
+ * 1.0 is the DMG rate; 1.75 would make the two halves symmetric again; 0.6 would make the reveal
+ * longer than the close as well as slower.
+ */
+const REVEAL_SPEED = 1.0;
+const FRAME_MS = 1000 / 59.7275;
+const MAX_ADVANCE = 8;      // a cap so a backgrounded tab cannot come back and skip the whole wipe
+
 import "./roastWipe.css";
 import { prefersReducedMotion } from "./motion";
 
@@ -115,20 +173,23 @@ const FLASH_FRAMES_PER_STEP = 4;
 const FLASH_FRAMES = FLASH_STEPS.length * FLASH_FRAMES_PER_STEP; // 24
 
     /**
-     * THE REVEAL IS CAPPED AT 30 FRAMES, whatever the close took.
+    /**
+     * THE REVEAL IS THE SAME LENGTH, RUNNING SLOWER. Two separate facts, and they used to be conflated
+     * into one cap that got both wrong.
      *
-     * It used to be the close's own length, which was free when there was one wipe. With four of
-     * them the cap earns its keep: a faithful Spiral inward close is 156 frames, and a reveal that
-     * mirrored it would put the whole transition at 339 frames — five and a half seconds on a single
-     * press. That is a stall, and a stall is the exact thing the two rejected router-level transitions
-     * were rejected for (App.tsx lines 12-19).
+     * LENGTH: the reveal is the close unwound over the same snapshots, and it is the same number of
+     * frames. A cap at 30 was tried and removed; it left the reveal faster than the close on five of
+     * the seven variants and 1.7x slower on the other two, because a 16 or 18 frame close was being
+     * stretched to 30. Nothing is capped now — see REVEAL_SPEED for the tempo.
      *
-     * So the close runs at its authentic tempo and the reveal does not. Thirty frames is the
-     * DoubleCircle's own reveal length — the one that was watched and approved — and holding it fixed
-     * means every variant ends on the same hand. A long close therefore reveals at more than one step
-     * per frame, which is invisible: the reveal is a smooth un-cover either way.
+     * TEMPO: the reveal plays at REVEAL_SPEED, the close at SPEED. They are deliberately NOT equal.
+     * The close is the event and should feel like it lands; the reveal is the arrival and the visitor
+     * is meant to read the room. At matched speed the second half was over before it registered.
+     *
+     * The step mapping is still written over (revealFrames - 1) rather than per-step, so the LAST
+     * reveal frame is always step 0 — the frame the clear phase exists to leave behind. Dividing by
+     * the step count instead would leave a long variant stranded on step 1 and pop the rest of it.
      */
-    const REVEAL_FRAMES = 30;
 
     /**
      * THE CLEAR PHASE, three frames with NOTHING painted, and it is load-bearing rather than padding.
@@ -371,7 +432,158 @@ function paintRecord(
      * builder actually returns, because a hand-written 10 here would be a second source of truth
      * about a table that already has one, and the two would drift the first time a data edit landed.
      */
-    type VariantId = "doublecircle" | "circle" | "hstripes" | "spiral-in";
+/* ══ the render configuration ════════════════════════════════════════════════
+ *
+ * These are the settings chosen after watching every variant in the lab, and they are constants
+ * rather than a control surface on purpose: this module has one caller and one use, and a dial
+ * nobody turns is a dial that eventually gets wired to nothing. The lab (03_Sandbox/
+ * pokemon_encounter_proto) is where these get chosen and where the alternatives still exist.
+ *
+ * CELL 6px IS THE AGGRESSIVE END. The grid is w/6 x h/6 cells — about 65 x 34 on a phone and
+ * 240 x 135 on a desktop — and every cell is hashed and filled individually, which is the number
+ * to watch on a weak device. It is deliberately not a constant tuned for the slowest phone: the
+ * wipe is on screen for 1.2 to 3.6 seconds and the whole point of the pixel material is that it
+ * reads as texture, which at 24px cells it does not.
+ */
+const CELL_PX = 6;
+const CELL_VARIANCE = 0.30;   // cells grow by up to 30% per axis; see GROW ONLY below
+const WIPE_ART = "pixel" as const;
+const WIPE_PIXEL_GAIN = 2.5;
+const WIPE_COLOR = "#000000";
+
+/* GROW ONLY, and it is not a style choice. Every cell's rectangle is scaled by a factor >= 1,
+ * independently in x and y, so a cell can be a square, a rectangle, or any size in the range — and a
+ * grown cell only ever COVERS its neighbour. A shrink would do the opposite: at high variance the
+ * last wipe frame would carry slivers of page showing through, the navigation fires on exactly that
+ * frame, and the cut would be visible. Coverage is the invariant the whole transition rests on, so
+ * it survives any setting of these constants. */
+
+/* ══ the roast pixel field ═════════════════════════════════════════════════════
+ *
+ * A verbatim port of `paintPixelBackground` in src/components/RoastSpecCard.tsx — the 40x45 canvas
+ * the card fills with a seeded PRNG, a vignette and three alpha bands, which CSS then upscales with
+ * image-rendering: pixelated. There is no file: it is procedural, and the seeded output IS the
+ * artwork, which is why the PRNG below is frameGeometry.ts's mulberry32 verbatim rather than an
+ * equivalent one. A different generator would produce a field that looks right and is not this one.
+ *
+ * WHY THE WIPE USES THE PATTERN AND NOT THE VALUES. The field's whole luminance range is 12.8 to 21.0
+ * out of 255 — a near-black purple with a 1.64x gradient across it. Dropped straight onto a curtain
+ * that is already dark it would be invisible. What is actually visible on the card is WHICH pixels
+ * the PRNG lit and where the vignette put them, so that is what the wipe takes: an unlit cell stays
+ * pure black and a lit cell carries the dither colour rgb(170,146,226) at a gain you can read.
+ */
+const PIXEL_COLS = 40;
+const PIXEL_ROWS = 45;
+const PIXEL_SEED = 1337;
+const PIXEL_BASE = [15, 10, 30];
+const PIXEL_DITHER = [170, 146, 226];
+const PIXEL_ACCENTS = [
+  [216, 186, 255],
+  [126, 98, 182],
+];
+const FIELD_W = 160;
+const FIELD_H = 144;
+
+function mulberry32(a: number): () => number {
+  return function () {
+    a |= 0;
+    a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/**
+ * Generate the field and return it NORMALISED 0..1, at 160x144.
+ *
+ * Normalised against the field's own maximum rather than against 255, because the maximum is a
+ * hard alpha of 0.3 over the base: dividing by 255 would put the brightest lit cell at about 0.24
+ * and leave the gain constant fighting its own ceiling. The value carried forward is the DITHER
+ * AMOUNT — how far each pixel was pushed from the base toward the dither colour — which is what
+ * makes an unlit cell black and a lit cell purple, and is scale-free in a way the composited RGB
+ * is not.
+ *
+ * 40 columns divide 160 exactly; 45 rows do not divide 144 (3.2), so rows land 3px or 4px. That is
+ * the same unevenness the card has, for the same reason — its row count is a constant while its
+ * height is text-driven — so it is reproduced rather than corrected.
+ */
+function generatePixelField(): Float32Array {
+  const rand = mulberry32(PIXEL_SEED);
+  const buf = new Float64Array(PIXEL_COLS * PIXEL_ROWS * 3);
+  for (let i = 0; i < PIXEL_COLS * PIXEL_ROWS; i++) {
+    buf[i * 3] = PIXEL_BASE[0];
+    buf[i * 3 + 1] = PIXEL_BASE[1];
+    buf[i * 3 + 2] = PIXEL_BASE[2];
+  }
+  for (let y = 0; y < PIXEL_ROWS; y++) {
+    for (let x = 0; x < PIXEL_COLS; x++) {
+      const nx = (x / (PIXEL_COLS - 1) - 0.5) * 2;
+      const ny = (y / (PIXEL_ROWS - 1) - 0.5) * 2;
+      const radius = Math.sqrt(nx * nx + ny * ny);
+      const edge = Math.max(0, Math.min(1, (radius - 0.3) / 0.85));
+      if (edge <= 0) continue;
+      const roll = rand();
+      let alpha = 0;
+      if (roll > 0.86) alpha = 0.3 * edge;
+      else if (roll > 0.62) alpha = 0.16 * edge;
+      else if (roll > 0.42) alpha = 0.07 * edge;
+      if (alpha <= 0) continue;
+      const p = (y * PIXEL_COLS + x) * 3;
+      for (let c = 0; c < 3; c++) {
+        buf[p + c] = PIXEL_BASE[c] + (PIXEL_DITHER[c] - PIXEL_BASE[c]) * alpha;
+      }
+    }
+  }
+  for (let k = 0; k < 14; k++) {
+    const ax = Math.floor(rand() * PIXEL_COLS);
+    const ay = Math.floor(rand() * PIXEL_ROWS);
+    const nx = (ax / (PIXEL_COLS - 1) - 0.5) * 2;
+    const ny = (ay / (PIXEL_ROWS - 1) - 0.5) * 2;
+    if (Math.sqrt(nx * nx + ny * ny) < 0.55) continue;
+    const a = PIXEL_ACCENTS[k % 2];
+    const p = (ay * PIXEL_COLS + ax) * 3;
+    buf[p] = a[0];
+    buf[p + 1] = a[1];
+    buf[p + 2] = a[2];
+  }
+  const cell = new Float32Array(PIXEL_COLS * PIXEL_ROWS);
+  let max = 0;
+  for (let i = 0; i < PIXEL_COLS * PIXEL_ROWS; i++) {
+    const d = (buf[i * 3] - PIXEL_BASE[0]) / (PIXEL_DITHER[0] - PIXEL_BASE[0]);
+    cell[i] = d;
+    if (d > max) max = d;
+  }
+  const out = new Float32Array(FIELD_W * FIELD_H);
+  for (let y = 0; y < FIELD_H; y++) {
+    const sy = Math.min(PIXEL_ROWS - 1, Math.floor((y * PIXEL_ROWS) / FIELD_H));
+    for (let x = 0; x < FIELD_W; x++) {
+      const sx = Math.min(PIXEL_COLS - 1, Math.floor((x * PIXEL_COLS) / FIELD_W));
+      out[y * FIELD_W + x] = max > 0 ? Math.min(1, cell[sy * PIXEL_COLS + sx] / max) : 0;
+    }
+  }
+  return out;
+}
+
+/** The curtain's colour for one cell, at the cell's own position. Unlit cells stay pure black. */
+function pixelColor(field: Float32Array, x: number, y: number): string {
+  const v = field[y * FIELD_W + x] * WIPE_PIXEL_GAIN;
+  const r = Math.min(255, Math.round(PIXEL_DITHER[0] * v));
+  const g = Math.min(255, Math.round(PIXEL_DITHER[1] * v));
+  const b = Math.min(255, Math.round(PIXEL_DITHER[2] * v));
+  return `rgb(${r},${g},${b})`;
+}
+
+/** Per-cell jitter. A HASH of the cell's own coordinates, never a random number per frame: a
+ * per-frame random would make the whole screen shimmer on every redraw, which is a different and
+ * much worse artefact than the texture being asked for. */
+function cellHash(x: number, y: number, k: number): number {
+  let h = (x * 374761393 + y * 668265263 + k * 1274126177 + 7 * 2654435761) | 0;
+  h = Math.imul(h ^ (h >>> 13), 1274126177);
+  return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
+}
+
+    type VariantId = "doublecircle" | "circle" | "hstripes" | "spiral-in" | "spin" | "zoom" | "speckle";
 
     type Variant = {
       id: VariantId;
@@ -500,6 +712,115 @@ function paintRecord(
           // it the shape ends at 359 of 360.
           if (hl >= 0 && hl < CELLS) black[hl] = 1;
           steps.push(black.slice());
+          return steps;
+        },
+      },
+
+      {
+        id: "spin",
+        label: "SpinToBlack",
+        framesPerStep: 2,
+        build: () => {
+          // Gen II, and the one most worth comparing against the Gen I set — because it is the SAME
+          // DATA. pokecrystal's .wedge1..5 are pokered's CircleData1..5, byte for byte, down to the
+          // seventeen-byte .wedge5 that never terminates, which is why CIRCLE_DATA above serves this
+          // without modification. Only the traversal differs: one continuous walk round the whole
+          // screen in four quadrants of five records, so the DoubleCircle's two half-circles joined
+          // end to end. 20 records x 2 frames = 40 frames.
+          //
+          // The flag byte is NOT the quadrant constant. const_def gives UPPER_LEFT, UPPER_RIGHT,
+          // LOWER_RIGHT, LOWER_LEFT the values 0, 1, 2, 3, and the comments beside the bit
+          // definitions say RIGHT_QUADRANT_F (bit 0) is "set in UPPER_RIGHT and LOWER_RIGHT". Those
+          // two statements are incompatible — LOWER_RIGHT is 2, which is 0b10, bit 1 only — so
+          // passing the constant straight through gives LOWER_RIGHT the wrong horizontal direction
+          // and the shape stops at 300 of 360 with holes through the bottom half. The bits win,
+          // because the bits are what the assembly tests: LOWER_RIGHT is 3 and LOWER_LEFT is 2,
+          // swapped from the constants. With that the coverage curve comes out
+          // 16, 30, 54, 73, 90, 108, 127, 150, 164, 180, 196, 210, 234, 253, 270, 288, 307, 330, 344,
+          // 360 — byte-identical to the Gen I Circle, which is the confirmation that this IS the
+          // Circle walked the same way with the quadrant expressed as two flag bits.
+          const SPIN_QUADRANTS: [number, number, number, number][] = [
+            [0,1, 1, 6],[0,2, 0, 3],[0,3, 1, 0],[0,4, 5, 0],[0,5, 9, 0],
+            [1,5,10, 0],[1,4,14, 0],[1,3,18, 0],[1,2,19, 3],[1,1,18, 6],
+            [3,1,18,11],[3,2,19,14],[3,3,18,17],[3,4,14,17],[3,5,10,17],
+            [2,5, 9,17],[2,4, 5,17],[2,3, 1,17],[2,2, 0,14],[2,1, 1,11],
+          ];
+          const black = new Uint8Array(CELLS);
+          const steps: Uint8Array[] = [];
+          for (const [flags, dataId, col, row] of SPIN_QUADRANTS) {
+            paintRecord(black, flags & 1, (flags >> 1) & 1, dataId, col, row);
+            steps.push(black.slice());
+          }
+          return steps;
+        },
+      },
+      {
+        id: "zoom",
+        label: "ZoomToBlack",
+        framesPerStep: 2,
+        build: () => {
+          // Gen II, cave. Nine nested rectangles growing outward from the centre, and the whole
+          // shape is a literal table in the disassembly: width, height, and the coordinate a
+          // centred box of that size sits at on a 20x18 screen. 4x2 at (8,8) through to 20x18 at
+          // (0,0). Nine boxes x 2 frames = 18 frames, the shortest in the set.
+          //
+          // The two frames a box is a PACING GUESS and the only timing here not taken from the
+          // disassembly: the original calls WaitBGMap per box and states no delay, so the pace is
+          // whatever the BG transfer costs. The shape is exact; the tempo is not.
+          const ZOOM_BOXES: [number, number, number, number][] = [
+            [4,2,8,8],[6,4,7,7],[8,6,6,6],[10,8,5,5],[12,10,4,4],
+            [14,12,3,3],[16,14,2,2],[18,16,1,1],[20,18,0,0],
+          ];
+          const black = new Uint8Array(CELLS);
+          const steps: Uint8Array[] = [];
+          for (const [w, h, x0, y0] of ZOOM_BOXES) {
+            for (let y = y0; y < y0 + h; y++) {
+              for (let x = x0; x < x0 + w; x++) {
+                if (x >= 0 && x < COLS && y >= 0 && y < ROWS) black[y * COLS + x] = 1;
+              }
+            }
+            steps.push(black.slice());
+          }
+          return steps;
+        },
+      },
+      {
+        id: "speckle",
+        label: "SpeckleToBlack",
+        framesPerStep: 1,
+        build: () => {
+          // Gen II, no cave, enemy at least 3 levels stronger. Sixteen rounds of twelve RANDOM
+          // tiles, one frame per round, and if a tile is already black the roll is thrown away and
+          // repeated — which is the whole trick, and the reason 192 draws land as an even scatter
+          // instead of a clump.
+          //
+          // THE ONE VARIANT THAT DOES NOT CLOSE THE SCREEN, and that is faithful rather than a bug.
+          // 16 rounds x 12 distinct tiles is 192 of 360, and pokecrystal never follows the scatter
+          // with a BlackScreen — it goes straight to the battle screen. So this ends on a screen that
+          // is roughly half speckled and the transition is CUT from there. Worth knowing before it
+          // ships: the reveal opens onto a half-covered screen, which reads differently from every
+          // other wipe here and is the point of including it.
+          //
+          // Seeded, because a random transition that differs on every replay cannot be scrubbed to a
+          // frame and got twice. The real game seeds from a fixed table on a fresh boot, so its runs
+          // are less unique than they look anyway.
+          const black = new Uint8Array(CELLS);
+          const steps: Uint8Array[] = [];
+          let seed = 0x2f6e;
+          const rnd = () => {
+            seed = (seed * 1103515245 + 12345) & 0x7fffffff;
+            return seed >>> 8;
+          };
+          for (let round = 0; round < 16; round++) {
+            for (let k = 0; k < 12; k++) {
+              let t: number;
+              do {
+                t = ((rnd() % ROWS) * COLS) + (rnd() % COLS);
+              } while (black[t]);          // re-roll on a tile that is already black
+              black[t] = 1;
+            }
+            steps.push(black.slice());
+          }
           return steps;
         },
       },
@@ -633,9 +954,10 @@ function paintRecord(
          * the failure a hand-written `steps: 10` in the table below would invite.
          */
         const closeFrames = steps.length * variant.framesPerStep;
+        // The reveal is the close, unwound: same length, same tempo, read from the other end.
+        const revealFrames = closeFrames;
         const swapFrame = FLASH_FRAMES + closeFrames;
-        const totalFrames = swapFrame + REVEAL_FRAMES + CLEAR_FRAMES;
-
+        const totalFrames = swapFrame + revealFrames + CLEAR_FRAMES;
     // Built the long way round for the same reason `buildSteps` runs first: every check that can
     // fail without painting anything happens before the overlay exists, so the only way an overlay
     // is in the document is if it is going to be painted. The `aria-hidden` is because the canvas
@@ -667,12 +989,15 @@ function paintRecord(
      * through every one of them on a high-DPI screen, which is the one artefact that would make this
      * look like a bug rather than like a transition. So the transform is left at identity and every
      * coordinate below is rounded once, in the pixel grid that is actually going to be painted.
+     *
+     * Note that the cell size below is in DEVICE pixels, not CSS pixels, because of that. On a 3x
+     * display a 6px cell is 2 CSS px, which is a third of what it looks like on a 1x screen. That is
+     * the same tradeoff the DMG made — one framebuffer, no scaling — and it is deliberate: a wipe is a
+     * shape, and a shape that scales with the display stops being the shape.
      */
-    // Clamped at 3 rather than taken raw. A wipe is a black shape with one curved edge; there is no
-    // detail in it for a fourth device pixel to carry, and the canvas is repainted 87 times in about
-    // a second and a half, so the fill rate is the one number here worth spending less on. (The
-    // count was 102 when this table was longer; the clamp was never about the frame count, it is
-    // about edge quality.)
+    // Clamped at 3 rather than taken raw. A wipe is a dark shape with one curved edge; there is no
+    // detail in it for a fourth device pixel to carry, and the canvas is repainted 73 to 213 times
+    // depending on the variant, so the fill rate is the one number here worth spending less on.
     const dpr = Math.min(3, window.devicePixelRatio || 1);
     const vw = window.innerWidth;
     const vh = window.innerHeight;
@@ -682,60 +1007,72 @@ function paintRecord(
     canvas.height = H;
     canvas.style.width = vw + "px";
     canvas.style.height = vh + "px";
-
-    /**
-     * Paint one step of the circle, filling whatever it covers. Used by the close AND the reveal,
-     * which is why it takes the snapshot rather than an index: the two phases differ in which
-     * snapshot they hand it and in nothing else.
-     *
-     * THE GRID IS STRETCHED, NOT RE-TILED — and this is the second decision this port had to make
-     * against the plan. The plan asked for a square-cell grid sized to the viewport, with the 20x18
-     * shape scaled into it by lengthening run lengths by `sx` and the row step by `sy`. That was built
-     * and measured at ten viewport sizes, and it does not close the screen in any of them: 80.2% of
-     * the cells at 1280x720, 72.9% at 1440x900, 65.7% at 1920x1080, 44.7% on a 390x844 phone, and it
-     * cannot reach 100% at any size, because an integer row step multiplied by `sy` is a fraction of
-     * a row and the shape falls between two bands. The failure is not subtle — it is a margin the
-     * width of several cells along the screen's edges, at the exact moment the transition is
-     * supposed to have finished.
-     *
-     * So the shape is computed once, at the resolution it was authored at, and each of its 360
-     * cells is then drawn as a rectangle of the viewport proportional to it. On the DMG that is
-     * 8x8-pixel cells; on a 1440x900 screen it is 72x50. The circle becomes the ellipse the screen's
-     * aspect ratio asks for, which is what a circle drawn to cover a screen that is not 20:18 is
-     * supposed to look like, and the granularity stays fixed as a FRACTION of the screen — one cell is
-     * always 1/20th of the width and 1/18th of the height, exactly as it was on the hardware. The
-     * square-cell alternative was not finer, only more distorted: it bought a square edge by
-     * stretching the horizontal runs by up to 2.2x and still left the screen uncovered.
-     *
-     * Rows are run-lengthed before they are drawn. Twenty rects per row instead of one per cell is
-     * both fewer draw calls and, more usefully, no shared interior edges to seam.
-     */
-    const paintStep = (step: Uint8Array) => {
-      for (let y = 0; y < ROWS; y++) {
-        const y0 = Math.round((y * H) / ROWS);
-        const y1 = Math.round(((y + 1) * H) / ROWS);
-        const h = Math.max(1, y1 - y0);
-        let x = 0;
-        while (x < COLS) {
-          if (!step[y * COLS + x]) {
-            x++;
-            continue;
+        /*
+         * THE DRAWING GRID, and the two things about it that are load-bearing.
+         *
+         * IT IS SQUARE AND IT IS 6px, which the previous renderer could not do at all: that one drew
+         * twenty run-lengthed rows stretched to the viewport, so its cells were 19x47 on a phone.
+         * Fitting square cells by scaling the run-length tables instead was measured and never
+         * closes the screen — 80.2% at 1280x720, 44.7% on a 390x844 phone, and 100% at none of them,
+         * because an integer row step times a fractional scale falls between two bands. Resampling
+         * the DRAWING grid while leaving the shape at its authored 20x18 gets both: square cells AND
+         * total coverage. The shape is still the ROM's; only the drawing of it is at another
+         * resolution.
+         *
+         * THE MAPPING IS GRID -> REFERENCE, and the direction is what makes coverage total. Mapping
+         * reference -> grid skips cells whenever the grids are not a clean multiple: going 20 to 30
+         * columns, round(x * 30/20) hits 0, 2, 3, 5, and column 1 is never produced by anything, so it
+         * is never painted and the wipe closes on a stripe of uncovered screen. Going grid ->
+         * reference, floor(gx * 20 / 30), is surjective by construction: every grid cell resolves to
+         * a reference cell, the final step paints all 360 of them, and the screen is covered.
+         *
+         * BUILT ONCE, because W and H are fixed for the whole transition — the backing store is sized
+         * above and nothing listens for resize. At 6px on a large display that is 240x135 = 32,400
+         * cells; allocating the map per frame would be 32,400 integers of garbage every frame in an
+         * animation nobody is supposed to notice. The per-cell FILL and SIZE are precomputed for the
+         * same reason and the same cost: at 32,400 cells, hashing and building an rgb() string per
+         * cell per frame is the difference between a wipe and a stutter.
+         */
+        const gridCols = Math.max(1, Math.ceil(W / CELL_PX));
+        const gridRows = Math.max(1, Math.ceil(H / CELL_PX));
+        const gridRef = new Int32Array(gridCols * gridRows);
+        const gridFill: string[] = new Array(gridCols * gridRows);
+        const gridCellW = new Float32Array(gridCols * gridRows);
+        const gridCellH = new Float32Array(gridCols * gridRows);
+        const pixelField = generatePixelField();
+        for (let gy = 0; gy < gridRows; gy++) {
+          const ry = Math.min(ROWS - 1, Math.floor((gy * ROWS) / gridRows));
+          for (let gx = 0; gx < gridCols; gx++) {
+            const rx = Math.min(COLS - 1, Math.floor((gx * COLS) / gridCols));
+            const i = gy * gridCols + gx;
+            gridRef[i] = ry * COLS + rx;
+            // The field is sampled at the cell OWN position, so the dither runs through the curtain
+            // in the same places it runs through the card rather than being stretched to fit.
+            const fx = Math.min(FIELD_W - 1, Math.floor((gx * CELL_PX * FIELD_W) / W));
+            const fy = Math.min(FIELD_H - 1, Math.floor((gy * CELL_PX * FIELD_H) / H));
+            gridFill[i] = WIPE_ART === "pixel" ? pixelColor(pixelField, fx, fy) : WIPE_COLOR;
+            gridCellW[i] = CELL_PX * (1 + CELL_VARIANCE * cellHash(gx, gy, 0));
+            gridCellH[i] = CELL_PX * (1 + CELL_VARIANCE * cellHash(gx, gy, 1));
           }
-          let end = x;
-          while (end + 1 < COLS && step[y * COLS + end + 1]) end++;
-          const x0 = Math.round((x * W) / COLS);
-          const x1 = Math.round(((end + 1) * W) / COLS);
-          // `max(1, ...)` rather than a seam-filler: on a very narrow viewport a cell can round to
-          // zero device pixels wide, and dropping it would drop a slice of the wipe.
-          ctx.fillRect(x0, y0, Math.max(1, x1 - x0), h);
-          x = end + 1;
         }
-      }
-    };
+
+        const paintStep = (step: Uint8Array) => {
+          let i = 0;
+          for (let gy = 0; gy < gridRows; gy++) {
+            const dy = gy * CELL_PX;
+            for (let gx = 0; gx < gridCols; gx++, i++) {
+              if (!step[gridRef[i]]) continue;
+              ctx.fillStyle = gridFill[i];
+              ctx.fillRect(gx * CELL_PX, dy, gridCellW[i], gridCellH[i]);
+            }
+          }
+        };
 
     let frame = 0;
+    let last = 0;
+    let acc = 0;
 
-    const tick = () => {
+    const tick = (now: number) => {
       if (finished) return;
 
       /*
@@ -757,7 +1094,44 @@ function paintRecord(
         // visually even though the new page is not committed to the DOM until React gets a task
         // of its own after this callback returns. From the second reveal frame the deck is
         // mounted and what the wipe opens onto is the destination.
-            if (frame === swapFrame) runSwap();
+        /*
+         * HOW MANY FRAMES ARE DUE. Elapsed real time, not the display rate: at 1x this is a no-op and
+         * the sequence behaves exactly as it did when the loop was locked to one frame per tick, which
+         * is the property the MAX_ADVANCE cap and the seam clamp below both exist to protect.
+         */
+        let advance = 0;
+        if (last) {
+          // The rate depends on WHICH PHASE we are in, not on one global number. The frame being
+          // consumed is the pre-advance one, so the switch lands on the tick after the seam clamp has
+          // put the counter exactly on swapFrame — the one boundary the accumulator is not allowed to
+          // cross freely.
+          acc += (now - last) * (frame >= swapFrame ? REVEAL_SPEED : SPEED);
+          while (acc >= FRAME_MS && advance < MAX_ADVANCE) {
+            acc -= FRAME_MS;
+            advance++;
+          }
+          if (advance >= MAX_ADVANCE) acc = 0;   // a long stall: resynchronise rather than sprint
+        }
+        last = now;
+        if (advance === 0) {
+          raf = requestAnimationFrame(tick);
+          return;
+        }
+        // The seam. Never step over the swap frame: it is the last frame of the close, it is fully
+        // black, and it is the frame the page change is allowed to happen on.
+        if (frame < swapFrame && frame + advance > swapFrame) advance = swapFrame - frame;
+        frame += advance;
+            // The page change, on the LAST FRAME of the close and under a full black screen. It runs
+            // BEFORE the first reveal frame is painted, and the first reveal frame is the last
+            // snapshot — a full black screen, the same pixels as this one — so the swap frame costs
+            // nothing visually even though the new page is not committed to the DOM until React gets
+            // a task of its own after this callback returns. From the next reveal frame the deck is
+            // mounted and what the wipe opens onto is the destination.
+            //
+            // `>=` rather than `===` because the counter can now cross the seam inside a single tick.
+            // The clamp above makes that crossing land EXACTLY on swapFrame, so the two are equivalent
+            // in practice; the `>=` is the belt to the clamps braces, and runSwap is itself a latch.
+            if (frame >= swapFrame) runSwap();
 
         if (frame < FLASH_FRAMES) {
           // Six steps, four frames each, one pass, black only. Clamped rather than trusted so a
@@ -779,23 +1153,20 @@ function paintRecord(
               );
               ctx.fillStyle = "#000";
               paintStep(steps[step]);
-            } else if (frame < swapFrame + REVEAL_FRAMES) {
-              // The reveal: THE SAME SNAPSHOTS, BACKWARDS, and CAPPED at REVEAL_FRAMES regardless of
-              // how long the close took - see that constant for why. The mapping is written over
-              // (REVEAL_FRAMES - 1) rather than per-step so the LAST reveal frame is always step 0,
-              // which is the frame the clear phase exists to leave behind. Dividing by the step count
-              // instead would leave a long variant stranded on step 1 and pop the rest of it.
+            } else if (frame < swapFrame + revealFrames) {
+              // The reveal: THE SAME SNAPSHOTS, BACKWARDS, at the SAME length as the close. Divided by
+              // (revealFrames - 1) rather than per-step so the LAST reveal frame is always step 0, which
+              // is the frame the clear phase exists to leave behind; dividing by the step count would
+              // leave a long variant stranded on step 1 and pop the rest of it.
               const local = frame - swapFrame;
-              const step = Math.max(
-                0,
-                steps.length - 1 - Math.round((local * (steps.length - 1)) / (REVEAL_FRAMES - 1))
+              const step = Math.max(0,
+                steps.length - 1 - Math.round((local * (steps.length - 1)) / Math.max(1, revealFrames - 1))
               );
               ctx.fillStyle = "#000";
               paintStep(steps[step]);
             }
         // Else: the clear phase. Nothing is painted, and that is the point — see CLEAR_FRAMES.
 
-        frame += 1;
             if (frame >= totalFrames) {
           // The frame after the last one, so the final painted frame is the last frame of the
           // clear phase rather than a stray partial. `settle` is what makes the completion path

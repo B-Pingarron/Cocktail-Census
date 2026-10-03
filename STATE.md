@@ -1,6 +1,6 @@
 # Cocktail Census — State
 
-**Last updated**: 2026-09-26
+**Last updated**: 2026-09-27
 **Status**: 🟢 **LIVE.** Deployed to GitHub Pages. **The repo is now the whole BarNerd shell** — the hub, the Census and ROAST — plus the four room explainers and About. The BCB demo is complete.
 **The name is a misnomer**: the repo is `Cocktail-census`, but it hosts far more than the Census.
 
@@ -60,6 +60,11 @@ src/
     frameGeometry.ts        ← frame geometry for the menu card
     verdict.ts              ← the verdict arithmetic. NO imports — runs directly under node
     waitlist.ts             ← the ask's insert into the `waitlist` table
+    roastWipe.ts            ← the Pokemon Gen I `BattleTransition_DoubleCircle`, ported tile for tile.
+                              A MODULE, not a component: it has to survive `navigate()`, so the overlay
+                              lives in document.body outside React's tree. One entry point:
+                              `playRoastWipe(swap)`. Used only at the exit from /roast/enter
+    roastWipe.css           ← it owns the CSS for the DOM it creates
 
   components/
     ui/button.tsx           ← shadcn Button
@@ -84,7 +89,11 @@ src/
 
   db/
     schema.sql              ← the original votes schema
-    phase0a-schema.sql      ← the catalogue + instances + collections + roast_votes
+    phase0a-schema.sql      ← the catalogue + instances + collections + roast_votes (404 lines)
+    add-slug-and-raw-name.sql   ← 0b: specs.slug, spec_ingredients.raw_name
+    add-garnish-layer.sql       ← 0b: garnish_elements, garnish_axis_values, spec_garnishes,
+                                  spec_garnish_axes, garnish_prose, garnish_asset_map
+    add-spec-techniques.sql     ← 0b: spec_techniques (one row per step)
     add-cocktail-tally-view.sql
     add-feedback-table.sql
     add-waitlist-table.sql
@@ -132,6 +141,28 @@ src/
 - `Data/cocktails-100.csv` ← Clean 100-cocktail extract (generated)
 - `Data/burn_hard_420_roast_list.json` ← **the author's 15 specs.** Named `.json`, is actually plain `key: value` text, and that is fine — `roastSpecs.ts` transcribes it by hand
 - `scripts/generate_cocktails_ts.py` ← CSV-to-TypeScript generator
+- **`Data/barnerd_lib/`** ← the phase 0b pipeline, 0b's real deliverable: `corpus`, `catalogue`, `rulings`, `tokens`, `names`, `techniques`, `garnishes`, `components`, `spec_ids`, `load*`, `run_load`, `lesson_builder`, `lesson_01..06`. Plus `Data/__pycache__/` (should be gitignored)
+
+## Database — loaded 2026-10-03 (phase 0b)
+
+**Twelve tables, loaded, integrity-clean.** Five zeros on the checks that matter:
+
+```
+glassware               46      specs                  6,956   slug 6,956 / null 0
+ingredients          1,174      spec_ingredients      31,907   raw_name 31,907 / null 0
+ingredient_aliases   1,950      spec_techniques        9,195
+techniques              12      spec_garnishes         9,624
+garnish_axis_values     85      spec_garnish_axes     10,168
+garnish_elements     1,120      garnish_prose          2,477
+```
+
+- **The precondition is met: `aliases_without_an_ingredient = 0`.** Every one of the 31,907 ingredient rows points at an ingredient that exists. The plan called this a precondition, not a goal — *"98% of aliases resolved means 0 specs loaded."*
+- **Two non-zero counts are correct and known:** 20 specs with no technique (methods with no verb, all accounted for) and 12 with no garnish row (`NOISE` or empty cells).
+- **The rule that defines a generic is INTERCHANGEABILITY**, not similarity — if you can swap one for the other in a drink, they are the same generic. It produced **1,747 raw names → 1,043 generics**, finer than the estimate, which is why the Phase 5 picker will need search or category filtering rather than a plain dropdown.
+- **`specs.id` is DERIVED, not invented:** `uuid5(NAMESPACE, "barnerd-spec:" + folded_name + "#" + ordinal)`. 72 titles in the corpus are two or three *different* drinks, so joining on the name multiplies rows; a derived id cannot.
+- **`raw_name` and `canonical_name` are both stored** — `Rutte Dry Gin` and `dry gin` are different facts. The generic is the vocabulary; the raw name is the recipe.
+- **Transport is `psql` over `Data/barnerd_lib/run_load.py`**, not the SQL editor: measured, the editor passes 146 KB, hangs at 196 KB, refuses 391 KB. The runner has a connectivity probe, a per-file ceiling, and a **drift check** that refuses when the manifest and the directory disagree.
+- **Full record:** `.sisyphus/reports/2026-10-03-phase0b-wrapup.md` — 20 decisions, 22 bugs (ten of them silent), and the six didactic notebooks.
 
 ## Known Issues
 - **43 factually-wrong AI illustrations are still in the tree**, imported and unused. They must never be wired into the card (business rule 14).
@@ -146,8 +177,8 @@ src/
 **This IS a git repo.**
 
 - Remote: `B-Pingarron/Cocktail-census`, branch `main`
-- **HEAD `f9ed71e`** ("feat(roast): phase 4 — room explainers, about, the ask, the compositor demo") — working tree clean, `main` **level with `origin/main`**
-- Recent: `97f66a8` (ROAST rung 1) · `160c732` (untrack .env, rename Landing, order the lounge) · `613a54a` (the hub shell) · `5026ea0` (Phase 0a schema + session)
+- **HEAD `16a98d7`** ("feat(roast): four wipes at the /roast/enter exit, picked at random") — working tree clean, `main` **level with `origin/main`**
+- Recent: `7d2ff11` (the DoubleCircle transition out of /roast/enter) · `f9ed71e` (Phase 4) · `97f66a8` (ROAST rung 1) · `160c732` (untrack .env, rename Landing, order the lounge) · `613a54a` (the hub shell) · `5026ea0` (Phase 0a schema + session)
 - Only untracked path: `design-ideas/` (two HTML design studies, the user's call)
 - `STATE.md` itself is tracked — editing it leaves the repo dirty, which is expected
 
@@ -156,11 +187,16 @@ react 18.3 · react-router-dom 6 · lucide-react · class-variance-authority · 
 vite 5.4 · @vitejs/plugin-react-swc · typescript 5.8 · @supabase/supabase-js
 
 ## Next
-**The BCB demo is complete.** What remains is two phases, both after a complete product:
+**The BCB demo is complete, and the catalogue is loaded.** One phase remains, and it is unblocked:
 
-1. **Phase 0b — the catalogue data.** The generic ingredient layer: 1,742 names → ~250 generics, categorised; the technique list; the alternatives. `.sisyphus/handoffs/2026-09-22-recipe-management-handoff.md`
-2. **Phase 5 — the mini-RM.** Spec editor, list manager, arena generalised. `.sisyphus/handoffs/2026-09-22-roast-my-spec-handoff.md`
+**Phase 5 — the mini-RM.** Spec editor, list manager, arena generalised. `.sisyphus/handoffs/2026-09-22-roast-my-spec-handoff.md`
 
-Both **blocked on nothing but time**. Full order: `.sisyphus/plans/2026-09-22-hub-and-roast-plan.md` §15.
+The wrap-up's own line: *"The only thing between here and a working mini recipe creator is the app code."*
 
-**Deferred, not approved:** a three-day BCB rollout concept (Day 2 = a rustic mini-RM inside ROAST; Day 3 = an interactive mini-Compositor). If it becomes a commitment, **0b and 5 move onto the critical path** and the freeze stops being the end of the build.
+**Four items from 0b remain, none blocking:** the alternatives gap (`Lillet Blanc (or other aromatized wine)` stores only `lillet`); `spec_aliases`; the 78 uncategorised ingredients (`categories.csv` has 16 rows and no review); and `spec_ingredients.role` (the column exists and is NULL).
+
+**Parked by explicit decision:** the 209 component recipes have no table; ABV (it varies by product, not category — a number per category would be an invented fact); `8verlast`'s method writes `Special ingredient #1:` twice.
+
+Full order: `.sisyphus/plans/2026-09-22-hub-and-roast-plan.md` §15.
+
+**A best-case dream, not a constraint:** the three-day BCB rollout concept (Day 2 = a rustic mini-RM inside ROAST; Day 3 = an interactive mini-Compositor). It orders nothing — it is what the event looks like *if* Phase 5 lands early and clean.
