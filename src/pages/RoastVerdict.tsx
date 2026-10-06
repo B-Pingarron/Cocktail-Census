@@ -243,7 +243,7 @@ const RoastVerdict = () => {
   const shell = (children: ReactNode) => (
     <div className="roast vd">
       <div className="vd-wrap">
-        <span className="kick">Roast · the verdict</span>
+        <span className="kick">Roast · the review</span>
         <h1 className="vd-title">The verdict</h1>
       {/*
         The emergency exit, in the header rather than with the doors below. The two forward
@@ -253,7 +253,7 @@ const RoastVerdict = () => {
         already on screen.
       */}
       <div className="mb-2">
-        <ExitLink />
+        <ExitLink where="menu" />
       </div>
         {children}
         {exits}
@@ -296,6 +296,17 @@ const RoastVerdict = () => {
 
   return shell(
     <>
+      {/*
+        TWO READINGS ON ONE PAGE (decided 2026-10-05). This screen used to be the place the deck
+        ENDED — a terminus. It is now a destination: reachable from the menu and from the round
+        boundary, at any point in a session. So it has to answer two different questions, because the
+        moment you submit you are both a Roaster and a Contender, and an adaptive page would hide your
+        own Submission the moment you had one — which is backwards.
+
+        The two shapes were already being rendered here: `TallyCard` and `SplitBlocks` carry both
+        readings. This is a split, not a new screen.
+      */}
+      <h2 className="vd-sub">Your record, as a Roaster</h2>
       <p className="vd-line">{bucket.text}</p>
 
       <div className="vd-tallies">
@@ -319,6 +330,19 @@ const RoastVerdict = () => {
           <SpecRow key={spec.id} name={spec.name} t={bySpec.get(spec.id)?.tally ?? null} />
         ))}
       </ul>
+
+      {/*
+        THE CONTENDER READING — and the empty state is the real design work, not an afterthought.
+        A visitor who has submitted nothing is the FIRST-RUN case, and the menu's gate sends a
+        first-run Session to the ask rather than here. So this is only ever seen by someone who has
+        roasted but not yet submitted — which is every visitor until 5c ships the editor. It says what
+        will fill it and how, and it does not dress itself up as a result.
+      */}
+      <h2 className="vd-sub">Your Submission</h2>
+      <p className="vd-empty">
+        Nothing submitted yet. When you write your own specs and send them to the arena, the room's
+        answer lands here — who agreed, who didn't, and on which of them.
+      </p>
     </>
   );
 };

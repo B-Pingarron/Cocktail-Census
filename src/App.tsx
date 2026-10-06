@@ -6,6 +6,7 @@ import CensusIntroPage from "@/pages/CensusIntroPage";
 import LearnMore from "@/pages/LearnMore";
 import RoastDeck from "@/pages/RoastDeck";
 import RoastEnter from "@/pages/RoastEnter";
+import RoastMenu from "@/pages/RoastMenu";
 import RoastVerdict from "@/pages/RoastVerdict";
 import Room from "@/pages/Room";
 
@@ -31,7 +32,20 @@ const App = () => {
           <Route path="/census/learn-more" element={<LearnMore />} />
         <Route path="/census/vote" element={<Census />} />
         <Route path="/roast/enter" element={<RoastEnter />} />
+        {/*
+         * The ROAST menu, added 2026-10-05. It is the room's front door for anyone who has roasted
+         * something; a Session that has not is sent to /roast/enter instead (see RoastMenu).
+         */}
+        <Route path="/roast" element={<RoastMenu />} />
         <Route path="/roast/deck" element={<RoastDeck />} />
+        {/*
+         * TWO ROUTES, ONE PAGE. The grill session of 2026-10-05 made this the Review page — a
+         * destination reachable from the menu, not only the place the deck ends. `/roast/review` is
+         * the name that matches the glossary and the menu; `/roast/verdict` is kept because it is
+         * already deployed and linked from a shipped screen, and a route that 404s is a worse bug
+         * than a route with two names.
+         */}
+        <Route path="/roast/review" element={<RoastVerdict />} />
         <Route path="/roast/verdict" element={<RoastVerdict />} />
         {/*
          * The four room explainers. One route, the room out of the URL, the copy out of

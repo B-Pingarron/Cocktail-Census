@@ -629,3 +629,67 @@
   background: var(--plate); border: var(--edge) solid #000; padding: 14px; font-size: var(--fs-small);
   line-height: 1.55; color: #c4bfdc;
 }
+
+/*
+ * The Submission reading's empty state. Deliberately NOT dressed as a result: it is the same plate as
+ * `.vd-state` but a step quieter, because it is a promise about what will land here rather than
+ * something that has. Until the editor ships it is what every visitor sees in that section.
+ */
+.vd-empty {
+  background: var(--plate); border: var(--edge) solid #000; padding: 14px; font-size: var(--fs-small);
+  line-height: 1.55; color: var(--dim);
+}
+
+/*
+ * ── the round boundary ───────────────────────────────────────────────────────────────────────────
+ *
+ * The deck became a loop on 2026-10-05: rounds of five instead of one fifteen-card commitment. This
+ * is the screen at the end of a round, and it carries both the recap and the three ways on, because
+ * "continue?" with no information in it is a question the visitor has no reason to answer either way.
+ *
+ * It is a PLATE, not a card: the deck's cards are the loud object and the boundary is a beat between
+ * them. Same plate colour and same hard black edge as everything else, without the frames, the pixel
+ * background and the misregistration — those belong to the spec, and borrowing them here would make
+ * the pause look like another card to vote on.
+ */
+.roundend {
+  background: var(--plate); border: var(--edge) solid #000; padding: 20px 18px;
+  box-shadow: 7px 7px 0 #000; transform: rotate(-0.6deg);
+}
+.roundend-kicker {
+  display: block; font-size: var(--fs-label); letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--dim);
+}
+.roundend-line {
+  margin-top: 10px; font-family: Impact, "Arial Black", sans-serif; font-style: italic;
+  text-transform: uppercase; font-size: var(--fs-display-xs); line-height: 1.15; color: var(--txt);
+  transform: skewX(-6deg);
+}
+.roundend-sub {
+  margin-top: 8px; font-size: var(--fs-micro); letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--dim);
+}
+
+/* The only thing here that looks like a button, because continuing is the only thing being asked. */
+.roundend-continue {
+  box-sizing: border-box; display: block; width: 100%; margin-top: 20px; border: var(--edge) solid #000;
+  background: var(--b); color: #00131c; text-align: center; padding: 12px 0; box-shadow: 5px 5px 0 #000;
+  font-family: Impact, "Arial Black", sans-serif; font-style: italic; text-transform: uppercase;
+  font-size: var(--fs-action); transform: skewX(-8deg) rotate(-0.6deg); cursor: pointer;
+}
+.roundend-continue:active {
+  transform: translate(3px, 3px) skewX(-8deg) rotate(-0.6deg); box-shadow: 2px 2px 0 #000;
+}
+
+.roundend-exits { margin-top: 18px; display: flex; flex-direction: column; gap: 6px; }
+/*
+ * Quiet on purpose, and 44px tall anyway: the project rule is a 44px minimum touch target, and an
+ * exit styled like a prompt is an exit nobody trusts. It lifts to the accent on hover rather than
+ * sitting in it.
+ */
+.roundend-exit {
+  box-sizing: border-box; display: block; text-align: center; min-height: 44px; line-height: 44px;
+  font-size: var(--fs-micro); letter-spacing: 0.2em; text-transform: uppercase; color: var(--dim);
+  text-decoration: underline; text-underline-offset: 3px;
+}
+.roundend-exit:hover, .roundend-exit:focus-visible { color: var(--a); }

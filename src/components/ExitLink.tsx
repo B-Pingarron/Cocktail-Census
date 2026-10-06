@@ -27,18 +27,39 @@ import { cn } from "@/lib/utils";
  * mean "agree" and "disagree". A control placed inside that area is a control whose taps get
  * read as votes, which is the failure mode that cost this project a long debugging session
  * once already. Every caller puts this outside the gesture surface.
+ *
+ * WHY IT NOW KNOWS WHERE IT GOES: the ROAST menu exists as of 2026-10-05, so the deck's exit is the
+ * menu rather than the hub. The label and the destination are ONE decision — an exit labelled "back to
+ * the menu" that lands on the hub is a lie the visitor discovers only by arriving — so they travel
+ * together in `EXITS` rather than as two props that can drift apart.
  */
-const ExitLink = ({ className }: { className?: string }) => (
-  <Link
-    to="/"
-    className={cn(
-      "inline-flex min-h-[44px] items-center px-2 font-body text-xs text-muted-foreground",
-      "underline underline-offset-2 transition-colors hover:text-cream focus-visible:text-cream",
-      className
-    )}
-  >
-    back to the hub
-  </Link>
-);
+
+/** The two legitimate exits. Label and destination, coupled on purpose. */
+const EXITS = {
+  hub: { to: "/", label: "back to the hub" },
+  menu: { to: "/roast", label: "back to the menu" },
+} as const;
+
+const ExitLink = ({
+  where = "hub",
+  className,
+}: {
+  where?: keyof typeof EXITS;
+  className?: string;
+}) => {
+  const exit = EXITS[where];
+  return (
+    <Link
+      to={exit.to}
+      className={cn(
+        "inline-flex min-h-[44px] items-center px-2 font-body text-xs text-muted-foreground",
+        "underline underline-offset-2 transition-colors hover:text-cream focus-visible:text-cream",
+        className
+      )}
+    >
+      {exit.label}
+    </Link>
+  );
+};
 
 export default ExitLink;

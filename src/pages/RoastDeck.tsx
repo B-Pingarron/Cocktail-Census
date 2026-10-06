@@ -1,16 +1,29 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import RoastSpecCard from "@/components/RoastSpecCard";
+import RoundEnd from "@/components/RoundEnd";
 import ExitLink from "@/components/ExitLink";
 import { noteById } from "@/data/roastNotes";
 import { ROAST_LIST_ID, roastSpecs } from "@/data/roastSpecs";
 import { getSessionId } from "@/lib/session";
 import { supabase } from "@/lib/supabase";
+import { isRoundEnd, recapRound, roundCount, roundOf, type RoundRecap } from "@/lib/rounds";
 import type { RoastSide } from "@/types/roast";
 import "@/roast.css";
 
 /**
- * The deck — the author's 15 specs, one per card, each one voted on and then annotated.
+ * The deck — the author's specs, one per card, each one voted on and then annotated.
+ *
+ * THE DECK IS A LOOP, NOT A COMMITMENT (2026-10-05).
+ *   It used to be fifteen cards in a row, and you either finished all fifteen or you left with a
+ *   half-collected set of votes. It is now rounds of five. The difference is not the number — it is
+ *   that a round is a COMPLETE unit: a visitor who stops at a round boundary has a finished thing,
+ *   and a visitor who stops mid-round has the same as before. Fifteen is exactly three rounds of five,
+ *   which is why the library cap and the round size are the same decision seen twice.
+ *
+ *   The boundary is a state of THIS component and not a route, because the deck owns the `votes` array
+ *   the recap is counted from — and that array is also the record of the session the card's header
+ *   counter reads. A route would unmount the deck and lose it.
  *
  * THE VOTE IS ONE INSERT, ON ADVANCE, AND THAT IS STRUCTURAL:
  *   `roast_votes` has insert and select policies and no update policy, so a label cannot be patched
@@ -33,12 +46,7 @@ import "@/roast.css";
  *   production table.
  */
 
-/** Where the deck hands the visitor over. The verdict page reads the same tables and computes
- *  everything in lib/verdict.ts; the deck has no say in what the verdict says. */
-const VERDICT_ROUTE = "/roast/verdict";
-
 const RoastDeck = () => {
-  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const dry = searchParams.get("dry") === "1";
 
@@ -47,13 +55,21 @@ const RoastDeck = () => {
   const [selected, setSelected] = useState<string[]>([]);
 
   /**
+   * The round recap, or null while a card is showing. Non-null means the boundary is up and the card
+   * is off screen — the two never render together, because the recap replaces the round's last card
+   * rather than sitting over it.
+   */
+  const [recap, setRecap] = useState<RoundRecap | null>(null);
+
+  /**
    * The vote cast on each spec, by position — null until the visitor answers, and null forever if
    * they skip.
    *
    * The counter in the card's header reads this, which is what turns the bar from a plain progress
    * meter into the record of the session: green for what was agreed with, red for what was not,
    * neutral for what was seen without an opinion. The DECK has to own it, not the card: the card is
-   * remounted per spec (see its `key`), so it cannot remember the votes that came before it.
+   * remounted per spec (see its `key`), so it cannot remember the votes that came before it. The
+   * round recap reads it too, which is the second reason it lives here.
    */
   const [votes, setVotes] = useState<(RoastSide | null)[]>(() =>
     Array.from({ length: roastSpecs.length }, () => null)
@@ -94,6 +110,12 @@ const RoastDeck = () => {
    *
    * Shared by the front face's skip and the back face's next, on purpose: two copies of "write then
    * move on" is exactly the pair that drifts, and one of them would end up writing a row on a skip.
+   *
+   * THE ROUND BOUNDARY IS DECIDED HERE, and only here. A round's last card does not move the index on
+   * — it raises the recap instead, so there is exactly one place that knows where a round ends and no
+   * second copy of that rule in the view. Note that `votes` is a dependency of this callback, which it
+   * was not before: the recap has to be counted from the votes INCLUDING the one just cast, and React
+   * state does not update synchronously, so the array is built locally.
    */
   const advance = useCallback(() => {
     if (advancingRef.current) return;
@@ -129,22 +151,32 @@ const RoastDeck = () => {
       }
     }
 
-    // Recorded before the reset, because `side` is what is about to be cleared. A skip records
-    // null, which is the honest value: no opinion is not a disagreement.
-    setVotes((previous) => {
-      const next = [...previous];
-      next[index] = side;
-      return next;
-    });
+    // Built before the reset, because `side` is what is about to be cleared. A skip records null,
+    // which is the honest value: no opinion is not a disagreement.
+    const nextVotes = [...votes];
+    nextVotes[index] = side;
+    setVotes(nextVotes);
 
-    const isLast = index >= roastSpecs.length - 1;
     setSide(null);
     setSelected([]);
     setSyncWarning(null);
 
-    if (isLast) navigate(VERDICT_ROUTE);
-    else setIndex((i) => i + 1);
-  }, [side, selected, spec, index, dry, navigate]);
+    if (isRoundEnd(index, roastSpecs.length)) {
+      setRecap(recapRound(nextVotes, roundOf(index), roundCount(roastSpecs.length)));
+      return;
+    }
+
+    setIndex((i) => i + 1);
+  }, [side, selected, votes, spec, index, dry]);
+
+  /**
+   * Leave the boundary and start the next round. The mutex is released by the `index` effect above,
+   * which is why nothing here has to touch it.
+   */
+  const handleContinue = useCallback(() => {
+    setRecap(null);
+    setIndex((i) => i + 1);
+  }, []);
 
   // Three states worth telling the visitor about, and none of them blocks the deck.
   const note = syncWarning
@@ -159,30 +191,37 @@ const RoastDeck = () => {
     <div className="roast flex items-center justify-center px-4 py-10">
       <div className="w-full max-w-[360px]">
         {/*
-          The emergency exit. The deck is fifteen full-height cards with horizontal drag on every
-          one of them, and before this there was no way off the screen at all. It sits above the
-          card and outside the card's gesture surface, so a tap here can never be counted as a
-          vote or a skip. A menu screen for the ROAST is still to come; until it exists the hub
-          is the honest place to land.
+          The emergency exit. The deck is full-height cards with horizontal drag on every one of
+          them, and before this there was no way off the screen at all. It sits above the card and
+          outside the card's gesture surface, so a tap here can never be counted as a vote or a skip.
+          It is hidden at the round boundary, which has its own exits and does not need a fourth.
         */}
-        <div className="flex justify-center pb-2">
-          <ExitLink />
-        </div>
-        <RoastSpecCard
-          // Remounting per spec is what keeps a neighbour's chips and side out of the next card.
-          key={spec.id}
-          spec={spec}
-          index={index}
-          total={roastSpecs.length}
-          side={side}
-          votes={votes}
-          selected={selected}
-          onVote={handleVote}
-          onToggleNote={handleToggleNote}
-          onSkip={advance}
-          onNext={advance}
-        />
-        {note && (
+        {!recap && (
+          <div className="flex justify-center pb-2">
+            <ExitLink where="menu" />
+          </div>
+        )}
+
+        {recap ? (
+          <RoundEnd recap={recap} onContinue={handleContinue} dry={dry} />
+        ) : (
+          <RoastSpecCard
+            // Remounting per spec is what keeps a neighbour's chips and side out of the next card.
+            key={spec.id}
+            spec={spec}
+            index={index}
+            total={roastSpecs.length}
+            side={side}
+            votes={votes}
+            selected={selected}
+            onVote={handleVote}
+            onToggleNote={handleToggleNote}
+            onSkip={advance}
+            onNext={advance}
+          />
+        )}
+
+        {note && !recap && (
           <p className={note.warn ? "decknote warn" : "decknote"}>{note.text}</p>
         )}
       </div>
