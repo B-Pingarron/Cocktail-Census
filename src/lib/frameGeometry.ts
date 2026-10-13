@@ -7,7 +7,7 @@
  * purpose, so this direct run is where its numbers come from.
  *
  * Ported from the v10 visual reference
- * (`.pi/visual-companion/roast-mockup/content/card-starter-10-standalone.html`). The rejection
+ * (`01_BarNerd/docs/design/roast/cards/card-starter-10-standalone.html`). The rejection
  * sampling is the whole design, not an implementation detail: a rectangle jittered by a few pixels
  * passes the angle band easily but still *looks* like a rectangle with a mistake in it. A quad is
  * only accepted when its four interior angles live in [83, 95] AND at least one corner is visibly

@@ -1,0 +1,455 @@
+<!doctype html>
+<!--
+  ╔══════════════════════════════════════════════════════════════════════════╗
+  ║  GENERATED FILE — DO NOT EDIT BY HAND.                                   ║
+  ║  Produced by scripts/build-bcb-standalone.mjs from the single source     ║
+  ║  of truth for the legal wording:                                         ║
+  ║      src/legal/consent.v1.json   (version                                ║
+  ║      bcb-2026-10-12.v1 sha256 de b640a9a1c845353c…)                      ║
+  ║  The consent wording below comes from that file with the                 ║
+  ║  __CONTROLLER_EMAIL__ parameter substituted — the hash covers the        ║
+  ║  template; the address is a render-time parameter, so the wording itself ║
+  ║  is never hand-edited here. Hand-editing this page would create exactly  ║
+  ║  the legal-text drift this feature exists to prevent. Change the JSON or ║
+  ║  controller.email and re-run the generator.                              ║
+  ╚══════════════════════════════════════════════════════════════════════════╝
+
+  Self-contained on purpose: no build step, no framework, no CDN, no external
+  font, no analytics, no tracker, no cookie. Everything loaded from a third
+  party would be a new processor and a new legal problem — and would break on
+  congested fair wifi. Only two files are fetched, both same-origin:
+  ./config.js (operator-created, git-ignored) and ./datenschutz.html (linked).
+-->
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>BarNerd — Einwilligung / Consent · Bar Convent Berlin 2026</title>
+  <meta name="robots" content="noindex" />
+  <style>
+    /* Self-contained: system fonts only, no assets. Mobile-first — this is filled
+       one-handed on a phone in a loud hall. */
+    :root {
+      --bg: #14110d;
+      --panel: #1d1913;
+      --line: rgba(232, 224, 210, 0.14);
+      --cream: #ece4d6;
+      --muted: #a89f8f;
+      --gold: #c9a24b;
+      --danger: #ff5447;
+      --ok: #7dc47d;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--cream);
+      font: 16px/1.6 Georgia, "Times New Roman", serif;
+      padding: 1.25rem 1rem 4rem;
+    }
+    main { max-width: 42rem; margin: 0 auto; }
+    h1 { font-size: 1.4rem; color: var(--gold); margin: 0.5rem 0 0.25rem; }
+    .meta { color: var(--muted); font-size: 0.85rem; margin-bottom: 1.25rem; }
+    .lang-label {
+      display: block;
+      font: 600 0.75rem/1 system-ui, sans-serif;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+      margin-bottom: 0.5rem;
+    }
+    section.lang {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 1rem 1.1rem;
+      margin: 1.25rem 0;
+    }
+    /* The verbatim consent block. <pre> so the line breaks and the two-space
+       checkbox indents survive exactly as authored in consent.v1.json. */
+    pre.block {
+      white-space: pre-wrap;
+      overflow-wrap: break-word;
+      font: inherit;
+      margin: 0 0 0.75rem;
+      color: var(--cream);
+    }
+    pre.block + .notice-link { margin-top: -0.25rem; }
+    .notice-link { font-size: 0.95rem; }
+    a { color: var(--gold); }
+    .controller { margin: 1rem 0 0; font-size: 0.95rem; }
+    .hard-error {
+      display: none;
+      border: 4px solid var(--danger);
+      background: #3a0d0a;
+      color: #ffd9d5;
+      padding: 1rem 1.15rem;
+      margin: 1.25rem 0;
+      border-radius: 6px;
+      font: 700 1rem/1.5 system-ui, sans-serif;
+    }
+    .hard-error.shown { display: block; }
+    .marker {
+      display: inline-block;
+      border: 3px solid var(--danger);
+      color: var(--danger);
+      background: #2a0a08;
+      font: 800 1rem/1.4 "Courier New", monospace;
+      padding: 0.35rem 0.6rem;
+      border-radius: 4px;
+      letter-spacing: 0.04em;
+    }
+    form { margin: 2rem 0 0; }
+    label.q { display: block; font: 600 0.95rem/1.4 system-ui, sans-serif; color: var(--muted); margin-bottom: 0.35rem; }
+    input[type="email"] {
+      width: 100%;
+      font-size: 1.15rem;
+      padding: 0.85rem 0.9rem;
+      border-radius: 6px;
+      border: 2px solid var(--line);
+      background: var(--panel);
+      color: var(--cream);
+    }
+    input[type="email"]:focus { outline: 2px solid var(--gold); border-color: var(--gold); }
+    .box {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.85rem 0.25rem;
+      border-bottom: 1px solid var(--line);
+      font-size: 1.05rem;
+      cursor: pointer;
+      min-height: 3.25rem; /* thumb-sized tap target */
+    }
+    .box input { width: 1.6rem; height: 1.6rem; flex: none; accent-color: var(--gold); }
+    .sep { color: var(--muted); }
+    button[type="submit"] {
+      width: 100%;
+      margin-top: 1.5rem;
+      font: 700 1.15rem/1 system-ui, sans-serif;
+      padding: 1.05rem 1rem;
+      border-radius: 8px;
+      border: none;
+      background: var(--gold);
+      color: #17130c;
+      min-height: 3.5rem;
+      cursor: pointer;
+    }
+    button[type="submit"]:disabled { opacity: 0.5; cursor: wait; }
+    #status { margin-top: 1.25rem; font: 600 1rem/1.5 system-ui, sans-serif; display: none; white-space: pre-wrap; }
+    #status.shown { display: block; padding: 1rem 1.1rem; border-radius: 6px; }
+    #status.ok { display: block; border: 2px solid var(--ok); background: #10240f; color: #cdf0c9; }
+    #status.warn { display: block; border: 2px solid var(--gold); background: #2a2210; color: #f2e3bb; }
+    #status.err { display: block; border: 2px solid var(--danger); background: #3a0d0a; color: #ffd9d5; }
+    footer {
+      margin-top: 3rem;
+      border-top: 1px solid var(--line);
+      padding-top: 1rem;
+      font-size: 0.78rem;
+      color: var(--muted);
+      font-family: system-ui, sans-serif;
+    }
+    noscript div {
+      border: 4px solid var(--danger);
+      background: #3a0d0a;
+      color: #ffd9d5;
+      padding: 1rem;
+      border-radius: 6px;
+      font: 700 1rem/1.5 system-ui, sans-serif;
+      margin-bottom: 1.5rem;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <noscript><div>Javascript ist deaktiviert — ohne Javascript kann nichts gespeichert werden. / JavaScript is disabled — nothing can be stored without it.</div></noscript>
+
+    <h1>BarNerd — Einwilligung / Consent</h1>
+    <p class="meta">Bar Convent Berlin 2026 · Messe Berlin · Fassung / version <code>bcb-2026-10-12.v1</code></p>
+
+    <!-- Loud, unmissable configuration error. Driven by the inline script below:
+         missing config.js, placeholder values, or the unfilled controller marker all
+         land here, and all of them REFUSE submission. A capture that silently
+         discarded a stranger's email while he watched them type it is the worst
+         possible outcome on this page. -->
+    <div id="hard-error" class="hard-error" role="alert"></div>
+
+    <p class="controller">
+      Verantwortlicher / Controller:<br />
+      <strong>Bernardo Pingarrón</strong>,<br />
+      <a href="mailto:barnerd_info@proton.me">barnerd_info@proton.me</a>
+    </p>
+
+    <noscript><div>&nbsp;</div></noscript>
+
+    <!-- ======================= DEUTSCH (template wording, email substituted) ================== -->
+    <section class="lang" lang="de">
+      <span class="lang-label">Deutsch — Einwilligungstext</span>
+      <pre class="block">Verantwortlicher: Bernardo Pingarrón, barnerd_info@proton.me
+
+Ich willige ein, dass BarNerd mir per E-Mail Informationen zu den von mir
+ausgewählten Themen sendet. Rechtsgrundlage ist Art. 6 Abs. 1 lit. a DSGVO.
+Zur Auswahl stehen:
+
+  [ ] Beta des Recipe Managers
+  [ ] Beta von ROAST
+  [ ] Neuigkeiten zu BarNerd
+
+Ich kann diese Einwilligung jederzeit ohne Angabe von Gründen formlos
+widerrufen, per E-Mail an barnerd_info@proton.me. Der Widerruf wirkt für die
+Zukunft. Danach lösche ich die E-Mail-Adresse; den Nachweis, dass und worin
+ich eingewilligt habe, bewahre ich für die Dauer der gesetzlichen Fristen
+(3 Jahre) auf, auf Grundlage von Art. 6 Abs. 1 lit. c und lit. f DSGVO.
+
+Zur Bestätigung sende ich einmalig eine E-Mail mit einem Bestätigungslink
+(Double-Opt-In). Diese Bestätigungs-E-Mail enthält keine Werbung. Erst nach
+der Bestätigung sende ich weitere Nachrichten.
+
+Weitere Informationen zu Empfängern, Speicherdauer und meinen Rechten:</pre>
+      <p class="notice-link"><a href="./datenschutz.html">Datenschutzhinweise</a></p>
+    </section>
+
+    <!-- ======================= ENGLISH (template wording, email substituted) ================= -->
+    <section class="lang" lang="en">
+      <span class="lang-label">English — consent text</span>
+      <pre class="block">Controller: Bernardo Pingarrón, barnerd_info@proton.me
+
+I consent to BarNerd sending me email about the topics I select below. The
+legal basis is Art. 6(1)(a) GDPR. The topics are:
+
+  [ ] Recipe Manager beta
+  [ ] ROAST beta
+  [ ] News about BarNerd
+
+I can withdraw this consent at any time, without giving reasons, informally
+by email to barnerd_info@proton.me. Withdrawal applies going forward. After
+that I delete the address; I keep the proof of what I consented to for the
+statutory limitation period (3 years), on the basis of Art. 6(1)(c) and (f)
+GDPR.
+
+To confirm, I send one email with a confirmation link (double opt-in). That
+confirmation email contains no advertising. Only after confirmation do I send
+further messages.
+
+More information on recipients, retention and my rights:</pre>
+      <p class="notice-link"><a href="./datenschutz.html">Privacy notice</a></p>
+    </section>
+
+    <form id="join-form" novalidate>
+      <label class="q" for="email">E-Mail-Adresse / Email address</label>
+      <input type="email" id="email" name="email" inputmode="email" autocomplete="email" spellcheck="false" required />
+
+        <label class="box" for="rm-beta">
+          <input type="checkbox" id="rm-beta" name="interest" value="rm-beta" />
+          <span><strong>Beta des Recipe Managers</strong><span class="sep"> / </span>Recipe Manager beta</span>
+        </label>
+
+        <label class="box" for="roast-beta">
+          <input type="checkbox" id="roast-beta" name="interest" value="roast-beta" />
+          <span><strong>Beta von ROAST</strong><span class="sep"> / </span>ROAST beta</span>
+        </label>
+
+        <label class="box" for="news">
+          <input type="checkbox" id="news" name="interest" value="news" />
+          <span><strong>Neuigkeiten zu BarNerd</strong><span class="sep"> / </span>News about BarNerd</span>
+        </label>
+      <!-- The boxes above are unticked by default, always. Consent pre-ticked is not consent. -->
+      <button type="submit" id="submit">Einwilligen und speichern / Consent and save</button>
+    </form>
+
+    <div id="status" role="status" aria-live="polite"></div>
+
+    <footer>
+      <p>
+        Einwilligungsfassung / consent version <code>bcb-2026-10-12.v1</code><br />
+        sha256 (de) <code>b640a9a1c845353caa3ca3229e120ff74cd2b130f54f1762aadf015b04b133aa</code><br />
+        sha256 (en) <code>9cc8dfd32a16b5f4e2abac62d4517700904e8df429a979f38b4f873c6c35ca90</code><br />
+        Datenschutzhinweis-Fassung / notice version <code>notice-2026-10-12.v1</code><br />
+        Generiert aus <code>src/legal/consent.v1.json</code> von <code>scripts/build-bcb-standalone.mjs</code> —
+        nicht von Hand bearbeiten / do not hand-edit.
+      </p>
+    </footer>
+  </main>
+
+  <script src="./config.js"></script>
+  <script>
+    /* GENERATED inline script — same rule as the HTML above: change the generator, not this. */
+    (function () {
+      "use strict";
+
+      var SOURCE = "bcb-2026";
+      var CONSENT_VERSION = "bcb-2026-10-12.v1";
+      var CONTROLLER_EMAIL_UNFILLED = false;
+      var CONFIRM_TTL_MS = 604800000; /* 7 days — mirrors src/lib/waitlist.ts */
+
+      var hardError = document.getElementById("hard-error");
+      var statusEl = document.getElementById("status");
+      var form = document.getElementById("join-form");
+      var emailInput = document.getElementById("email");
+      var button = document.getElementById("submit");
+      var boxes = [document.getElementById("rm-beta"), document.getElementById("roast-beta"), document.getElementById("news")];
+
+      /* ---- configuration ------------------------------------------------
+         config.js is operator-created (from config.example.js) and git-ignored.
+         Absent or placeholder values are a HARD failure: the page says so in
+         words and refuses to submit. It never pretends a capture worked. */
+      function configProblem() {
+        var cfg = window.BCB_CONFIG;
+        if (!cfg) {
+          return "config.js fehlt: Diese Seite kann nichts speichern. " +
+            "Lege config.example.js als config.js an und fülle Supabase-URL und Anon-Key.\n\n" +
+            "config.js is missing: this page cannot store anything. Copy config.example.js " +
+            "to config.js and fill in the Supabase URL and anon key.";
+        }
+        if (!cfg.supabaseUrl || String(cfg.supabaseUrl).indexOf("YOUR-PROJECT") !== -1) {
+          return "Supabase-URL nicht ausgefüllt (config.js). / Supabase URL not filled in (config.js).";
+        }
+        if (!cfg.supabaseAnonKey || String(cfg.supabaseAnonKey).indexOf("REPLACE") === 0) {
+          return "Supabase-Anon-Key nicht ausgefüllt (config.js). / Supabase anon key not filled in (config.js).";
+        }
+        return null;
+      }
+
+      function markerProblem() {
+        if (!CONTROLLER_EMAIL_UNFILLED) return null;
+        return "Kontakt-E-Mail (__CONTROLLER_EMAIL__) ist in consent.v1.json nicht ausgefüllt — " +
+          "die Einwilligung nennt eine Platzhalteradresse. Nichts darf gespeichert werden. " +
+          "Fülle die JSON aus und generiere die Seite neu.\n\n" +
+          "Controller email is not filled in — the consent text names a placeholder address. " +
+          "Nothing may be stored. Fill in the JSON and regenerate this page.";
+      }
+
+      function showHardError(message) {
+        hardError.textContent = message;
+        hardError.className = "hard-error shown";
+        setStatus("", "");
+      }
+
+      function refreshHardError() {
+        var problem = markerProblem() || configProblem();
+        if (problem) { showHardError(problem); return false; }
+        hardError.className = "hard-error";
+        hardError.textContent = "";
+        return true;
+      }
+
+      /* A shape check, not a validator — same floor as src/lib/waitlist.ts. */
+      function looksLikeAnEmail(value) {
+        return value.length >= 3 && value.length <= 320 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+      }
+
+      /* Three honest outcomes, never collapsed: ok / ok-but-mail-failed / failed.
+         The insert is the primary outcome; a mail failure is reported as exactly
+         what it is — stored, confirmation not sent — never as a success. */
+      function setStatus(kind, message) {
+        statusEl.className = kind ? "shown " + kind : "";
+        statusEl.textContent = message;
+      }
+
+      form.addEventListener("submit", function (event) {
+        event.preventDefault();
+        if (!refreshHardError()) return;
+
+        var email = emailInput.value.trim();
+        if (!looksLikeAnEmail(email)) {
+          setStatus("err",
+            "Das sieht nicht nach einer E-Mail-Adresse aus. / That does not look like an email address.");
+          return;
+        }
+
+        var picked = [];
+        boxes.forEach(function (box) { if (box.checked) picked.push(box.value); });
+        picked = picked.filter(function (v, i, a) { return a.indexOf(v) === i; });
+        if (picked.length === 0) {
+          setStatus("err",
+            "Mindestens ein Thema ankreuzen. / Tick at least one topic.");
+          return;
+        }
+
+        var cfg = window.BCB_CONFIG;
+        var baseUrl = String(cfg.supabaseUrl).replace(/\/$/, "");
+        var confirmUrl = cfg.confirmFunctionUrl ||
+          baseUrl + "/functions/v1/waitlist-confirm-request";
+
+        /* Minted before the insert so the row is complete at write time: token,
+           dispatch timestamp, expiry. The mail path can then fail without the
+           stored row being partial. Mirrors src/lib/waitlist.ts. */
+        var token = crypto.randomUUID();
+        var now = Date.now();
+        var payload = {
+          email: email,
+          interests: picked,
+          consent_version: CONSENT_VERSION,
+          source: SOURCE,
+          confirm_token: token,
+          confirm_sent_at: new Date(now).toISOString(),
+          confirm_expires_at: new Date(now + CONFIRM_TTL_MS).toISOString()
+        };
+
+        button.disabled = true;
+        setStatus("", "");
+
+        fetch(baseUrl + "/rest/v1/waitlist", {
+          method: "POST",
+          headers: {
+            "apikey": cfg.supabaseAnonKey,
+            "Authorization": "Bearer " + cfg.supabaseAnonKey,
+            "Content-Type": "application/json",
+            "Prefer": "return=minimal"
+          },
+          body: JSON.stringify(payload)
+        }).then(function (response) {
+          if (!response.ok) throw new Error("waitlist insert answered " + response.status + " " + response.statusText);
+          /* The contact exists and the consent is valid from here on; only the
+             mail is in question. The mail request runs in its own chain with its
+             own catch, so a mail problem can never fall through to the "NOT
+             stored" branch below: the insert already succeeded, and telling the
+             visitor otherwise would be a lie about the one irreversible fact. */
+          return fetch(confirmUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ token: token })
+          }).then(function (mailResponse) {
+            if (!mailResponse.ok) {
+              throw new Error("waitlist-confirm-request answered " + mailResponse.status + " " + mailResponse.statusText);
+            }
+            /* A 2xx is not by itself a send: the endpoint answers 200 with
+               { mailed: false } for an already-confirmed row, where no mail is
+               due. Read the body and claim a send only when the endpoint says
+               the mail left (mailed === true). A missing or unparseable body is
+               treated the same — never as a send. */
+            return mailResponse.json().catch(function () { return null; });
+          }).then(function (mailBody) {
+            if (!mailBody || mailBody.mailed !== true) {
+              throw new Error("waitlist-confirm-request answered 2xx without mailing (mailed: " +
+                (mailBody ? mailBody.mailed : "absent") + ")");
+            }
+            setStatus("ok",
+              "Gespeichert. Die Bestätigungs-E-Mail wurde angefordert — bitte den Link darin öffnen.\n\n" +
+              "Stored. The confirmation email was requested — please open the link in it.");
+          }).catch(function (mailFailure) {
+            console.error("[bcb] contact stored, but no confirmation email was sent:", mailFailure);
+            setStatus("warn",
+              "E-Mail-Adresse gespeichert, aber es wurde keine Bestätigungs-E-Mail versandt " +
+              "(kein Versand möglich oder Adresse bereits bestätigt). Es wird keine Nachricht " +
+              "gesendet, bis der Bestätigungslink betätigt wurde.\n\n" +
+              "Email stored, but no confirmation email was sent (sending was not possible, " +
+              "or the address is already confirmed). No message will be sent until the " +
+              "confirmation link is used.");
+          });
+        }).catch(function (insertFailure) {
+          console.error("[bcb] the contact did not save:", insertFailure);
+          setStatus("err",
+            "NICHT gespeichert — kein Eintrag wurde angelegt. Bitte erneut versuchen.\n\n" +
+            "NOT stored — no entry was created. Please try again.");
+        }).finally(function () {
+          button.disabled = false;
+        });
+      });
+
+      /* Announce a broken configuration the moment the page opens, not on first submit. */
+      refreshHardError();
+    })();
+  </script>
+</body>
+</html>

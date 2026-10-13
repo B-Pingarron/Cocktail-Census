@@ -1,3 +1,5 @@
+import { CONSENT_LABELS, CONSENT_NOTICE_LABEL, CONSENT_TEXT } from "@/lib/consentText";
+
 /**
  * Phase 4 copy — the four room explainers and the shared ask.
  *
@@ -12,6 +14,12 @@
  * component existed. Do not reword it while building the screens — if a line does not fit a
  * layout, change the layout, or ask. The one exception already ruled: the Recipe Manager is
  * under construction, so it is never described as absent.
+ *
+ * THE CONSENT SURFACE IS NOT AUTHORED HERE. The legal block and the checkbox labels are
+ * derived from `consent.v1.json` via `consentText.ts`, because that wording must have one
+ * home and this file has already once been the place where two halves of one message
+ * drifted apart. What lives here is layout data: which block, which link, which outcome
+ * message — never the legal wording itself.
  */
 
 /** One door out of a room. A room with no door says so, and the ask is its way in instead. */
@@ -100,10 +108,18 @@ export type Room = {
   /**
    * Absent means there is honestly nowhere to go. The Recipe Manager does not exist as an app
    * yet and the Compositor's destination is a later build, so neither room invents a door —
-   * the ask is how you leave the Recipe Manager, and the demo is how the Compositor explains
-   * itself.
+   * the demo is how the Compositor explains itself, and the Recipe Manager ends on `closing`.
    */
   door?: RoomDoor;
+  /**
+   * A closing statement for a room that has nothing to enter. Rendered where a door would be.
+   *
+   * Set only on the Recipe Manager, and only since 2026-10-12: the app's ask is switched off
+   * (`PartyAsk`), and the ask was that room's only way in, so without a line the page simply
+   * stopped mid-thought and read as broken rather than as unfinished. TEMPORARY — if the ask
+   * returns, or the room gets a real door, this line goes.
+   */
+  closing?: string;
   /** Set only on the Compositor: the non-interactive demo, rendered between WHY and WHO. */
   demo?: typeof COMPOSITOR_DEMO;
 };
@@ -199,7 +215,11 @@ export const ROOMS: Room[] = [
         text: "The Recipe Manager is under construction, with its foundations in place. The first step is a simple list-maker with file import and export, so your library can travel. The fuller manager and social sharing come next.",
       },
     ],
-    // No door on purpose. There is no app to enter, and the ask below is the honest way in.
+    // No door on purpose. There is no app to enter. The ask below used to be the honest way
+    // in; it is switched off in the app (PartyAsk, 2026-10-12), so the room closes on a line
+    // that says the room is unfinished rather than leaving the page mid-air.
+    closing:
+      "That is the whole room for now — no door, no demo, no list box. It is unfinished on purpose, not broken: the first build is a simple list-maker with import and export, and the door will appear here when there is an app behind it.",
   },
 ];
 
@@ -219,25 +239,54 @@ export function roomById(id: string | undefined): Room | undefined {
  * the others, and a person who only wants the newsletter should not have to also volunteer
  * for a beta.
  *
- * WHY THE CONSENT LINE SAYS "STORE" AND NOT "SIGN UP": this writes a row. It creates no
- * account, sends no mail, and consumes none of Supabase's email quota (ADR-035). The line
- * describes exactly that, because a visitor who thinks they subscribed to something is worse
- * than one who knows they left an address.
+ * WHY THE CONSENT SURFACE IS BILINGUAL AND DERIVED: the audience is an international trade
+ * fair in Berlin, so German-only or English-only is both wrong. The block is the canonical
+ * wording from `consent.v1.json` — rendered, never rewritten, in either language — and the
+ * checkbox labels are the same wording's purpose labels, so what the visitor reads and what
+ * the consent evidence says cannot differ. The consent line that used to promise no email
+ * would now be a lie: double opt-in sends exactly one confirmation email and the messages
+ * only follow a click on it. The three outcome strings below each describe one real path.
+ *
+ * NONE OF IT RENDERS TODAY. `PartyAsk` returns null while the app's ask is switched off
+ * (2026-10-12, ADR-036) — the app is not a capture surface while the standalone BCB page is
+ * the one that takes addresses. The copy stays here, unedited and ready, because one line
+ * switches it back on and a deleted copy would be a rewrite rather than a toggle.
  */
 export const ASK_COPY = {
   heading: "Get in touch",
   emailLabel: "Your email address",
   emailPlaceholder: "you@example.com",
+  /** The interactive boxes, labelled with the canonical purpose labels, both languages. */
   options: [
-    { id: "rm-beta", label: "I'd like to try the Recipe Manager beta" },
-    { id: "roast-beta", label: "I'd like to try the ROAST beta" },
-    { id: "news", label: "Keep me posted on BarNerd and the blog" },
-  ],
-  consent:
-    "By submitting, you agree that we can store your email and selected interests so we can follow up about them. No account is created, and this form sends no confirmation email.",
+    { id: "rm-beta", label: CONSENT_LABELS["rm-beta"].en, labelDe: CONSENT_LABELS["rm-beta"].de },
+    { id: "roast-beta", label: CONSENT_LABELS["roast-beta"].en, labelDe: CONSENT_LABELS["roast-beta"].de },
+    { id: "news", label: CONSENT_LABELS["news"].en, labelDe: CONSENT_LABELS["news"].de },
+  ] as const,
+  /**
+   * The consent blocks, German first, with the controller-email parameter already
+   * substituted (consentText.ts does it at load; the wording itself is untouched — the
+   * frozen hashes cover the template). `noticeLabel` is not part of the hashed
+   * text; it is rendered after the block, carrying a *relative* link to the Art. 13 notice
+   * (`base: "./"` — an absolute path would break on GitHub Pages).
+   */
+  consent: {
+    de: CONSENT_TEXT.de,
+    en: CONSENT_TEXT.en,
+    noticeDe: CONSENT_NOTICE_LABEL.de,
+    noticeEn: CONSENT_NOTICE_LABEL.en,
+    noticeHref: "./datenschutz.html",
+  },
   submit: "Save my choices",
-  /** Rendered in place of the form. Says what happened without implying an email left. */
-  success: "That's it — your choices are in. If you picked something, we'll write when it's real.",
+  /** Stored, and the confirmation email request succeeded. Says what is really on its way. */
+  success:
+    "Saved — your choices are in, and the confirmation email is on its way. Open it and click the link; only after that will we write to you.",
+  /**
+   * Stored, but the confirmation email request failed. Its own string on purpose: this is
+   * not a success (no email left) and not an error (the contact exists). Saying "thanks,
+   * check your inbox" here would be the lie the old consent line used to tell in reverse.
+   */
+  successNoConfirm:
+    "Saved — your choices are in, but the confirmation email could not be sent; nothing left here. Until the confirmation link is clicked, nothing will be written to you.",
   /** Shown only when the write fails. Names the failure rather than pretending it worked. */
   error: "That didn't save. Nothing was sent — try again in a moment.",
   /** Shown when the field is empty. */

@@ -1,0 +1,435 @@
+<!doctype html>
+<!--
+  Art. 13 notice for the BCB 2026 email capture (the standalone page) — bilingual (German
+  first, then English).
+
+  THIS IS THE AUTHORED TEMPLATE, AND IT NOW SERVES ONE JOB, NOT TWO (2026-10-12).
+    It emits exactly one shipped file, by scripts/build-bcb-standalone.mjs with
+    __CONTROLLER_EMAIL__ substituted from controller.email in src/legal/consent.v1.json:
+      - legal/bcb-2026/datenschutz.html   (the standalone BCB page's copy)
+    The operator fills the contact address in exactly ONE place — controller.email — and the
+    generated notice follows. Hand-filling a marker here instead would split that one fill
+    point in two; the marker is a PARAMETER of this template, not an unfinished bit of
+    writing, and it stays here to be substituted at generation time.
+
+  WHY IT NO LONGER ALSO SHIPS AS THE APP'S NOTICE:
+    public/datenschutz.html used to be a second copy of this file. It declared its own scope
+    as "the BCB 2026 waitlist" and never mentioned votes or specs, so it never described what
+    the app does — and since 2026-10-12 the app does not capture addresses at all (the ask is
+    switched off, ADR-036). A notice for a processing the app does not perform is worse than
+    no notice. So that file is now the APP's own short notice about the identifier it stores,
+    emitted by the same generator from text authored inside the generator script. This file
+    is the standalone page's record of a capture that really happens, and nothing else.
+
+  WHY THIS IS A HAND-WRITTEN TEMPLATE AND NOT PART OF THE APP:
+    It is linked from a QR code and from the consent block, so its generated copies must
+    exist at stable relative URLs whether or not the SPA boots, and they must render with
+    JavaScript off and with no build step. A React route would make a legal notice depend
+    on a bundle.
+
+  WHY EVERY LINK IS RELATIVE:
+    vite.config.ts sets base: "./" and the site is served from a subpath on GitHub Pages.
+    href="/..." would resolve to the domain root and 404. It is href="./" or nothing.
+
+  The wording of the consent itself is NOT here — it lives in src/legal/consent.v1.json
+  and is rendered by the app. This page is the Art. 13 disclosure around it: who, why,
+  on what basis, how long, who else touches the data, and every right.
+
+  THIRD-COUNTRY DISCLOSURE (operator-confirmed 2026-10-12): the Supabase project runs
+  in West EU (Ireland) — EU-hosted, so there is NO third-country transfer for the
+  database. Supabase and Resend BOTH remain processors under Art. 28 DSGVO and both stay
+  named as recipients; the EU standard-contractual-clauses / EU-US Data Privacy
+  Framework basis attaches to Resend (US-based) ALONE. Do not "restore" a blanket
+  transfer sentence covering both providers — that was the inaccuracy, and correcting
+  it makes the notice more accurate, not more permissive.
+-->
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Datenschutzhinweise — Privacy notice · BarNerd BCB 2026</title>
+  <meta name="description" content="Datenschutzhinweise (Art. 13 DSGVO) für die BarNerd-Warteliste, Bar Convent Berlin 2026. Privacy notice under Art. 13 GDPR for the BarNerd waitlist." />
+  <style>
+    /* Self-contained on purpose: no external font, no asset, no script. */
+    :root {
+      --bg: #14110d;
+      --panel: #1d1913;
+      --line: rgba(232, 224, 210, 0.14);
+      --cream: #ece4d6;
+      --muted: #a89f8f;
+      --gold: #c9a24b;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--cream);
+      font: 16px/1.65 Georgia, "Times New Roman", serif;
+      padding: 2.5rem 1.25rem 4rem;
+    }
+    main { max-width: 46rem; margin: 0 auto; }
+    h1 { font-size: 1.5rem; color: var(--gold); margin: 0 0 0.25rem; }
+    .meta { color: var(--muted); font-size: 0.85rem; margin-bottom: 2.5rem; }
+    section { margin: 2.25rem 0; }
+    h2 {
+      font-size: 1.05rem;
+      color: var(--gold);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin: 0 0 0.75rem;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 0.4rem;
+    }
+    p { margin: 0.75rem 0; }
+    ul { margin: 0.75rem 0; padding-left: 1.25rem; }
+    li { margin: 0.3rem 0; }
+    .lang-en { margin-top: 3rem; padding-top: 1rem; border-top: 2px solid var(--line); }
+    /* The withdrawal section is deliberately its own boxed island: DSK Orientierungshilfe
+       Direktwerbung § 3.7 and Art. 13(2)(c) require the right to withdraw to be findable,
+       and a right buried in a paragraph is a right nobody finds. */
+    .withdrawal {
+      border: 2px solid var(--gold);
+      background: var(--panel);
+      padding: 1.25rem 1.5rem;
+      margin: 3rem 0;
+      border-radius: 6px;
+    }
+    .withdrawal h2 { border-bottom-color: var(--gold); }
+    a { color: var(--gold); }
+    .lang-label {
+      display: inline-block;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+      margin-bottom: 0.5rem;
+    }
+    footer {
+      margin-top: 4rem;
+      border-top: 1px solid var(--line);
+      padding-top: 1rem;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Datenschutzhinweise</h1>
+    <p class="meta">
+      BarNerd-Warteliste, Bar Convent Berlin 2026 · Fassung <code>notice-2026-10-12.v1</code> ·
+      <a href="./">Zur Anwendung / back to the app</a>
+    </p>
+
+    <!-- ======================= DEUTSCH ======================= -->
+    <div lang="de">
+      <span class="lang-label">Deutsch</span>
+
+      <section>
+        <h2>1. Verantwortlicher</h2>
+        <p>
+          Bernardo Pingarrón, eine natürliche Person, keine Firma. Kontakt:
+          <a href="mailto:__CONTROLLER_EMAIL__">__CONTROLLER_EMAIL__</a>.
+          Kontaktweg ist ausdrücklich E-Mail; eine Postanschrift ist nicht erforderlich,
+          da keine postalische Werbung versendet wird.
+        </p>
+      </section>
+
+      <section>
+        <h2>2. Welche Daten erhoben werden und warum</h2>
+        <p>
+          Erhoben wird Ihre E-Mail-Adresse, die Themen, die Sie ankreuzen (Beta des Recipe
+          Managers, Beta von ROAST, Neuigkeiten zu BarNerd) sowie der Zeitpunkt der Eintragung.
+          Die Erhebung erfolgt persönlich vor Ort: Sie füllen das Formular selbst aus. Eine
+          lokale Sitzungs-ID wird dabei nicht erhoben oder gespeichert; die Adresse ist der
+          einzige Personenbezug dieser Seite.
+        </p>
+        <p>
+          Zwecke und Rechtsgrundlagen, je Zweck gleichermaßen:
+        </p>
+        <ul>
+          <li>
+            <strong>Beta des Recipe Managers:</strong> Information per E-Mail über den
+            Start der Beta. Rechtsgrundlage ist Ihre Einwilligung, Art. 6 Abs. 1 lit. a
+            DSGVO; zugleich Erfordernis der vorherigen ausdrücklichen Einwilligung für
+            Werbung per E-Mail nach § 7 Abs. 2 Nr. 2 UWG.
+          </li>
+          <li>
+            <strong>Beta von ROAST:</strong> Information per E-Mail über den Start der
+            Beta. Dieselbe Rechtsgrundlage: Art. 6 Abs. 1 lit. a DSGVO i. V. m.
+            § 7 Abs. 2 Nr. 2 UWG.
+          </li>
+          <li>
+            <strong>Neuigkeiten zu BarNerd:</strong> gelegentliche E-Mails
+            zu neuen Beiträgen und Projektständen. Dieselbe Rechtsgrundlage:
+            Art. 6 Abs. 1 lit. a DSGVO i. V. m. § 7 Abs. 2 Nr. 2 UWG.
+          </li>
+        </ul>
+        <p>
+          Mit der Einwilligung wird auch die Speicherung des Einwilligungsnachweises
+          (Textfassung, Version, Prüfsumme, Zeitpunkte) offengelegt: sie erfolgt nach
+          Widerruf oder Ende der Beta auf Grundlage von Art. 6 Abs. 1 lit. c DSGVO
+          (gesetzliche Verjährungsfristen) und Art. 6 Abs. 1 lit. f DSGVO (berechtigtes
+          Interesse daran, eine spätere Auseinandersetzung über die Einwilligung selbst
+          belegen zu können) — nicht auf Grundlage der Einwilligung, die damit erlischt.
+        </p>
+        <p>
+          <strong>Freiwilligkeit:</strong> die Angabe ist freiwillig. Ohne Eintragung
+          erhalten Sie keine Beta-Einladungen und keine Neuigkeiten; darüber hinaus
+          entstehen Ihnen keine Nachteile.
+        </p>
+        <p>
+          <strong>Double-Opt-In:</strong> Nach der Eintragung sende ich einmalig eine
+          E-Mail mit einem Bestätigungslink. Diese Bestätigungs-E-Mail enthält keine
+          Werbung. Erst nach der Bestätigung sende ich weitere Nachrichten.
+        </p>
+      </section>
+
+      <section>
+        <h2>3. Empfänger und Drittlandtransfer</h2>
+        <p>
+          Zwei Auftragsverarbeiter berühren die Daten, ausschließlich nach meiner Weisung:
+        </p>
+        <ul>
+          <li>
+            <strong>Supabase</strong> als Host der Datenbank (Speicherung der Einträge und
+            der Einwilligungsnachweise). Die Supabase-Projektregion ist West EU
+            (Irland); ein Drittlandtransfer findet für die Datenbank nicht statt.
+          </li>
+          <li>
+            <strong>Resend</strong> als Versanddienst für die Bestätigungs- und
+            Beta-E-Mails. Resend sitzt in den Vereinigten Staaten.
+          </li>
+        </ul>
+        <p>
+          Soweit Daten an Resend in die Vereinigten Staaten übermittelt werden, geschieht
+          dies auf Grundlage von Standardvertragsklauseln der EU-Kommission; soweit
+          Resend unter dem EU-US Data Privacy Framework zertifiziert ist, zusätzlich auf
+          Grundlage dieser Zertifizierung. Ein automatisierter Abgleich mit anderen
+          Datenbeständen findet nicht statt.
+        </p>
+      </section>
+
+      <section>
+        <h2>4. Speicherdauer</h2>
+        <ul>
+          <li>
+            Einträge, die nicht bestätigt wurden (kein Klick auf den Bestätigungslink):
+            automatische Löschung 30 Tage nach der Eintragung. Ohne Bestätigung ist die
+            Einwilligung nicht nachweisbar, also auch nicht nutzbar.
+          </li>
+          <li>
+            Bestätigte Einträge: Aufbewahrung bis zum Abschluss der Beta, längstens jedoch
+            18 Monate nach der Bestätigung — danach wird die Adresse gelöscht.
+          </li>
+          <li>
+            Beide Fristen werden maschinell durchgesetzt: ein täglicher Lösch-Job in der
+            Datenbank löscht unbestätigte Einträge nach 30 Tagen und bestätigte Einträge
+            spätestens 18 Monate nach der Bestätigung.
+          </li>
+          <li>
+            Einwilligungsnachweis (Textfassung, Version, Prüfsumme, Zeitpunkte): bis zu
+            3 Jahre, gerechtfertigt durch Art. 6 Abs. 1 lit. c und lit. f DSGVO, siehe
+            Abschnitt 2. Er wird nur so lange aufbewahrt, wie ein Widerruf oder eine
+            Auseinandersetzung ihn erfordert; sonst endet er mit dem Eintrag nach der obigen
+            Frist.
+          </li>
+        </ul>
+      </section>
+
+      <div class="withdrawal">
+        <h2>5. Widerruf der Einwilligung</h2>
+        <p>
+          Sie können diese Einwilligung jederzeit ohne Angabe von Gründen und formlos per
+          E-Mail an
+          <a href="mailto:__CONTROLLER_EMAIL__">__CONTROLLER_EMAIL__</a>
+          widerrufen. Der Widerruf wirkt für die Zukunft; die Rechtmäßigkeit der bis dahin
+          erfolgten Verarbeitung bleibt unberührt. Danach lösche ich Ihre E-Mail-Adresse.
+          Den Nachweis, dass und worin Sie eingewilligt haben, bewahre ich für die Dauer
+          der gesetzlichen Fristen (3 Jahre) auf, auf Grundlage von Art. 6 Abs. 1 lit. c
+          und lit. f DSGVO.
+        </p>
+      </div>
+
+      <section>
+        <h2>6. Ihre Rechte</h2>
+        <p>Sie haben im Rahmen der DSGVO insbesondere das Recht auf:</p>
+        <ul>
+          <li>Auskunft über die zu Ihrer Person verarbeiteten Daten (Art. 15 DSGVO),</li>
+          <li>Berichtigung unrichtiger Daten (Art. 16 DSGVO),</li>
+          <li>Löschung (Art. 17 DSGVO),</li>
+          <li>Einschränkung der Verarbeitung (Art. 18 DSGVO),</li>
+          <li>Datenübertragbarkeit (Art. 20 DSGVO),</li>
+          <li>Widerspruch gegen die Verarbeitung (Art. 21 DSGVO),</li>
+          <li>Widerruf einer Einwilligung jederzeit mit Wirkung für die Zukunft (Art. 7 Abs. 3 DSGVO),</li>
+          <li>Beschwerde bei einer Aufsichtsbehörde (Art. 77 DSGVO).</li>
+        </ul>
+        <p>
+          <strong>Beschwerderecht:</strong> Sie können sich bei der
+          Berliner Beauftragten für Datenschutz und Informationsfreiheit,
+          Alt-Moabit 59-61, 10555 Berlin,
+          <a href="mailto:mailbox@datenschutz-berlin.de">mailbox@datenschutz-berlin.de</a>,
+          beschweren.
+        </p>
+        <p>
+          <strong>Keine automatisierte Entscheidung:</strong> Es gibt keine automatisierte
+          Entscheidung einschließlich Profiling. Niemand wird bewertet, eingestuft oder
+          ausgewählt; die E-Mail-Adresse dient ausschließlich den in Abschnitt 2 genannten
+          Zwecken.
+        </p>
+      </section>
+    </div>
+
+    <!-- ======================= ENGLISH ======================= -->
+    <div lang="en" class="lang-en">
+      <span class="lang-label">English</span>
+
+      <section>
+        <h2>1. Controller</h2>
+        <p>
+          Bernardo Pingarrón, a natural person, not a company. Contact:
+          <a href="mailto:__CONTROLLER_EMAIL__">__CONTROLLER_EMAIL__</a>.
+          Contact is by email; no postal address is offered because no postal advertising
+          is sent.
+        </p>
+      </section>
+
+      <section>
+        <h2>2. What is collected, and why</h2>
+        <p>
+          Collected: your email address, the topics you tick (Recipe Manager beta, ROAST
+          beta, news about BarNerd), and the time of signup. Collection is in person: you hold
+          the device and fill in the form. No local session id is collected or stored here;
+          the address is the only personal reference this page has.
+        </p>
+        <p>Purposes and legal bases, identical per purpose:</p>
+        <ul>
+          <li>
+            <strong>Recipe Manager beta:</strong> email about the beta's launch. Legal
+            basis is your consent, Art. 6(1)(a) GDPR, which is also the prior express
+            consent that § 7(2) no. 2 UWG (German law) requires for email advertising.
+          </li>
+          <li>
+            <strong>ROAST beta:</strong> email about the beta's launch. Same basis:
+            Art. 6(1)(a) GDPR with § 7(2) no. 2 UWG.
+          </li>
+          <li>
+            <strong>News about BarNerd:</strong> occasional emails about new
+            posts and project status. Same basis: Art. 6(1)(a) GDPR with § 7(2) no. 2 UWG.
+          </li>
+        </ul>
+        <p>
+          Storing the proof of consent (wording, version, hash, timestamps) is disclosed
+          here as well: after withdrawal or the end of the beta it is kept on the basis of
+          Art. 6(1)(c) GDPR (statutory limitation periods) and Art. 6(1)(f) GDPR
+          (legitimate interest in being able to answer a later dispute about the consent
+          itself) — not on the basis of the consent, which lapses upon withdrawal.
+        </p>
+        <p>
+          <strong>Voluntary:</strong> providing the address is voluntary. Declining means
+          no beta invitation and no news; there are no other consequences.
+        </p>
+        <p>
+          <strong>Double opt-in:</strong> after signup I send one email with a
+          confirmation link. That confirmation email contains no advertising. Only after
+          confirmation do I send further messages.
+        </p>
+      </section>
+
+      <section>
+        <h2>3. Recipients and third-country transfers</h2>
+        <p>Two processors touch the data, only on my instructions:</p>
+        <ul>
+          <li>
+            <strong>Supabase</strong> as the database host (storage of the entries and
+            the consent proofs). The Supabase project region is West EU (Ireland);
+            there is no third-country transfer for the database.
+          </li>
+          <li>
+            <strong>Resend</strong> as the mail-sending service for the confirmation and
+            beta emails. Resend is based in the United States.
+          </li>
+        </ul>
+        <p>
+          Where data is transferred to Resend in the United States, it is transferred on
+          the basis of the European Commission's Standard Contractual Clauses; where
+          Resend is certified under the EU-US Data Privacy Framework, additionally on the
+          basis of that certification. There is no matching of your data against other
+          datasets.
+        </p>
+      </section>
+
+      <section>
+        <h2>4. Retention</h2>
+        <ul>
+          <li>
+            Entries never confirmed (no click on the confirmation link): deleted
+            automatically 30 days after signup. Without confirmation the consent is
+            unprovable, and what cannot be proven cannot be used.
+          </li>
+          <li>
+            Confirmed entries: kept until the beta concludes, and in any case no longer than
+            18 months after confirmation — after that the address is deleted.
+          </li>
+          <li>
+            Both periods are enforced by a machine: a daily deletion job in the database
+            deletes unconfirmed entries after 30 days and confirmed entries no later than
+            18 months after confirmation.
+          </li>
+          <li>
+            Consent proof (wording, version, hash, timestamps): up to 3 years, on the basis of
+            Art. 6(1)(c) and (f) GDPR — see section 2. It is kept only as long as a withdrawal
+            or a dispute requires it; otherwise it ends with the entry on the period above.
+          </li>
+        </ul>
+      </section>
+
+      <div class="withdrawal">
+        <h2>5. Withdrawing your consent</h2>
+        <p>
+          You can withdraw this consent at any time, without giving reasons, informally by
+          email to
+          <a href="mailto:__CONTROLLER_EMAIL__">__CONTROLLER_EMAIL__</a>.
+          Withdrawal applies going forward; the lawfulness of the processing up to that
+          point is unaffected. After that I delete your email address. I keep the proof of
+          what you consented to for the statutory limitation period (3 years), on the
+          basis of Art. 6(1)(c) and (f) GDPR.
+        </p>
+      </div>
+
+      <section>
+        <h2>6. Your rights</h2>
+        <p>Under the GDPR you have in particular the right to:</p>
+        <ul>
+          <li>access the data held about you (Art. 15 GDPR),</li>
+          <li>rectification of inaccurate data (Art. 16 GDPR),</li>
+          <li>erasure (Art. 17 GDPR),</li>
+          <li>restriction of processing (Art. 18 GDPR),</li>
+          <li>data portability (Art. 20 GDPR),</li>
+          <li>object to processing (Art. 21 GDPR),</li>
+          <li>withdraw consent at any time with future effect (Art. 7(3) GDPR),</li>
+          <li>lodge a complaint with a supervisory authority (Art. 77 GDPR).</li>
+        </ul>
+        <p>
+          <strong>Right to complain:</strong> you may complain to the Berliner Beauftragte
+          für Datenschutz und Informationsfreiheit, Alt-Moabit 59-61, 10555 Berlin,
+          <a href="mailto:mailbox@datenschutz-berlin.de">mailbox@datenschutz-berlin.de</a>.
+        </p>
+        <p>
+          <strong>No automated decision-making:</strong> there is no automated
+          decision-making including profiling. Nobody is scored, ranked, or screened; the
+          email address serves only the purposes named in section 2.
+        </p>
+      </section>
+    </div>
+
+    <footer>
+      <p>
+        Fassung / version <code>notice-2026-10-12.v1</code>. Änderungen werden hier
+        veröffentlicht / changes are published here. ·
+        <a href="./">Zur Anwendung / back to the app</a>
+      </p>
+    </footer>
+  </main>
+</body>
+</html>

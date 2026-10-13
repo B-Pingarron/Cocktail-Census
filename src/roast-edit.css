@@ -1,0 +1,755 @@
+/*
+ * ROAST — THE EDITOR'S VOCABULARY. `/roast/edit`. Scoped `.roast.roast-edit`, the app's own
+ * per-room convention (`roast-menu.css` scopes `.roast.roast-menu`, `roast-arena.css` scopes
+ * `.roast.roast-arena`, `roast-roster.css` scopes `.roast.roast-roster`).
+ *
+ * EVERY SELECTOR BELOW CARRIES THE ROOM PREFIX, and that is load-bearing rather than tidy. The
+ * approved study's names are unscoped globals — perfect in a standalone file, fatal in an app: a bare
+ * `.primary` would restyle every primary button in the Census, a bare `.plate` would reach into the
+ * arena and the roster, and a bare `.kick` is (0,1,0) where `roast.css`'s own `.roast .kick` is
+ * (0,2,0) — so the room's mono restatement would silently LOSE and keep rendering the sans version.
+ * (0,2,0) beats a Tailwind utility without `!important` and beats that tie by source order, since
+ * this file is imported after `roast.css`.
+ *
+ * WHY THIS FILE EXISTS RATHER THAN A SUBSTITUTION. The menu's and the arena's names already existed
+ * in the app, so those passes were re-pointing. This page was built from Tailwind utilities over
+ * `<MenuCard>` and had NO stylesheet at all — so this is CREATION, not substitution, and every rule
+ * below is new to the app. It is also why the roster's pass wrote its own.
+ *
+ * THE SOURCE IS THE APPROVED STUDY, and its full record — every measured figure, every superseded
+ * value, the whole argument — lives in `01_BarNerd/docs/design/roast/` and, for this room, in the
+ * Open Design project file `roast-edit.html`. This is that file's rule block, scoped, with the bench
+ * scaffolding removed. Nothing was re-derived here.
+ *
+ * WHAT CAME OUT OF THE PORT, AND WHY
+ *
+ *   1. `:root` and the global `[data-pal=...]` rules. `roast.css`'s `.roast` block is the family's
+ *      token set; a room that declared its own would be the seventh copy of one vocabulary. The three
+ *      palettes become room-scoped selectors, which is the convention `roast-menu.css` declared.
+ *   2. `*`, `html`, `body`. App-level, and the app already sets them.
+ *   3. `.ground`, `.ground-hf`, `.ground-hf--loose` AS DIVS. They were `position:fixed` divs at
+ *      `z-index:-2` and `-1`, and in this app they would have painted NOTHING: `.roast` is
+ *      `position:relative` with `background: var(--ink)` and no `z-index`, so it creates no stacking
+ *      context and a negative-index descendant paints before that background and is covered by it.
+ *      That is the roster's recorded defect, not a preference. The gradient and the 2x halftone are
+ *      now `::before` / `::after` on the room root at `z-index:0`; the loose 3x field is the one
+ *      element still rendered by the page (`.ed-loose`), because there are only two pseudo-elements
+ *      and the study's own note is that each field gets its OWN element so "one texture per element"
+ *      holds literally.
+ *   4. The `.study*` block. Bench instruments — palette swatches, the motion toggle, the state
+ *      switcher — not the product. Nothing in the room reads them.
+ *   5. `.foot`. The study's own delivery declaration under the page, which is mockup copy: the app's
+ *      sentences are the ones `SpecEditor.tsx` already owns, and all of them are accounted for.
+ *   6. The `[data-motion="still"]` block. That is the study's MANUAL motion control. The app has no
+ *      such control, so the block would be six dead declarations. The author's rule — a manual
+ *      control must carry the SAME rules as the media query — applies to building one, not to
+ *      shipping the ghost of one. If a motion toggle is ever added, those three rules are in
+ *      `roast-edit.html` and go in verbatim.
+ *   7. THE GLASS MARK IS THE COMPOSITOR'S REAL DRAWING. It was three CSS silhouettes — `gm-rocks`,
+ *      `gm-stem`, `gm-tall`, eight rules drawing two boxes each — standing in for art the site
+ *      already served. The author: "roast edit is serving placeholders, not the real images i
+ *      designed." Those eight rules and the `GLASS_MARK` 15 -> 3 grouping are DELETED; one `<img>`
+ *      now reads the compositor's own file. The table, the one filename that is not `glass-<id>.svg`,
+ *      the relative path and the halo's reasoning are all at `GLASS_FILE` in `SpecEditor.tsx`.
+ *
+ * THREE VALUES ARE DECLARED HERE BECAUSE `roast.css` DOES NOT CARRY THEM
+ *
+ *   `--font-body`  the hoist took the DISPLAY and MONO stacks (the two the rooms kept restating) and
+ *                  left the body stack to the app. Named here so every rule reads one token.
+ *   `--hatch`      the loading hatch's tile colour. One consumer: `.hatch`.
+ *   the dither     the study's own recipe — a 1px radial at .055 on a 5px cell — written literally
+ *                  rather than pointed at `roast.css`'s family dither token, because this page is a
+ *                  SCREEN surface and its patches are 5px, not the 45deg checkerboard the print
+ *                  surfaces use. If the family token is meant to cover both, that is four
+ *                  substitutions and it should be a deliberate one.
+ *
+ * CONTRAST — THE METHOD, SO EVERY FIGURE BELOW CAN BE CHECKED RATHER THAN TRUSTED
+ *
+ *   sRGB channel → linear (`c/12.92` under .04045, else `((c+.055)/1.055)^2.4`) → WCAG relative
+ *   luminance → `(L_light + .05) / (L_dark + .05)`. Alpha composited per channel BEFORE conversion
+ *   (`fg·α + bg·(1-α)`), which is where a naive read of an `rgba()` boundary goes wrong.
+ *
+ *   CALIBRATION — the project's own published figures, recomputed from this method: `--txt` on
+ *   `--plate` 15.98 · `--dim` on `--plate` 8.67 · `--b` on `--plate` 12.71 · `#fff` on `--plate`
+ *   18.19 · `#000` on `--b` 14.67 · `--a` on `--plate` 5.13 · `--rim` .44 over `--plate` 4.36 ·
+ *   `#000` on `--plate` 1.14 · `--plate` on the ground's violet stop 1.20 · `L(--dim)` 0.4502.
+ *   All reproduce, so the figures this file adds mean something.
+ *
+ *   THE ONES THAT DECIDED THE DESIGN, all of them already in the study:
+ *     · the page name was the LAST GLYPH ON THE WASH — 36px #fff on the ground's pink is 3.55:1, AA
+ *       for large text only, over a gradient that is `position:fixed` and travels bright pink → ink
+ *       behind that one word. Inside the card it is 18.19:1. Nothing on the ground carries text now.
+ *     · the control's edge IS its boundary. On the wash the `--plate` fill drew the field and the 2px
+ *       #000 edge was decoration (1.03:1 against the wash's pink). Inside the card the fill is 1:1
+ *       with the ground, so the `.44` hairline at 4.36:1 draws a field — and every control's hover
+ *       RAISES it to `--txt` (15.98:1) rather than lowering it. The old `#3a3358` hover would have
+ *       been 1.55:1 here: a hover that lowers contrast, which this project forbids.
+ *     · every patch's edge is the 2px PAPER RING, not its own black border. `--plate` on `--plate` is
+ *       1:1 and `#000` on `--plate` is 1.14:1, so neither draws anything on this card; `#fff` is
+ *       18.19:1. This is the author's own fix one room earlier ("make it 2 px").
+ *     · the ghost button's edge is `.6`, not `.5`: rgb(119,112,140) at 3.88:1 against 3.10:1. Both
+ *       pass the 3:1 a boundary needs; only one has margin.
+ *     · `#000` on `--b`: 14.67 heat · 13.65 mag · 8.91 amber · 4.82 lime. The primary's fill is its
+ *       own boundary, so it needs no ring; lime is the tightest and still clears AA.
+ *     · `--dim` on the docked foot 9.49:1 and `--txt` 17.50:1 — the study's two foot figures.
+ */
+
+.roast.roast-edit {
+  /* Not in roast.css's hoist — see the header. The app's own body stack. */
+  --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, sans-serif;
+  /* The loading hatch's tile. One consumer: `.hatch`. */
+  --hatch: rgba(0, 0, 0, .55);
+
+  background: var(--ink);
+  color: var(--txt);
+  font: 400 var(--fs-body)/1.5 var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* The other three palettes, room-scoped. `--plate` is restated rather than inherited: roast.css
+   declares heat's, and a palette that silently inherited a colour it never chose is the defect
+   roast.css's own palette comment names. Nothing writes `data-pal` yet — the settings layer does not
+   exist — so heat is the default by its absence, as in every other room. */
+.roast.roast-edit[data-pal="mag"]   { --a: #ff2d95; --b: #00e5ff; --c: #00e5ff; --d: #00e5ff; --plate: #0b0813; }
+.roast.roast-edit[data-pal="lime"]  { --a: #39ff14; --b: #7b5cff; --c: #39ff14; --d: #7b5cff; --plate: #0b0813; }
+.roast.roast-edit[data-pal="amber"] { --a: #ffe600; --b: #ff2d95; --c: #ff2d95; --d: #ffe600; --plate: #0b0813; }
+
+.roast.roast-edit .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* ── the ground — ONE texture per element, on three elements ───────────────────────────────────
+   The gradient and the base dot field are the room root's own pseudo-elements at `z-index:0`, so
+   they paint ABOVE `.roast`'s `--ink` background instead of behind it (the roster's recorded
+   defect). `.page` carries `z-index:10` and the card `z-index:2`, so everything with a glyph is
+   above all three. The middle band of the base field is masked away so the panels sit on a quieter
+   ground than the head and the foot — the study's own mask, unchanged. */
+.roast.roast-edit::before {
+  content: ""; position: absolute; inset: 0; z-index: 0; pointer-events: none;
+  background: linear-gradient(168deg, #ff3366 0%, #b8aed0 26%, #7b5cff 58%, #2a2140 82%, #050409 100%);
+}
+.roast.roast-edit::after {
+  content: ""; position: absolute; inset: 0; z-index: 0; pointer-events: none; opacity: .48;
+  background-image: var(--tex-dot);
+  background-size: var(--dot-cell) var(--dot-cell);
+  -webkit-mask-image: linear-gradient(180deg, #000 0 9%, transparent 20% 74%, #000 92% 100%);
+          mask-image: linear-gradient(180deg, #000 0 9%, transparent 20% 74%, #000 92% 100%);
+}
+/* the loose 3x field — the study's line, verbatim: "the author's 'different sizes in different
+   places'. Its OWN element, so 'one texture per element' holds literally and not by intent."
+   `z-index:1` and not 0: the room root's `::after` is the base field at 0, and the study's DOM order
+   put the LOOSE field after it, so the loose dots are the ones on top. Both are translucent dot
+   fields over the same gradient, so this is an ordering nuance rather than a look — but it is the
+   order the study drew, and one value keeps it. Below `.page`'s 10 either way. */
+.roast.roast-edit .ed-loose {
+  position: absolute; inset: 0; z-index: 1; pointer-events: none; opacity: .5;
+  background-image: var(--tex-dot-loose);
+  background-size: var(--dot-cell-loose) var(--dot-cell-loose);
+  -webkit-mask-image: radial-gradient(120% 46% at 6% 4%, #000 0, transparent 62%);
+          mask-image: radial-gradient(120% 46% at 6% 4%, #000 0, transparent 62%);
+}
+
+/* ── the page ──────────────────────────────────────────────────────────────────────────────────
+   `overflow-x:clip` because the card and its plates are rotated; the padding below is the gutter that
+   rotation bleeds into, so it is never clipped. Those two figures are also the width derivation's
+   first term — 24px of `.page` in the 360px arithmetic, and the density pass moved them from 20/16. */
+.roast.roast-edit .page { position: relative; z-index: 10; padding: 14px 12px 0; overflow-x: clip; }
+.roast.roast-edit .col { width: 100%; max-width: var(--col); margin: 0 auto; }
+
+/* ── the way out ───────────────────────────────────────────────────────────────────────────────
+   A patch, like the menu's exit chip and the review's — the same object, because it is the same
+   promise. Scoped to the ANCHOR inside `.exitrow` rather than to a class on `ExitLink`, because
+   `ExitLink` renders its own Tailwind utilities and does not take this vocabulary; this is (0,2,1)
+   and wins over them without `!important`, which a bare `.exit` could not do.
+   THE ROW HOLDS TWO CHIPS NOW, and the second one is the mini compositor — the same door the menu
+   carries in the same place. `flex` + `gap` rather than a `margin-left` on the second anchor: two
+   inline-flex chips would otherwise be separated by nothing but a text space, and a hand-written
+   margin would left-shift the line the moment the pair wraps at a narrow width. A single chip
+   renders exactly as it did. */
+.roast.roast-edit .exitrow { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 16px; }
+.roast.roast-edit .exitrow > a {
+  display: inline-flex; align-items: center; min-height: 44px; padding: 0 11px;
+  text-decoration: none; transform: rotate(-.5deg);
+  background-color: var(--plate); color: var(--txt);
+  border: var(--p-edge) solid #000; box-shadow: 3px 3px 0 #000;
+  outline: 2px solid #fff; outline-offset: 0;
+  font-family: var(--font-display); font-style: italic; text-transform: uppercase;
+  font-size: var(--fs-label); letter-spacing: .04em;
+  background-image: radial-gradient(rgba(255, 255, 255, .055) 1px, transparent 1px);
+  background-size: 5px 5px;
+  transition: transform .18s var(--ease), box-shadow .18s var(--ease);
+}
+.roast.roast-edit .exitrow > a:hover { transform: rotate(-.5deg) translate(-1px, -1px); box-shadow: 4px 4px 0 #000; color: var(--txt); }
+.roast.roast-edit .exitrow > a:active { transform: rotate(-.5deg) translate(2px, 2px); box-shadow: 1px 1px 0 #000; }
+.roast.roast-edit .exitrow > a:focus-visible { outline: 3px solid #fff; outline-offset: 2px; box-shadow: 3px 3px 0 #000, 0 0 0 6px #000; }
+
+/* `.kick` is RESTATED here at the family's mono-micro register that every wired room shares. The
+   room-scoped selector is required by the tie, not by style: a bare `.kick` is (0,1,0) and loses to
+   anything the same weight written later. (roast.css's base `.roast .kick` was deleted on
+   2026-10-12 when the last un-scoped reader — the review page — was wired, so the tie is now
+   against the other rooms' scoped copies rather than against a fallback; the scope is still what
+   makes this room's register explicit rather than inherited.) */
+.roast.roast-edit .kick { display: block; font: 600 var(--fs-micro)/1.2 var(--font-mono); letter-spacing: .16em; text-transform: uppercase; color: var(--dim); }
+
+/* ── THE CARD'S TITLE BAR ──────────────────────────────────────────────────────────────────────
+   SEPARATOR LANGUAGE, AND NOTHING ELSE: no fill, no ring, no patch. The `.44` hairline below it is
+   the same device every `.sechead` uses to divide the card's parts (4.36:1 on the plate), so the bar
+   is a PART of the card rather than a fourth plate stacked on it. A `#000` fill was measured and
+   refused twice over: it draws no edge (1.14:1) and it would have stood a larger
+   black-plate/white-glyph mark above the drink's own name plate, which is the card's loudest mark. */
+.roast.roast-edit .card-bar { padding: 10px 11px 9px; border-bottom: 1px solid var(--rim); }
+
+/* the page name, and the last glyph to leave the wash. THREE PRINTS, and the 3px `#000` key layer is
+   present and load-bearing: in a shadow list the FIRST entry paints on top, so the key layer's job is
+   not to be an edge against the ground — it is to CUT the `--b` plate behind it. Black at 3px over
+   accent at 6px reads as 3px of `--b` with a 3px dark band rather than 6px of flat accent. That pair
+   measured per palette: 14.67 heat · 13.65 mag · 8.91 amber · 4.82 lime.
+   `-0.6deg` on the glyph and not on a wrapper, so the transform tilts the type AND both plates
+   together — which is what stops the second impression reading as an axis-aligned drop shadow. Inside
+   the card the net angle to the viewport is -1.2deg (the card carries -0.6 of its own), the same
+   misregistration the frame runs against its own plates. Clearance: the 6px excursion leaves the
+   glyph box into 2px of margin plus 12px of bar padding. */
+.roast.roast-edit h1.title {
+  font-family: var(--font-display); font-style: italic; text-transform: uppercase;
+  font-size: var(--fs-display); line-height: .98; letter-spacing: -.01em; color: #fff;
+  margin: 4px 0 2px; text-shadow: 3px 3px 0 #000, 6px 6px 0 var(--b);
+  transform: rotate(-.6deg); transform-origin: left center;
+}
+
+/* the room's one sentence, inside the card. On the wash it measured 1.69:1 against the gradient's
+   pink and 1.00:1 at the gradient's own `--dim` stop — the defect that made the top of the page
+   unreadable. `--dim` on `--plate` is 8.67:1. */
+.roast.roast-edit .lede { margin-top: 7px; font-size: var(--fs-small); line-height: 1.45; color: var(--dim); text-wrap: pretty; }
+
+/* ── the panel recipe, and the ONE branch that consumes it ─────────────────────────────────────
+   It was the shared recipe for the print, the rows and the catalogue failure. The print and the rows
+   are gone with the merge, so `.rp` has exactly one consumer: the state the page returns instead of a
+   page at all. The 1px inner hairline is LOAD-BEARING and is why it is not just a border: at the foot
+   of the viewport the ground is effectively black, where `--plate` is 1.12:1, the study's violet stop
+   1.20:1, and `#000` 1.03:1 — so neither the fill nor the edge draws anything there, and the hairline
+   at 4.36:1 on the plate / 4.90:1 on the ink is the boundary. Inset, so it paints under the glyph. */
+.roast.roast-edit .rp {
+  position: relative; background-color: var(--plate);
+  border: var(--p-edge) solid #000;
+  box-shadow: inset 0 0 0 1px var(--rim), 4px 4px 0 #000;
+  background-image: radial-gradient(rgba(255, 255, 255, .055) 1px, transparent 1px);
+  background-size: 5px 5px;
+}
+
+/* the plate recipe — the four note plates and the declaration at the foot. THE 2px PAPER RING IS THE
+   BOUNDARY, and that is measured rather than chosen: inside the card the ground IS `--plate`, so a
+   `--plate` patch's fill is 1:1 against it and its own `#000` edge is 1.14:1 — neither draws
+   anything. `#fff` on `--plate` is 18.19:1. The author's own note, on the same defect one room
+   earlier: "can we get some outline here for better definition? make it 2 px". */
+.roast.roast-edit .plate {
+  display: inline-block; max-width: 100%; width: fit-content;
+  background-color: var(--plate); border: var(--p-edge) solid #000;
+  box-shadow: 2px 2px 0 #000; outline: 2px solid #fff; outline-offset: 0;
+  padding: 3px 8px 4px;
+  background-image: radial-gradient(rgba(255, 255, 255, .055) 1px, transparent 1px);
+  background-size: 5px 5px;
+}
+
+/* the field label. NOT a plate any more, and the reason is arithmetic rather than taste: a `--plate`
+   patch on the card's `--plate` ground draws nothing but its ring, and seven ringed patches stacked
+   in one column is exactly the "plates and nameplates" the author named. THE CARD IS THE PLATE UNDER
+   EVERY LABEL — that is this pass's whole argument — so a label is type on it. `--dim` on `--plate`
+   is 8.67:1. */
+.roast.roast-edit .flabel,
+.roast.roast-edit .sechead {
+  display: block; font: 600 var(--fs-label)/1.2 var(--font-body);
+  letter-spacing: .16em; text-transform: uppercase; color: var(--dim);
+}
+.roast.roast-edit .flabel { margin-bottom: 6px; }
+/* a section heading carries the hairline that separates the card's parts. These are the app's own two
+   group names and nothing else — a third heading would be a sentence this file does not own. */
+.roast.roast-edit .sechead { padding: 9px 0 6px; border-top: 1px solid var(--rim); }
+.roast.roast-edit .sec { border-top: 1px solid var(--rim); padding-top: 14px; }
+
+/* ── THE CARD — the room's object, and the form itself ─────────────────────────────────────────
+   THE MERGE. A read-only print of the draft stood above a bare 420px column of seven fields; the
+   print and the form were always the same data, so they are now the same element, and the card holds
+   the head, the fields and the foot. The card is no longer card-SHAPED — eight fields are tall — and
+   that is what the merge spends; the study records it. */
+.roast.roast-edit .card-wrap { position: relative; margin: 18px 0 24px; }
+/* the two misregister plates. Two colours, two plates, glow kept — the author's defect report on the
+   shadow plates. They are FRAME STRUCTURE and mostly occluded. */
+.roast.roast-edit .plate-a,
+.roast.roast-edit .plate-b { position: absolute; z-index: 0; pointer-events: none; }
+.roast.roast-edit .plate-a { inset: 3px; background: var(--a); transform: translate(8px, 11px) rotate(.6deg); }
+.roast.roast-edit .plate-b {
+  inset: 6px; background: var(--b); opacity: .9;
+  transform: translate(12px, 18px) rotate(-.6deg);
+  box-shadow: 7px 9px 16px color-mix(in srgb, var(--b) 55%, transparent),
+              0 0 9px  color-mix(in srgb, var(--b) 45%, transparent);
+}
+.roast.roast-edit .card {
+  position: relative; z-index: 2; transform: rotate(-.6deg);
+  border: var(--edge) solid #000; box-shadow: 5px 5px 0 #000;
+  background-color: var(--plate);
+  background-image: radial-gradient(rgba(255, 255, 255, .055) 1px, transparent 1px);
+  background-size: 5px 5px;
+}
+
+/* THE FILM — THE SCREEN SURFACE'S MISSING HALF, RESTORED (ITEM F7). The texture taxonomy
+   (roast.css:101) names exactly two film surfaces — the menu and the editor — and only the menu
+   ever implemented it; the author has ruled that a defect. This mirrors the menu's approved
+   treatment value for value: a CHILD of the room's own plate (the menu's `.rm-film` is a child of
+   `.rm-frame`; here the plate is `.card`), `position:absolute; inset:0; z-index:3;
+   pointer-events:none`, the family `--tex-film` recipe (1px of light every 5px), drifting one
+   full period over 9s on `background-position` — never a transform, which would need overscan
+   this rotated, hard-shadowed card cannot clip without cutting the misregister plates.
+   ONE TEXTURE PER ELEMENT STILL HOLDS LITERALLY: the card's 5px dot field is a background LAYER
+   on `.card` itself; the scanlines are the `.film` child's alone. The child paints above the
+   card's unpositioned content — the same layering the menu gets from its `.rm-frame > *` lift,
+   with no generic child rule that would fight `.card-foot`'s `sticky`. The docked foot's
+   `z-index:20` keeps it above the film; nothing else moves.
+   UNDER REDUCED MOTION IT LOCKS STILL AND STAYS VISIBLE — see the branch at the foot of this
+   file; it does not disappear, same as the menu. */
+.roast.roast-edit .card > .film {
+  position: absolute; inset: 0; z-index: 3; pointer-events: none;
+  background-image: var(--tex-film);
+  background-position: 0 0;
+  animation: ed-film-drift 9s linear infinite;
+}
+/* Per-room keyframe name, the family convention (`ed-bar`, `rr-film-drift`, `keep-film-drift`,
+   `review-sweep`); the drift distance is `--film-gap` (5px), the menu's literal `0 5px`. */
+@keyframes ed-film-drift {
+  from { background-position: 0 0; }
+  to { background-position: 0 var(--film-gap); }
+}
+/* the head is the card's identity AFTER the bar — the bar names the room and the page, this is the
+   drink: the name on its plate, then the pair it is a version of, with the glass mark beside that
+   row. THE NAME PLATE TAKES THE CARD'S FULL WIDTH on purpose: it is the protagonist mark and 20px
+   display type needs the room; the select row is where a 52px mark can stand without taking any. */
+.roast.roast-edit .card-head { padding: 10px 11px 0; }
+.roast.roast-edit .ch-row { display: flex; gap: 9px; align-items: flex-end; }
+.roast.roast-edit .ch-ver { flex: 1 1 auto; min-width: 0; margin-bottom: 0; }
+
+/* the glass drawing — THE REAL ART, not three CSS silhouettes. See `GLASS_FILE` in SpecEditor.tsx
+   for the table, the one filename that is not `glass-<id>.svg`, and why the path is relative.
+
+   IT IS A BLACK SILHOUETTE (`stroke="black" fill="none"` over `fill="#000000"` paths), so on this
+   plate it would paint nothing at all. Same answer the arena's card art already uses: eight hard
+   white drop-shadows. 1px here rather than that rule's 2px, because this box is 52px against the
+   card's ~91px — at 2px the halo is 3.8% of the box and reads as a sticker rather than an outline.
+   `#f2eeff` is the arena's own halo value, so the two rooms outline the same art with the same ink.
+
+   `contain` and never `cover`: these drawings carry their own aspect ratios — the old-fashioned is
+   wider than tall (991x857), the highball far taller than wide (697x1440) — and a glass is the one
+   thing on this page that should never be cropped. */
+.roast.roast-edit .glassmark {
+  flex: 0 0 auto; width: 52px; height: 56px;
+  display: block; object-fit: contain;
+  filter: drop-shadow(1px 0 0 #f2eeff) drop-shadow(-1px 0 0 #f2eeff)
+          drop-shadow(0 1px 0 #f2eeff) drop-shadow(0 -1px 0 #f2eeff)
+          drop-shadow(1px 1px 0 #f2eeff) drop-shadow(-1px 1px 0 #f2eeff)
+          drop-shadow(1px -1px 0 #f2eeff) drop-shadow(-1px -1px 0 #f2eeff);
+}
+
+/* the one empty state inside the card — the sentence is `lib/editor.ts`'s own, pulled from
+   `validate()` rather than retyped. */
+.roast.roast-edit .row-none { font-size: var(--fs-small); line-height: 1.5; color: var(--dim); padding: 4px 0; }
+
+/* ── THE FORM — inside the card, in the card's own anatomy ───────────────────────────────────── */
+.roast.roast-edit .form { padding: 0 11px 2px; }
+.roast.roast-edit .field { margin: 0 0 11px; }
+.roast.roast-edit .hint { display: block; margin-top: 4px; font-size: var(--fs-micro); line-height: 1.5; color: var(--dim); }
+.roast.roast-edit .hint b { color: var(--txt); font-weight: 600; }
+/* THE FOUR NOTE PLATES. The author's ruling on the six hint sentences — "keep four, plate them" — so
+   the four that carry a DECISION sit on their own ground: the version-of pair, the missing ice field,
+   the brand match, the garnish with no axes. The other two are deleted rather than hidden. They took
+   the plate the SEVEN LABEL PATCHES gave up. The boundary is the ring, same arithmetic as the name
+   plate: `--plate` on `--plate` is 1:1 and `#000` on `--plate` is 1.14:1. */
+.roast.roast-edit .hint.plate { margin-top: 5px; padding: 4px 7px 5px; }
+
+/* the control. Square, plated, no dither — the dither belongs to patches and panels, so a seven-field
+   column does not become a dot field. 44px minimum, `appearance:none` so the OS chrome goes away.
+   THE EDGE IS THE BOUNDARY: on the wash the `--plate` fill drew it and the 2px `#000` edge was
+   decorative (1.03:1); inside the card the fill is 1:1 with the ground, so the `.44` hairline that
+   was a backstop became the only thing drawing a field, and a 1px line is thin for an input. The 2px
+   edge IS the `.44` hairline now (4.36:1), and black is left to the frame. */
+.roast.roast-edit .ctl {
+  display: block; width: 100%; min-height: 44px;
+  background-color: var(--plate); color: var(--txt);
+  border: var(--c-edge) solid var(--rim);
+  box-shadow: inset 0 0 0 1px var(--rim);
+  padding: 9px 11px; font: 400 var(--fs-body)/1.4 var(--font-body);
+  -webkit-appearance: none; appearance: none; border-radius: 0;
+  transition: border-color .18s var(--ease);
+}
+.roast.roast-edit textarea.ctl { min-height: 84px; resize: vertical; line-height: 1.5; }
+.roast.roast-edit .ctl::placeholder { color: var(--dim); opacity: 1; }
+/* THE HOVER RAISES THE BOUNDARY, 4.36 → 15.98. The old value was #3a3358 — a DARKER edge at 1.55:1,
+   safe only while the fill drew the control. With the edge as the boundary it would be a hover that
+   lowers contrast, which this project's own rules forbid. Same move the picker row makes. */
+.roast.roast-edit .ctl:hover { border-color: var(--txt); }
+.roast.roast-edit .ctl:focus-visible { outline: 3px solid #fff; outline-offset: 2px; box-shadow: inset 0 0 0 1px var(--rim), 0 0 0 6px #000; border-color: var(--txt); }
+/* a dark option list on a dark page is an engine-dependent defect; the app forced `text-black` on
+   every option, and this is that rule with the ground stated. */
+.roast.roast-edit .ctl option { color: #120d20; background: #f2eeff; }
+
+/* THE DRINK'S NAME, AND THE PLATE IS THE INPUT. The print showed a name and the form collected one —
+   two elements for one fact; this is that pair collapsed, so what you type is what the card shows,
+   live. TWO prints, the mark the author ruled for the menu's four doors: a hard black plate hugging
+   the glyph, white, no fringe. It is the only black GROUND in the card's head and it does not compete
+   with the page's name: the title above is bare type whose black is an offset PRINT, while here black
+   is the plate itself and the glyph is the paper — one print each, in the two orders a press can lay
+   them. The ring is load-bearing: 1.14:1 without it. Declared AFTER `.ctl` on purpose — same
+   specificity, later source, so the plate wins the properties `.ctl` also sets. */
+.roast.roast-edit .ctl.nameplate {
+  background: #000; color: #fff; border-color: #000;
+  outline: 2px solid #fff; outline-offset: 0;
+  font-family: var(--font-display); font-style: italic; text-transform: uppercase;
+  font-size: var(--fs-display-xs); line-height: 1.05; letter-spacing: -.012em;
+  padding: 7px 9px 8px; min-height: 52px;
+}
+.roast.roast-edit .ctl.nameplate::placeholder { text-transform: none; letter-spacing: 0; }
+/* restated in full, because a later same-specificity rule would otherwise take the outline shorthand
+   off `.ctl:focus-visible` and leave focus invisible — the trap this project has now documented
+   three times. */
+.roast.roast-edit .ctl.nameplate:focus-visible { outline: 3px solid #fff; outline-offset: 2px; background: #000; box-shadow: inset 0 0 0 1px var(--rim), 0 0 0 6px #000; }
+
+/* the select: a real `<select>` with the caret drawn on a wrapper, because a native select cannot
+   take a pseudo-element reliably in every engine. */
+.roast.roast-edit .sel { position: relative; }
+.roast.roast-edit .sel > .ctl { padding-right: 34px; }
+.roast.roast-edit .sel::after {
+  content: ""; position: absolute; right: 13px; top: 50%;
+  width: 0; height: 0; margin-top: -2px; pointer-events: none;
+  border: 5px solid transparent; border-top-color: var(--txt);
+}
+.roast.roast-edit .sel:hover::after { border-top-color: var(--txt); }
+
+/* ── the picker — the editor's most-used control ─────────────────────────────────────────────── */
+.roast.roast-edit .pick-list { list-style: none; margin-top: 7px; max-height: 236px; overflow-y: auto; overflow-x: hidden; scrollbar-width: none; }
+/* an empty list and a 7px gap under every keystroke is a jitter nobody needs. `display:none` also
+   removes the margin, so a closed list costs no box at all. */
+.roast.roast-edit .pick-list:empty { display: none; }
+.roast.roast-edit .pick-list::-webkit-scrollbar { width: 0; height: 0; }
+.roast.roast-edit .pick-row {
+  display: block; width: 100%; text-align: left; min-height: 44px;
+  padding: 8px 10px; margin-bottom: 5px; cursor: pointer;
+  background-color: var(--plate); color: var(--txt);
+  border: var(--c-edge) solid var(--rim);
+  box-shadow: inset 0 0 0 1px var(--rim);
+  font: inherit;
+  transition: border-color .18s var(--ease), background-color .18s var(--ease);
+}
+/* NO hard offset shadow on a picker row, deliberately: the resting list is a COLUMN of eight of
+   these, and eight stacked drop shadows inside the card's own framed shadow is noise rather than
+   hierarchy. HOVER MOVES THE BORDER, NOT THE GROUND — a background shift cannot work on this
+   palette, because to make `--txt`'s ratio rise the plate would have to darken and a darkened plate
+   on this ground disappears into the floor. `--txt` as the border is 15.98:1 on the plate, so the
+   boundary rises from 4.36 to 15.98 and the text's own contrast is untouched. */
+.roast.roast-edit .pick-row:hover { border-color: var(--txt); }
+/* the press is the one place the ground moves, and it moves the safe way: `--txt` on #0d0a1c is
+   17.13:1, up from 15.98. It is also transient. */
+.roast.roast-edit .pick-row:active { background-color: #0d0a1c; }
+/* focus restated in full value rather than left to a shared rule, because `:hover` and
+   `:focus-visible` have equal specificity and a later rule would win the box-shadow shorthand. */
+.roast.roast-edit .pick-row:focus-visible { outline: 3px solid #fff; outline-offset: 2px; box-shadow: inset 0 0 0 1px var(--rim), 0 0 0 6px #000; }
+.roast.roast-edit .pick-name { display: block; font-size: var(--fs-small); color: var(--txt); font-weight: 600; overflow-wrap: anywhere; }
+.roast.roast-edit .pick-why { display: block; margin-top: 2px; font-size: var(--fs-micro); color: var(--dim); }
+.roast.roast-edit .pick-why b { color: var(--txt); font-weight: 600; }
+.roast.roast-edit .pick-empty { margin-top: 7px; font-size: var(--fs-small); color: var(--dim); }
+
+/* ── the repeaters ─────────────────────────────────────────────────────────────────────────────
+   NOT plated. A `--plate` row on a `--plate` card is the panel-inside-a-panel defect the arena
+   already removed from its spec list, and it is where this room's "everything floats" came from:
+   eight ringed boxes stacked in one column. The row is drawn by the hairline above it (4.36:1) and
+   by the two controls it rests with. */
+.roast.roast-edit .line { padding: 7px 0; border-top: 1px solid var(--rim); }
+.roast.roast-edit .line:first-child { border-top: 0; padding-top: 2px; }
+.roast.roast-edit .line-can { display: block; margin-top: 2px; font-size: var(--fs-micro); color: var(--dim); }
+
+/* P2 · THE ROW RESTS AS THE CARD'S OWN PRINT — ONE 44px line, the name and its measure, and nothing
+   else. Everything else a row must carry — the unit command, the role, the divergence note, `remove`
+   — lives in `.pr-more`, ONE in-place disclosure under it.
+     REST = 14 padding + 44        = 58px   (first row 53: padding-top 2)
+     OPEN = 14 + 44 + 6 + 44       = 108px  (first row 103)
+   THE WIDTHS, at the 360px canvas this room is judged on:
+     row interior = 360 - 24 (.page) - 10 (card frame 5x2) - 22 (.form) = 304px
+     rest line    = name 1fr + 5 gap + measure cell 106  ->  the NAME GETS 193px
+   and 193px against ~157px for `Angostura Aromatic Bitters`, the deck's longest ingredient column
+   label at 12px semibold. The slack is ~36px, so the resting line does NOT ellipsize at 360px.
+   `text-overflow:ellipsis` is a BACKSTOP, and at 320px it is live — that branch carries its own
+   arithmetic below.
+   THE AMOUNT IS AN INPUT AND DOES NOT WEAR `.ctl`: `.line .ctl` is (0,2,0) and would beat a (0,1,0)
+   `.pr-amt` on padding, border, background, font and min-height. This project has already lost that
+   exact tie twice, so the print input simply does not share the class. */
+.roast.roast-edit .pr-row { display: grid; grid-template-columns: minmax(0, 1fr) 106px; gap: 5px; align-items: center; }
+/* THE NAME IS THE TOGGLE. It carries its own caret, so the row needs no second button at rest — which
+   is 44px this line does not pay for. */
+.roast.roast-edit .pr-name {
+  display: flex; align-items: center; gap: 5px; min-width: 0; min-height: 44px;
+  padding: 0; background: none; border: 0; cursor: pointer; text-align: left;
+  font: 600 var(--fs-small)/1.35 var(--font-body); color: var(--txt);
+}
+.roast.roast-edit .pr-name > .pr-lbl { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* HOVER RAISES, NEVER LOWERS. The glyph stays `--txt` (15.98:1) and an underline appears where there
+   was none; nothing about the text gets quieter, and the state is not carried by colour alone — it is
+   a new rule, not a hue. `:active` takes the SAME rule, so a press can never read as a hover, and the
+   press's real feedback is the disclosure opening in the same frame. */
+.roast.roast-edit .pr-name:hover > .pr-lbl,
+.roast.roast-edit .pr-name:active > .pr-lbl {
+  text-decoration: underline; text-decoration-color: rgba(184, 174, 208, .6); text-underline-offset: 3px;
+}
+.roast.roast-edit .pr-name:focus-visible { outline: 3px solid #fff; outline-offset: 2px; box-shadow: 0 0 0 6px #000; }
+/* the print's own caret, drawn INSIDE the toggle. `aria-hidden` in the markup: the button's
+   accessible name is the ingredient, once. `--dim` on `--plate` is 8.67:1 at rest and `--txt` is
+   15.98:1 open, so the mark gets LOUDER when it is open. */
+.roast.roast-edit .pr-caret { flex: 0 0 auto; width: 0; height: 0; margin-top: -3px; border: 5px solid transparent; border-top-color: var(--dim); }
+.roast.roast-edit .line.is-open .pr-caret { margin-top: 3px; border-top-color: transparent; border-bottom-color: var(--txt); }
+
+/* ══ THE MEASURE: A NUMBER AND A UNIT, ONE PRINT, ONE HAIRLINE ═════════════════════════════════
+   THE CELL CARRIES THE RULE, NOT THE INPUT. Two controls with two hairlines under them would read as
+   two fields, and `6 cl` on the card is ONE measure — so the rule spans both and the 2px between them
+   is the print's own word space.
+     measure cell = 106px = 44 (number) + 2 (gap) + 60 (unit)
+       · 44px is the number at `--fs-small`, 12px. The corpus's smallest amount is `0.125`
+         (`units.ts`'s own check): five tabular digits at 12px is ~33px, leaving 11px of padding.
+       · 60px is the unit at `--fs-micro`, 9.5px, and the label that sets it is `bar spoon` — the
+         longest string in the unit list, ~43px, plus the caret's 12px gutter. ~5px of slack.
+   THE UNIT SITS A STEP BELOW THE NUMBER ON PURPOSE — 9.5px against 12px — and the reason is not only
+   the width: on this row the number is what an author CHANGES and the unit is what they CONFIRM, and
+   the print's hierarchy should say so. The number never drops below `--fs-small`.
+   NEITHER CONTROL WEARS `.ctl` — same tie as above. The hairline is worn by a plain div, which no
+   `.ctl` rule can reach. HOVER RAISES THE BOUNDARY: `--rim` (4.36:1) to `--txt`, the same move
+   `.ctl:hover` makes, and no glyph changes colour in any state. */
+.roast.roast-edit .pr-amt-cell { display: flex; align-items: center; gap: 2px; min-height: 44px; border-bottom: 1px solid var(--rim); transition: border-bottom-color .18s var(--ease); }
+.roast.roast-edit .pr-amt-cell:hover { border-bottom-color: var(--txt); }
+.roast.roast-edit .pr-amt {
+  flex: 0 0 44px; width: 44px; min-width: 0; min-height: 44px; padding: 0 2px;
+  text-align: right; background: none; border: 0; border-radius: 0;
+  color: var(--txt); font: 400 var(--fs-small)/1.35 var(--font-body);
+  font-variant-numeric: tabular-nums;
+  -webkit-appearance: none; appearance: none;
+}
+.roast.roast-edit .pr-amt::placeholder { color: var(--dim); opacity: 1; }
+/* THE UNIT SELECT, DRAWN AS PRINT RATHER THAN AS A FORM CONTROL. `appearance:none` removes the
+   platform arrow AND the platform box — the two things that would make `cl` read as a dropdown
+   instead of as the card's own measure. The caret is drawn by the WRAPPER, because a `<select>` has
+   no pseudo-elements, so the select keeps a 12px gutter for it. The caret is `--dim` on `--plate`
+   (8.67:1), over the 3:1 a shape needs. No `title`: the selected option IS the visible label. */
+.roast.roast-edit .pr-unit { position: relative; flex: 1 1 auto; min-width: 0; }
+.roast.roast-edit .pr-unit > select {
+  width: 100%; min-height: 44px; padding: 0 12px 0 0;
+  background: none; border: 0; border-radius: 0; color: var(--txt);
+  font: 400 var(--fs-micro)/1.3 var(--font-body);
+  -webkit-appearance: none; appearance: none;
+}
+.roast.roast-edit .pr-unit::after { content: ""; position: absolute; right: 2px; top: 50%; margin-top: -2px; width: 0; height: 0; border: 4px solid transparent; border-top-color: var(--dim); pointer-events: none; }
+/* ONE FOCUS PAIR FOR BOTH HALVES OF THE MEASURE, stated here rather than inherited because `.pr-amt`
+   and the select share no ancestor that carries a ring. The page's own two-tone pair: white outline,
+   black halo, so one of the two always clears 3:1 on a ground running lila to ink. */
+.roast.roast-edit .pr-amt:focus-visible,
+.roast.roast-edit .pr-unit > select:focus-visible { outline: 3px solid #fff; outline-offset: 2px; box-shadow: 0 0 0 6px #000; }
+
+/* THE DISCLOSURE. It holds the ROLE, `remove` and the divergence note — the unit command left it for
+   the rest line, where the measure belongs. Two columns: the role takes the remainder and `auto` lets
+   `remove` keep its own 44px target. The role now has ~227px of a 304px interior at 360px, and
+   `modifier` at `--fs-small` is ~44px, so there is no pinch rule here and none is kept as insurance.
+   `[hidden]` IS RESTATED. `.pr-more{display:grid}` and the UA sheet's `[hidden]{display:none}` are
+   BOTH (0,1,0), so source order decides — and this stylesheet comes after. That is the identical
+   defect this project found and fixed on `.note-line`; it is not left here to be found twice. */
+.roast.roast-edit .pr-more { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 5px; margin-top: 6px; }
+.roast.roast-edit .pr-more[hidden] { display: none; }
+.roast.roast-edit .pr-more .line-can { grid-column: 1 / -1; margin-top: 0; }
+
+/* P2 APPLIED TO THE GARNISH ROW — the same mechanism, one row later.
+     REST = 14 + 44 = 58px (first 53)
+     OPEN = 14 + 44 + 6 + 44 + 6 + 303 = 417px
+   and those two numbers have to be read together, because the OPEN row is still TALLER than the row
+   it replaces (391px before this pass): `remove` used to share the 44px name header, while the rest
+   line's second column is the print, which is not a control. THE REST STATE IS WHERE THIS PASS PAYS —
+   one garnish 391 → 58px, 85% off, and the deck's own worst case, the Lemon Highball's
+   `lemon twist, cherry`, goes 782 → 116px.
+   THE AXES GRID IS WHAT SETS THAT 303px: nine selects at 2-up is 5 rows of (9.5px mono label + 3
+   margin + 44 select) plus 4 x 5px gaps. The study's own header used to say "~200px each" and it was
+   wrong by a factor of two — nine selects cannot be two rows.
+   `.pr-row.gn-row` IS WRITTEN AT (0,2,0) ON PURPOSE. `.gn-row` alone is (0,1,0) and would only beat
+   `.pr-row` on source order — the identical tie this project has already lost twice. Two classes
+   cannot lose it. THE WIDTHS at 360px: interior 304px, so the print column takes 140px, 118px in the
+   <=359px branch, and the NAME gets 159px / 141px against ~70px for the longest element name. */
+.roast.roast-edit .pr-row.gn-row { grid-template-columns: minmax(0, 1fr) minmax(0, 140px); }
+/* THE PRINT IS A READOUT, NOT A CONTROL. The row's one resting focus stop is the name toggle — the
+   honest difference from the ingredient row, whose second column IS an input because the amount is
+   the field an author changes most. A garnish's most-changed field is its AXES, nine selects that
+   cannot live on a 44px line, so an "edit axes" affordance would cost a second 44px button this line
+   does not pay for.
+   WHAT IT PRINTS IS THE AXIS VALUES, joined by ` · ` — the name is already the line's label, and this
+   is the composition the CARD prints from: `orange` + fold `twist` + process `expressed` prints as
+   "orange twist". No axes prints `no axes`, which is the recorded fact — a garnish with no axes is
+   valid, and 36% of the corpus carries none.
+   `title` CARRIES THE UNTRUNCATED STRING, so a clipped readout is recoverable on a long-press.
+   `text-overflow:ellipsis` is a BACKSTOP: `twist · expressed` is ~94px inside 140px, and three axes
+   set is ~140px — where the backstop starts working, not where the resting state lives. */
+.roast.roast-edit .pr-note {
+  min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  text-align: right; font: 600 var(--fs-micro)/1 var(--font-mono);
+  letter-spacing: .08em; color: var(--dim);
+}
+.roast.roast-edit .line.is-open .pr-note { color: var(--txt); }
+/* the disclosure. UNLIKE `.pr-more`, THIS RULE DECLARES NO `display`, and that is deliberate: a block
+   element that declares no `display` is hidden by the UA sheet with no tie to lose. The `[hidden]`
+   rule is kept as belt-and-braces, so a later pass that gives this block a `display` cannot silently
+   un-hide it. Its own class rather than `.pr-more` because its content is a grid of nine selects and
+   a `remove`, not the three-column field row above. */
+.roast.roast-edit .gn-more { margin-top: 9px; }
+.roast.roast-edit .gn-more[hidden] { display: none; }
+/* `remove` sits at the FOOT of the disclosure, right-aligned. The alternative that costs no height —
+   a tenth cell inside `.axes`, which would absorb it into the fifth row for free — was rejected
+   because it makes `remove` read as an axis: the grid's cells all carry an axis name and a select, and
+   a destructive control in the tenth slot is a control that looks like a field. */
+.roast.roast-edit .gn-foot { display: flex; justify-content: flex-end; margin-bottom: 9px; }
+/* 44px, NOT 40. An earlier pass compressed the line's controls to 40px to buy height while the a11y
+   claim said 44 for every control, so the claim and the build disagreed. The build moves: a target
+   under the minimum is the one defect here that no amount of saved height pays for.
+   P2 CHANGED THE COUNT, NOT THE RULE: a resting row holds TWO controls — the name toggle and the
+   amount — and an open one holds five, all 44. That is why the rule is written on the ROW and not on
+   a list of element names this pass would have had to edit. */
+.roast.roast-edit .line .sel > .ctl,
+.roast.roast-edit .line .ctl { min-height: 44px; padding: 7px 8px; font-size: var(--fs-small); }
+.roast.roast-edit .line .sel > .ctl { padding-right: 28px; }
+
+/* a secondary control: ghost, no fill, hairline edge. Never a solid fill — the room has exactly one
+   primary and it is the save button. `.6`, not `.5`: measured against `--plate` this composites to
+   rgb(119,112,140) at 3.88:1; at `.5` it is 3.10:1 — passing the 3:1 a boundary needs, but with no
+   margin at all, and a hairline that only just counts is not a boundary. */
+.roast.roast-edit .ghost {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: 44px; padding: 0 11px; cursor: pointer;
+  background: transparent; color: var(--dim);
+  border: 1px solid rgba(184, 174, 208, .6);
+  font: 600 var(--fs-micro)/1 var(--font-body);
+  letter-spacing: .14em; text-transform: uppercase;
+  transition: color .18s var(--ease), border-color .18s var(--ease), background-color .18s var(--ease);
+}
+.roast.roast-edit .ghost:hover { color: var(--txt); border-color: var(--txt); background: rgba(255, 255, 255, .06); }
+.roast.roast-edit .ghost:active { background: rgba(255, 255, 255, .12); color: var(--txt); }
+.roast.roast-edit .ghost:focus-visible { outline: 3px solid #fff; outline-offset: 2px; box-shadow: 0 0 0 6px #000; }
+/* `remove` sits inside the disclosure, where the hairline above it would otherwise be the only thing
+   drawing its edge. `--dim` on `--plate` is 8.67:1 and it RISES to `--txt` on hover. */
+.roast.roast-edit .line .ghost { min-height: 44px; }
+
+.roast.roast-edit .axes { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-top: 6px; }
+.roast.roast-edit .axes .sel > .ctl { min-height: 44px; padding: 7px 26px 7px 8px; font-size: var(--fs-micro); letter-spacing: .04em; }
+.roast.roast-edit .axes .sel::after { right: 9px; border-width: 4px; margin-top: -1px; }
+.roast.roast-edit .axes .lbl {
+  display: block; font: 600 var(--fs-micro)/1 var(--font-mono);
+  letter-spacing: .14em; text-transform: uppercase; color: var(--dim);
+  margin-bottom: 3px;
+}
+
+/* ── the card's foot: the save bar, docked ─────────────────────────────────────────────────────
+   THE APP'S OWN MEASURED FIX, carried in and now INSIDE the object: "the first version put the button
+   at the end of the form, and the browser pass measured it at y=1080 on an 844-tall screen — BELOW
+   THE FOLD." `sticky` + `bottom:0`, and its containing block is the CARD, so it releases at the
+   card's own foot instead of trailing the document the way it did as the card's sibling.
+   THE TOP RULE IS THE `.44` HAIRLINE, NOT `#000`: on `--plate` a 2px black rule is 1.14:1 and would
+   draw nothing. The fill `#0a0714` is the study's own value, one step under `--plate`, so the bar
+   reads as a docked foot rather than as a hole in the card. `--dim` on it is 9.49:1. */
+.roast.roast-edit .card-foot {
+  position: sticky; bottom: 0; z-index: 20; margin-top: 14px;
+  padding: 11px 13px calc(11px + env(safe-area-inset-bottom, 0px));
+  background: #0a0714; border-top: 2px solid var(--rim);
+  box-shadow: 0 -7px 20px rgba(0, 0, 0, .55);
+}
+.roast.roast-edit .primary {
+  position: relative; display: block; width: 100%; min-height: 48px;
+  cursor: pointer; overflow: hidden;
+  background: var(--b); color: #000; border: var(--p-edge) solid #000;
+  box-shadow: 5px 5px 0 #000;
+  font-family: var(--font-display); font-style: italic; text-transform: uppercase;
+  font-size: var(--fs-action); letter-spacing: .02em;
+  transition: transform .18s var(--ease), box-shadow .18s var(--ease), background-color .18s var(--ease);
+}
+.roast.roast-edit .primary:hover { background: color-mix(in srgb, var(--b) 82%, #fff); transform: translate(-1px, -1px); box-shadow: 6px 6px 0 #000; }
+.roast.roast-edit .primary:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 #000; }
+.roast.roast-edit .primary:focus-visible { outline: 3px solid #fff; outline-offset: 2px; box-shadow: 5px 5px 0 #000, 0 0 0 6px #000; }
+/* DISABLED IS THE SHAPE, NEVER THE COLOUR. The fill and its 14.67:1 black ink are untouched; the hard
+   shadow goes, the lift goes, and the reason is the sentence list directly above. Same rule the
+   arena's `next` uses — and no hatch, because in this room a hatch means loading. */
+.roast.roast-edit .primary[disabled] { cursor: not-allowed; box-shadow: none; transform: none; }
+.roast.roast-edit .primary[disabled]:hover { background: var(--b); transform: none; box-shadow: none; }
+
+.roast.roast-edit .probs { list-style: none; margin: 0 0 9px; }
+.roast.roast-edit .probs li { display: flex; gap: 7px; align-items: flex-start; font-size: var(--fs-micro); line-height: 1.5; color: var(--dim); margin-bottom: 3px; }
+.roast.roast-edit .probs li::before { content: ""; flex: 0 0 auto; width: 6px; height: 6px; margin-top: 5px; background: var(--dim); }
+/* `.probs .more` — THE STUDY'S OWN OVERFLOW LINE, RESTORED WITH THE CAP IT BELONGS TO (ITEM F10).
+   roast-edit.html:1388 authors this rule and its JS (:2420-2431) generates the element: three
+   problems at a time, then "and N more — lib/editor.ts returns every one of them", because "a
+   list of nine sentences above a button is a wall". The wiring pass dropped both halves; the cap
+   and the element are back on the page, verbatim study copy. The colour restatement is the
+   study's rule kept verbatim — it is redundant against `.probs li` in BOTH files, and parity
+   with the study wins over "improving" it. */
+.roast.roast-edit .probs .more { color: var(--dim); }
+/* the saved / error line. A stamp shape for saved, a dashed mark for failed — both TEXT-led, so
+   nothing here is state-by-colour. */
+.roast.roast-edit .note-line { display: flex; gap: 7px; align-items: center; margin: 0 0 9px; font-size: var(--fs-micro); line-height: 1.5; color: var(--txt); }
+.roast.roast-edit .note-line .stamp {
+  flex: 0 0 auto; padding: 1px 5px 2px; border: 1px solid var(--txt);
+  font: 600 var(--fs-micro)/1 var(--font-mono); letter-spacing: .14em;
+  text-transform: uppercase; color: var(--txt);
+}
+.roast.roast-edit .note-line.is-fail .stamp { border-style: dashed; }
+/* `hidden` HAS TO BE RE-STATED. The UA stylesheet's `[hidden]{display:none}` loses to a class rule
+   that sets `display:flex`, so without this line the saved and error lines would ALWAYS render, on
+   every state. Found in the study's own self-check, not by looking at a browser. */
+.roast.roast-edit .note-line[hidden] { display: none; }
+/* the loading hatch, the menu's own idiom: a 45deg gradient on a 12px tile translated by exactly one
+   tile, so the sweep is seamless. */
+.roast.roast-edit .hatch {
+  position: absolute; left: 0; right: 0; bottom: 0; height: 5px; display: none;
+  background-image: linear-gradient(45deg, var(--hatch) 25%, transparent 25%, transparent 75%, var(--hatch) 75%);
+  background-size: 12px 12px;
+}
+.roast.roast-edit .primary.is-loading .hatch { display: block; animation: ed-bar 1s linear infinite; }
+@keyframes ed-bar { from { background-position: 0 0; } to { background-position: 12px 12px; } }
+
+/* ── the whole-room states ─────────────────────────────────────────────────────────────────────
+   One recipe, two sentences: the catalogue failure (`lib/editor.ts`'s reachable state) and the load.
+   The study drafted a separate `.busy` plate plus a hatch bar for the load and removed them — that
+   state is one the mockup never sits in. THE APP DOES SIT IN IT, so it takes the same `.rp` panel
+   rather than a rule of its own: one panel recipe, two messages, which is what the study's own
+   removal note implies rather than contradicts. */
+.roast.roast-edit .blocked { padding: 15px 15px 16px; margin-top: 6px; }
+.roast.roast-edit .blocked p { font-size: var(--fs-body); line-height: 1.5; color: var(--txt); }
+
+/* ═══ reduced motion — the same three rules as the study, and no manual control ═════════════════
+   That is the whole branch, and it is short because the page is: the animations here are the
+   film's drift (ITEM F7) and the loading hatch's one-tile sweep, and the only transforms that
+   move on interaction are the two hover LIFTS. Everything else is a colour or a border, which is
+   not motion.
+   THE STUDY CARRIED A SECOND COPY OF THESE THREE RULES under `[data-motion="still"]`, for its manual
+   toggle. The app has no such control, so that block is not ported — six dead declarations otherwise.
+   The author's rule is that a manual control must carry the SAME rules as this query, which is a rule
+   about building one. */
+@media (prefers-reduced-motion: reduce) {
+  /* THE FILM LOCKS STILL AND STAYS VISIBLE — it does not disappear, same as the menu's branch. */
+  .roast.roast-edit .card > .film { animation: none; }
+  .roast.roast-edit .exitrow > a:hover,
+  .roast.roast-edit .exitrow > a:active { transform: rotate(-.5deg); }
+  .roast.roast-edit .primary:hover,
+  .roast.roast-edit .primary:active { transform: none; }
+  .roast.roast-edit .primary.is-loading .hatch { animation: none; }
+}
+
+/* the narrow phone. Nothing gains a fixed width; the axes grid is the only two-column thing, and it
+   goes single-column below 360 because nine axis selects at 2-up is already the tightest thing on the
+   page — and it lives inside the garnish row's disclosure now, so the rest line above it is
+   unaffected.
+   THE PRINT ROW AT 320px: interior = 320 - 24 - 10 - 22 = 264px. The measure cell KEEPS its 44px
+   number and CANNOT pinch the unit below ~55px, because that is `bar spoon` at `--fs-micro` plus the
+   12px caret gutter — so the cell stays 106px here and the NAME COLUMN GETS 153px against ~157px for
+   the deck's longest label at 12px. THE ELLIPSIS BACKSTOP IS THEREFORE LIVE AT 320px AND ONLY AT
+   320px; 360px is the canvas this room is judged on, where the name has 193px, and the brief's range
+   is 360-414. Declared rather than papered over, and both ways out are one value: the name a step
+   down, or the number column narrowed. Neither is taken on a guess. */
+@media (max-width: 359px) {
+  .roast.roast-edit .page { padding-inline: 12px; }
+  .roast.roast-edit .axes { grid-template-columns: 1fr; }
+  .roast.roast-edit .pr-row { grid-template-columns: minmax(0, 1fr) 106px; }
+  .roast.roast-edit .pr-row.gn-row { grid-template-columns: minmax(0, 1fr) minmax(0, 118px); }
+  .roast.roast-edit .glassmark { width: 44px; height: 48px; }
+}

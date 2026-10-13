@@ -7,7 +7,10 @@ import LearnMore from "@/pages/LearnMore";
 import RoastDeck from "@/pages/RoastDeck";
 import RoastEnter from "@/pages/RoastEnter";
 import RoastMenu from "@/pages/RoastMenu";
+import RoastRecovery from "@/pages/RoastRecovery";
+import RoastRoster from "@/pages/RoastRoster";
 import RoastVerdict from "@/pages/RoastVerdict";
+import SpecEditor from "@/pages/SpecEditor";
 import Room from "@/pages/Room";
 
 /**
@@ -38,6 +41,21 @@ const App = () => {
          */}
         <Route path="/roast" element={<RoastMenu />} />
         <Route path="/roast/deck" element={<RoastDeck />} />
+        {/*
+         * The spec editor, added 2026-10-06 with 5c. It writes a SPEC into the author's library --
+         * `specs where session_id = me` -- and enters nothing. A Submission is a separate act.
+         */}
+        <Route path="/roast/edit" element={<SpecEditor />} />
+        {/*
+         * The roster, added 2026-10-06 with 5c. The author's LIBRARY -- `specs where session_id = me`
+         * -- plus the one act that turns a selection of three or more of them into a SUBMISSION.
+         */}
+        <Route path="/roast/roster" element={<RoastRoster />} />
+        {/*
+         * Recovery and the export, added 2026-10-06 with 5c. Two different things on one screen: the
+         * KEY restores a claim (the data never left the database), the CSV takes a copy.
+         */}
+        <Route path="/roast/keep" element={<RoastRecovery />} />
         {/*
          * TWO ROUTES, ONE PAGE. The grill session of 2026-10-05 made this the Review page — a
          * destination reachable from the menu, not only the place the deck ends. `/roast/review` is

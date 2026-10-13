@@ -1,490 +1,317 @@
-import { useLayoutEffect, useMemo, useRef, useState } from "react";
-import type { ReactNode } from "react";
-import { FRAME_VARIANTS, buildQuad, mulberry32, neonSegments } from "@/lib/frameGeometry";
-import type { FrameVariant, FrameVariantId, Quad } from "@/lib/frameGeometry";
-import { AXIS_LABEL, ROAST_AXES, notesFor, phraseFor } from "@/data/roastNotes";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+// Aliased: the React event types would otherwise shadow the DOM's own `PointerEvent` /
+// `KeyboardEvent` inside this module, which is a silent trap rather than a type error.
+import type {
+  CSSProperties,
+  KeyboardEvent as ReactKeyboardEvent,
+  PointerEvent as ReactPointerEvent,
+} from "react";
+import { notesFor, phraseFor } from "@/data/roastNotes";
 import { ROAST_LIST_AUTHOR } from "@/data/roastSpecs";
 import { cocktailArt } from "@/lib/cocktailArt";
-import type { RoastAxis, RoastSide, RoastSpec } from "@/types/roast";
+import type { RoastSide, RoastSpec } from "@/types/roast";
 
 /**
- * The roast spec card — one spec of the deck, on the frame the author wrote it on.
+ * The roast spec card — one spec of the deck.
  *
- * Ported from the v10 visual reference
- * (`.pi/visual-companion/roast-mockup/content/card-starter-10-standalone.html`). The look is not
- * re-designed here: the layers, their order, the palette and the geometry are the reference's.
+ * ── WHY THIS IS A REWRITE AND NOT A RESKIN ──────────────────────────────────
  *
- * THE FRAME IS MEASURED, NOT DECLARED:
- *   The stack's real width and height are read after layout, a quad is rejection-sampled for that
- *   box (lib/frameGeometry.ts), and every layer that has to follow the cut — the two misregister
- *   plates, the ink frame, the pixel canvas — is clipped to it. The neon is rendered along the same
- *   quad. A frame drawn in a stylesheet could not do this: the card's height depends on the recipe
- *   text and the font, so a declared cut would be wrong on the next spec.
+ * The previous card was the v10 reference ported whole: a `<canvas>` pixel field, a
+ * rejection-sampled quad frame read out of `lib/frameGeometry.ts`, ink drips, tape, a neon SVG
+ * and **two axes of chips** for the notes. The author reviewed the arena study and re-decided
+ * four things that no amount of reskinning could reach:
  *
- * WHY BOTH FACES ARE ALWAYS MOUNTED:
- *   A CSS transition cannot start from the value an element mounts with, so a back face created on
- *   demand appears already turned with nothing to interpolate — no flip at all. The back is out of
- *   flow and its own content is what the deck turns to, so it has to exist before the turn starts.
+ *   1. `frame-pixel` is a DON'T. The frame is a hard black square edge, 4-5px, slightly rotated,
+ *      plus two misregister plates — so the measured quad and the pixel canvas are gone.
+ *   2. The card has THREE GLASS PANS (name, artwork, specs), the material the author picked in
+ *      `cards/glass-lens-13.html` — so `titlebox` / `textbox` / `notesbox` are gone.
+ *   3. `mo-turn`: the spec is on the FRONT with the likes/yikes pair, and the back is where the
+ *      vote is explained. So the chips are not on the back as a drawer — the back IS the reason.
+ *   4. The chips themselves are gone: **three bipolar rails**, one per category. The author's
+ *      own ruling on the redundancy: "we cant use 9 elements to reference one single option
+ *      (how much and what). thats just too much."
+ *
+ * ── THE RAILS ARE NOT A NEW MODEL, AND THAT IS THE WHOLE POINT ──────────────
+ *
+ * `data/roastNotes.ts` already holds exactly what a rail needs:
+ *
+ *   * three ELEMENT ids — `el-balance`, `el-ingredients`, `el-glass-garnish` — which are the
+ *     three rails, in order;
+ *   * a per-side LEVEL ladder of three words — `meh` / `cringe` / `gross` on the yikes side,
+ *     `fresh` / `sick` / `rad` on the likes side — which is the fader's magnitude.
+ *
+ * So a seven-detent fader is that ladder made spatial: -3..-1 is one side's ladder read outward,
+ * +1..+3 is the other's, and 0 is "not graded". One rail gesture therefore produces a legal
+ * `roast_votes.labels` pair — one level id plus one element id — with NO schema change, no new
+ * vocabulary and nothing invented. The app's module comment even names the reason the ladder is
+ * per-side: "a shared scale word has to read correctly on both sides, and none do… splitting the
+ * ladder per side removes the ambiguity instead of hiding it."
+ *
+ * ── ONE PAIR IS STORED, AND ALL THREE RAILS ARE STILL VOTABLE ───────────────
+ *
+ * `roastNotes.ts`: "One chip per axis, at most two ids per vote." Three graded rails would be
+ * three element ids, which that contract cannot hold. So all three rails MOVE and all three are
+ * readable, and the pair that is stored is the strongest grade's — ties going to category order.
+ * That is the author's ruling recorded in the arena study, not a limitation invented here. Storing
+ * a row per element is a vote-row-per-element schema change and belongs to that decision, not to
+ * a wiring pass.
+ *
+ * ── WHAT THIS FILE DELIBERATELY DOES NOT DO ─────────────────────────────────
+ *
+ * THE FIT LOOP IS NOT HERE. `roast-card-fit.html` solves `--u` by measuring both faces and
+ * binary-searching the largest unit that still fits `viewportHeight - strip - padding`. The app's
+ * deck is a scrolling page that carries the exit, the brief and the dry-run note, not a
+ * fixed-height screen, so the loop has no height contract to solve against and it would fight the
+ * page flow. `--u` is declared in `roast-arena.css` at the mockup's own 360x640 value instead.
+ * This is the card's one unkept promise and it is named rather than hidden.
+ *
+ * LAW 11: the turn is `--turn` (0.62s), declared in the room's stylesheet. Nothing here derives,
+ * shortens or lengthens it.
  */
-
-/**
- * The pixel surface, in cells.
- *
- * Sized so the cells read as blocks and not as noise. At the card's own width of ~374px this is 40
- * cells of ~9.3px; the author asked for the cells 25% smaller than the first pass, which is 1/0.75 =
- * 1.333x more of them.
- *
- * The cells are NOT square, and the reason is worth keeping: the row count is a constant while the
- * card's height is text-driven, so a longer recipe stretches every cell vertically. Measured on a
- * 699px card: 12.5 x 20.6 before, 9.3 x 15.5 now. Squaring them means deriving the rows from the
- * measured height at paint time, which is a change to how the canvas is sized rather than to these
- * numbers.
- */
-const PIXEL_COLS = 40;
-const PIXEL_ROWS = 45;
-const PIXEL_SEED = 1337;
-
-/**
- * Ink, in px, placed as the reference places it: absolute positions against a 360px card. At any
- * other width the drips keep their size and slide with the left edge, which is the behaviour the
- * reference has and is only visible on a narrower phone.
- */
-const INK_DRIPS: Record<FrameVariant["ink"], [number, number, number][]> = {
-  none: [],
-  light: [
-    [92, 5, 58],
-    [244, 6, 44],
-    [58, 5, 20],
-  ],
-  heavy: [
-    [26, 6, 46],
-    [92, 5, 64],
-    [168, 4, 38],
-    [244, 7, 54],
-    [306, 5, 30],
-    [58, 5, 22],
-    [210, 4, 28],
-    [288, 6, 18],
-  ],
-};
-
-/** Tape: [left, top, rotation]. */
-const INK_TAPE: Record<FrameVariant["tape"], [number, number, number][]> = {
-  0: [],
-  1: [[6, 4, -24]],
-  3: [
-    [6, 4, -24],
-    [300, 110, 17],
-    [24, 232, -8],
-  ],
-};
 
 export type RoastPalette = "heat" | "mag" | "lime" | "amber";
+
+/**
+ * The three rails, in the author's order, each carrying the app's own element id.
+ *
+ * The LABEL is the author's word ("presentation") and the ID is the table's ("el-glass-garnish").
+ * They are not the same string on purpose: the label is what the visitor reads, the id is what
+ * `roast_votes.labels` stores, and renaming the label must never split the aggregation in two —
+ * which is exactly why the ids are ids and not text.
+ */
+const RAILS = [
+  { key: "balance", elId: "el-balance", label: "balance" },
+  { key: "ingredients", elId: "el-ingredients", label: "ingredients" },
+  { key: "presentation", elId: "el-glass-garnish", label: "presentation" },
+] as const;
+
+type RailKey = (typeof RAILS)[number]["key"];
+
+/** The seven detents, as the arithmetic the whole rail is built on. */
+const DETENTS = 3;
+const SPAN = DETENTS * 2;
 
 interface RoastSpecCardProps {
   spec: RoastSpec;
   /** 0-based position in the deck. The readout prints `index + 1`, which is what a visitor counts. */
   index: number;
   total: number;
+  /**
+   * WHO WROTE THIS LIST, as the strip prints it. Rung 2 made lists real, so the card takes the
+   * byline instead of assuming it; the default keeps every other caller working.
+   */
+  author?: string;
   /** Null until a vote button is pressed; that is also what turns the card over. */
   side: RoastSide | null;
   /**
-   * The vote already cast on each spec, by position. Only the counter reads it: the card cannot know
-   * what came before it, because the deck remounts it per spec.
+   * The vote already cast on each spec, by position. Only the record reads it: the card cannot
+   * know what came before it, because the deck remounts it per spec.
    */
   votes: (RoastSide | null)[];
-  /** At most one id per axis — enforced by the deck. */
+  /** At most one id per axis — produced by the rails, enforced by the deck. */
   selected: string[];
   onVote: (side: RoastSide) => void;
-  onToggleNote: (id: string) => void;
+  /** Replaces the whole note pair. The rails are the only writer, so there is nothing to toggle. */
+  onSelectNotes: (ids: string[]) => void;
   onSkip: () => void;
   onNext: () => void;
-  palette?: RoastPalette;
-  frame?: FrameVariantId;
+  /**
+   * ONE FLICK PER ROUND, not per card. Fifteen opacity steps in a sitting is a flash risk, so the
+   * deck decides which card opens a round and the card only carries the class.
+   */
+  flick?: boolean;
 }
 
 /**
- * The pixel dither, drawn into the canvas the frame is clipped to.
+ * The record — one block per spec of the deck, and every lit block carries the vote its spec got.
  *
- * A vignette rather than an even field: the dither dies out in the middle so the recipe text has
- * something flat to sit on, and only the rim is loud. Even noise behind 11px body copy is
- * unreadable, and the reference's own note says the pixel layer used to be a grey veil because it
- * sat at 55% under the ink.
- */
-function paintPixelBackground(canvas: HTMLCanvasElement): void {
-  const ctx = canvas.getContext("2d");
-  if (!ctx) return;
-
-  const rand = mulberry32(PIXEL_SEED);
-  ctx.fillStyle = "#0f0a1e";
-  ctx.fillRect(0, 0, PIXEL_COLS, PIXEL_ROWS);
-
-  for (let y = 0; y < PIXEL_ROWS; y++) {
-    for (let x = 0; x < PIXEL_COLS; x++) {
-      const nx = (x / (PIXEL_COLS - 1) - 0.5) * 2;
-      const ny = (y / (PIXEL_ROWS - 1) - 0.5) * 2;
-      const radius = Math.sqrt(nx * nx + ny * ny);
-      const edge = Math.max(0, Math.min(1, (radius - 0.3) / 0.85));
-      if (edge <= 0) continue;
-
-      const roll = rand();
-      let alpha = 0;
-      if (roll > 0.86) alpha = 0.3 * edge;
-      else if (roll > 0.62) alpha = 0.16 * edge;
-      else if (roll > 0.42) alpha = 0.07 * edge;
-      if (alpha <= 0) continue;
-
-      ctx.fillStyle = `rgba(170,146,226,${alpha.toFixed(3)})`;
-      ctx.fillRect(x, y, 1, 1);
-    }
-  }
-
-  // A few accent pixels, rim only: inside the vignette they would be specks on the text.
-  // They used to be pink and cyan. The author asked for the whole field to be a purple grayscale
-  // instead of a grey one with two coloured details, so the accents are now two steps of the same
-  // purple — one lighter than any dither tone, one deeper — and carry the same information.
-  for (let k = 0; k < 14; k++) {
-    const ax = Math.floor(rand() * PIXEL_COLS);
-    const ay = Math.floor(rand() * PIXEL_ROWS);
-    const nx = (ax / (PIXEL_COLS - 1) - 0.5) * 2;
-    const ny = (ay / (PIXEL_ROWS - 1) - 0.5) * 2;
-    if (Math.sqrt(nx * nx + ny * ny) < 0.55) continue;
-    ctx.fillStyle = k % 2 ? "rgba(216,186,255,0.5)" : "rgba(126,98,182,0.45)";
-    ctx.fillRect(ax, ay, 1, 1);
-  }
-}
-
-const polygonOf = (quad: Quad) =>
-  `polygon(${quad.pts.map((p) => `${p[0].toFixed(1)}px ${p[1].toFixed(1)}px`).join(",")})`;
-
-interface FrameStackProps {
-  variant: FrameVariant;
-  seed: number;
-  children: ReactNode;
-}
-
-/**
- * One measured surface: the frame layers and the content that sits on them.
+ * FOUR STATES IN FOUR CHANNELS, so the shape alone reads: agreement solid, disagreement a
+ * diagonal hatch over the yikes red, skip a short dotted grey that is NEVER red ("a skip is not a
+ * disagreement, and painting it red invents a vote nobody cast"), and the spec in front of you
+ * taller and flagged. Colour is the fifth channel and only ever repeats one of the four.
  *
- * Each face measures itself rather than inheriting the other's measurement: the card's height is
- * text-driven, so a frame cut once would be cut for a size the card no longer has. The two faces no
- * longer end up different heights — the stylesheet fills the back's stack to the front's box, so the
- * card keeps one size through the flip — but a back whose content genuinely needs more room still
- * grows the card, which is why the measurement stays per face. Both faces use the same seed, so the
- * two cuts are the same card.
+ * THE SPEC UNDER THE VISITOR'S FINGER TAKES THE LIVE VOTE, not the recorded one: the row is only
+ * written when they advance, and a record that waits for the next card to acknowledge a press
+ * reads as a record that missed it.
+ *
+ * The mockup carries a fifth state, `seen`. It is not rendered here because the app cannot
+ * produce it — `advance` is shared by `skip` and `next`, so reaching a spec and leaving without
+ * voting IS a skip — and a state nothing can reach is a dead declaration.
  */
-const FrameStack = ({ variant, seed, children }: FrameStackProps) => {
-  const stackRef = useRef<HTMLDivElement | null>(null);
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const [frame, setFrame] = useState<{ quad: Quad; keyline: Quad | null } | null>(null);
-
-  useLayoutEffect(() => {
-    const el = stackRef.current;
-    if (!el) return;
-
-    const measure = () => {
-      const w = el.clientWidth;
-      const h = el.clientHeight;
-      if (!w || !h) return;
-
-      const quad = buildQuad(w, h, variant.pad, seed);
-      // The hairline is its own cut, inset 10px by the stylesheet, so its quad is built for the
-      // smaller box. Same seed family so the two cuts lean the same way.
-      const keyline =
-        variant.keyline === "none"
-          ? null
-          : buildQuad(
-              Math.max(40, w - 20),
-              Math.max(40, h - 20),
-              [
-                Math.max(2, Math.round(variant.pad[0] * 0.8)),
-                Math.max(2, Math.round(variant.pad[1] * 0.8)),
-              ],
-              seed + 3
-            );
-
-      setFrame({ quad, keyline });
-    };
-
-    measure();
-
-    // The card's height is text-driven and changes after mount, when a face's content changes, and
-    // when the font lands. A frame measured once would be cut for a size the card no longer has.
-    const observer = new ResizeObserver(measure);
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [variant, seed]);
-
-  useLayoutEffect(() => {
-    if (canvasRef.current) paintPixelBackground(canvasRef.current);
-  }, []);
-
-  const segments = useMemo(
-    () => (frame ? neonSegments(frame.quad.pts, seed) : []),
-    [frame, seed]
-  );
-  const clip = frame ? polygonOf(frame.quad) : undefined;
-
-  return (
-    <div className="stack" ref={stackRef}>
-      {/* Misregister: the two plates the card was printed off, one red, one pink, each turned a
-          little further than the frame. The bloom on the first is what lifts the card off the
-          backdrop. */}
-      <div
-        className="mis-a mis-plate"
-        style={{
-          clipPath: clip,
-          background: "var(--a)",
-          boxShadow: "0 0 36px -8px var(--a)",
-          transform: "rotate(1.7deg) translate(7px,8px)",
-        }}
-      />
-      <div
-        className="mis-b mis-plate"
-        style={{
-          clipPath: clip,
-          background: "var(--d, var(--b))",
-          transform: "rotate(-1.2deg) translate(14px,16px)",
-        }}
-      />
-      <div className="inkfr" style={{ clipPath: clip }} />
-      <canvas
-        className="pixbg"
-        ref={canvasRef}
-        width={PIXEL_COLS}
-        height={PIXEL_ROWS}
-        style={{ clipPath: clip }}
-      />
-      <div className="grit" />
-
-      {/* Ink sits on top of the pixels, never under them. */}
-      {INK_DRIPS[variant.ink].map(([left, width, height]) => (
-        <div
-          key={`drip-${left}`}
-          className="drip"
-          style={{
-            left,
-            bottom: -height,
-            width,
-            height,
-            transform: `rotate(${(left % 7) - 3}deg)`,
-          }}
-        />
-      ))}
-      {INK_TAPE[variant.tape].map(([left, top, rotation]) => (
-        <div
-          key={`tape-${left}`}
-          className="tape"
-          style={{ left, top, transform: `rotate(${rotation}deg)` }}
-        />
-      ))}
-      {variant.bracket && (
-        <>
-          <div className="brk" style={{ left: -8, top: -8, borderRight: "none", borderBottom: "none" }} />
-          <div className="brk" style={{ right: -8, top: -8, borderLeft: "none", borderBottom: "none" }} />
-          <div className="brk" style={{ left: -8, bottom: -8, borderRight: "none", borderTop: "none" }} />
-          <div className="brk" style={{ right: -8, bottom: -8, borderLeft: "none", borderTop: "none" }} />
-        </>
-      )}
-      {variant.ink !== "none" && (
-        <div
-          className="scrib"
-          style={{ left: 24, top: 74, width: 120, transform: "rotate(-3deg) skewX(-30deg)" }}
-        />
-      )}
-
-      {frame?.keyline && <div className="keyline" style={{ clipPath: polygonOf(frame.keyline) }} />}
-
-      {segments.length > 0 && (
-        <svg className="neonwrap" preserveAspectRatio="none" aria-hidden="true">
-          {segments.map((segment, i) => (
-            <path
-              key={i}
-              className={segment.flicker ? "n-flick" : undefined}
-              d={`M${segment.x1.toFixed(1)} ${segment.y1.toFixed(1)}L${segment.x2.toFixed(1)} ${segment.y2.toFixed(1)}`}
-              fill="none"
-              stroke={segment.colour}
-              strokeWidth={segment.width}
-              strokeLinecap="round"
-              vectorEffect="non-scaling-stroke"
-              filter="url(#roast-neon)"
-            />
-          ))}
-        </svg>
-      )}
-
-      <div className="content">{children}</div>
-    </div>
-  );
-};
-
-/**
- * The two filters the frame layers reference by id. Declared once per card: ids are document-wide, and
- * one card is mounted at a time, so one copy is all a document needs.
- */
-const FrameFilters = () => (
-  <svg width="0" height="0" className="absolute" aria-hidden="true" focusable="false">
-    <defs>
-      {/* The rough edge: turbulence displacing the ink frame's own rectangle. */}
-      <filter id="roast-rough">
-        <feTurbulence
-          type="fractalNoise"
-          baseFrequency="0.021 0.034"
-          numOctaves="3"
-          seed="7"
-          result="n"
-        />
-        <feDisplacementMap
-          in="SourceGraphic"
-          in2="n"
-          scale="7"
-          xChannelSelector="R"
-          yChannelSelector="G"
-        />
-      </filter>
-      {/*
-        The sticker border.
-        `feMorphology` DILATES the artwork's alpha — every part of the ink grows outward by the same
-        radius, so the border has one width everywhere and follows the drawing's real contour. A
-        scaled-up copy cannot do this: scaling displaces every stroke away from the centre, so the
-        internal lines get a halo too and a line drawing turns into a white ghost. Measured on
-        Espresso Martini, the copy landed at 1.46x — an absolutely positioned element resolves
-        against the padding box while the in-flow artwork resolves against the content box — and the
-        drink lost its outline to the white behind it.
-        The filter region is opened to 160% so the border can paint OUTSIDE the artwork's box, which
-        is what lets the sticker run over the panel's ring.
-      */}
-      <filter id="roast-sticker" x="-30%" y="-30%" width="160%" height="160%">
-        <feMorphology in="SourceAlpha" operator="dilate" radius="4" result="fat" />
-        <feFlood floodColor="#fff" result="white" />
-        <feComposite in="white" in2="fat" operator="in" result="sticker" />
-        <feMerge>
-          <feMergeNode in="sticker" />
-          <feMergeNode in="SourceGraphic" />
-        </feMerge>
-      </filter>
-      {/* The tube's glow: three passes of blur under the stroke, not one. */}
-      <filter id="roast-neon" x="-50%" y="-50%" width="200%" height="200%">
-        <feGaussianBlur stdDeviation="5" result="b" />
-        <feMerge>
-          <feMergeNode in="b" />
-          <feMergeNode in="b" />
-          <feMergeNode in="b" />
-          <feMergeNode in="SourceGraphic" />
-        </feMerge>
-      </filter>
-    </defs>
-  </svg>
+const Record = ({
+  index,
+  total,
+  votes,
+  side,
+}: {
+  index: number;
+  total: number;
+  votes: (RoastSide | null)[];
+  side: RoastSide | null;
+}) => (
+  <div className="record">
+    <span className="hp" role="img" aria-label="Your record on the deck.">
+      {Array.from({ length: total }, (_, i) => {
+        const cast = i === index ? side : votes[i];
+        // Reached and left without a vote IS a skip in this app (`advance` is shared by `skip` and
+        // `next`), which is why there is no separate `seen` state: the two are the same act.
+        const shape = cast === "likes" ? "ag" : cast === "yikes" ? "dis" : i <= index ? "skip" : "";
+        return <i key={i} className={[i === index ? "here" : "", shape].filter(Boolean).join(" ")} />;
+      })}
+    </span>
+  </div>
 );
 
-/** The number plus the 15-block bar. Both faces carry it, so it is one component, not two copies. */
-const ProgressReadout = ({ index, total, votes, side }: { index: number; total: number; votes: (RoastSide | null)[]; side: RoastSide | null }) => {
-  const position = index + 1;
-  return (
-    <span className="prog">
-      {/*
-       * The bar first, the number at the card's edge.
-       *
-       * The number used to sit mid-row and the author's read was that a count in the middle of a
-       * row reads as something off-centre rather than as a count. Against the edge it stops
-       * competing with the bar for the middle.
-       */}
-      <span className="hp" aria-hidden="true">
-        {Array.from({ length: total }, (_, i) => (
-          <i
-            key={i}
-            className={`${i < position ? "on " : ""}${
-              // The block under the visitor's own finger takes the live vote, not the recorded one:
-              // the vote is only stored when they advance, and a counter that waits for the next
-              // card to acknowledge a press reads as a counter that missed it.
-              (i === index ? (side ?? votes[i]) : votes[i]) === "likes"
-                ? "ag "
-                : (i === index ? (side ?? votes[i]) : votes[i]) === "yikes"
-                  ? "dg "
-                  : ""
-            }${i % 3 === 0 ? "hi" : i % 3 === 1 ? "md" : "lo"}`}
-          />
-        ))}
-      </span>
-      <span className="pnum">{`${String(position).padStart(2, "0")} / ${total}`}</span>
-    </span>
-  );
-};
-
 /**
- * The sticker sheet on the level chips.
+ * One bipolar rail. Seven detents, 0 = not graded, negative = yikes, positive = likes.
  *
- * The first pass tiled a background image, and the author's read was that the direction was right and
- * the execution was not: the stickers came out as fat filled shapes on a perfect grid, at a density
- * that made level 1 look like level 2. Three things follow from that.
+ * THE GROOVE IS 44px TALL AND THE TRACK FILLS IT, so the drag target is legal on both axes —
+ * which is the arithmetic the previous rail got wrong in the other direction. It read
+ * `44 / 3 = 14.6px` and concluded that three 44px targets could not fit a 44px rail. That is a
+ * WIDTH sum applied to a VERTICAL stack: the honest ceiling was always the rail's height budget,
+ * and laying the rail on its side removes the question entirely. The handle's 44px width is
+ * bought back as a 22px inset at each end.
  *
- * They are drawn as ELEMENTS, not as a repeated background, because a sticker sheet is placed by hand:
- * each one gets its own position, rotation and size, scattered by a seeded generator so the layout is
- * varied but never different between two renders. Nothing lines up.
- *
- * They are OUTLINES — a hairline cross and a hairline star, `fill="none"` — so they read as marks
- * rather than as badges, and the label stays the loudest thing in the chip.
- *
- * And the count is the author's own: three at level 1 (his words: "one to three"), seven at level 2,
- * and at level 3 enough that the chip's own frame is hard to see behind them.
+ * FOUR CHANNELS, NEVER COLOUR ALONE. The dot count is the magnitude, the side of centre is the
+ * polarity, the word is both, and colour only repeats the polarity — a lit yikes dot is HATCHED
+ * (the record's own disagreement idiom) and a lit likes dot is solid. That is what keeps the
+ * polarity readable in lime and amber, where `--a` and `--ok` measure 1.05:1 and 1.02:1 apart.
  */
-const STICKER_COUNT: Record<1 | 2 | 3, number> = { 1: 3, 2: 7, 3: 14 };
-
-/** A five-point star outline, centred in a 12x12 box. `fill="none"` is what keeps it a line. */
-const STAR_PATH =
-  "M6 1.4 L7.2 4.3 L10.4 4.6 L8 6.7 L8.7 9.7 L6 8.1 L3.3 9.7 L4 6.7 L1.6 4.6 L4.8 4.3 Z";
-const CROSS_PATH = "M3 3 L9 9 M9 3 L3 9";
-
-/** FNV-1a, so a chip's scatter is a pure function of its id and cannot drift between renders. */
-function hashOf(text: string): number {
-  let h = 2166136261;
-  for (let i = 0; i < text.length; i++) {
-    h ^= text.charCodeAt(i);
-    h = Math.imul(h, 16777619);
-  }
-  return h >>> 0;
-}
-
-const StickerSheet = ({
+const Rail = ({
+  label,
+  value,
   side,
-  degree,
-  seed,
+  onChange,
 }: {
-  side: RoastSide;
-  degree: 1 | 2 | 3;
-  seed: number;
+  label: string;
+  value: number;
+  side: RoastSide | null;
+  onChange: (next: number) => void;
 }) => {
-  const rand = mulberry32(seed);
-  const places = Array.from({ length: STICKER_COUNT[degree] }, () => ({
-    left: 9 + rand() * 82,
-    top: 10 + rand() * 80,
-    rot: -48 + rand() * 96,
-    scale: 0.78 + rand() * 0.5,
-  }));
+  const groove = useRef<HTMLDivElement>(null);
+  const dragging = useRef(false);
+
+  // The app's own ladder for this side, in degree order. `notesFor` filters on the side already,
+  // which is the point: "meh" and "fresh" are not two ends of one scale.
+  const levels = useMemo(() => (side ? notesFor(side, "level") : []), [side]);
+  const word = value === 0 ? "—" : (levels[Math.abs(value) - 1]?.text ?? "—");
+
+  const commit = useCallback(
+    (next: number) => {
+      const clamped = Math.max(-DETENTS, Math.min(DETENTS, next));
+      if (clamped !== value) onChange(clamped);
+    },
+    [value, onChange]
+  );
+
+  /** Where a client x sits on the rail, as a detent. The groove's own rect, so it cannot drift. */
+  const detentAt = useCallback((clientX: number) => {
+    const box = groove.current?.getBoundingClientRect();
+    if (!box || box.width === 0) return 0;
+    const t = Math.max(0, Math.min(1, (clientX - box.left) / box.width));
+    return Math.round(t * SPAN) - DETENTS;
+  }, []);
+
+  const onPointerDown = useCallback(
+    (event: ReactPointerEvent<HTMLButtonElement>) => {
+      dragging.current = true;
+      event.currentTarget.setPointerCapture(event.pointerId);
+      commit(detentAt(event.clientX));
+    },
+    [commit, detentAt]
+  );
+  const onPointerMove = useCallback(
+    (event: ReactPointerEvent<HTMLButtonElement>) => {
+      if (!dragging.current) return;
+      commit(detentAt(event.clientX));
+    },
+    [commit, detentAt]
+  );
+  const onPointerUp = useCallback((event: ReactPointerEvent<HTMLButtonElement>) => {
+    dragging.current = false;
+    try {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    } catch {
+      // The capture can already be gone if the pointer left the document. Nothing to do.
+    }
+  }, []);
+
+  const onKeyDown = useCallback(
+    (event: ReactKeyboardEvent<HTMLButtonElement>) => {
+      const step = event.key === "ArrowLeft" || event.key === "ArrowDown" ? -1 : event.key === "ArrowRight" || event.key === "ArrowUp" ? 1 : 0;
+      if (step !== 0) {
+        event.preventDefault();
+        commit(value + step);
+        return;
+      }
+      if (event.key === "Home") {
+        event.preventDefault();
+        commit(-DETENTS);
+      } else if (event.key === "End") {
+        event.preventDefault();
+        commit(DETENTS);
+      } else if (event.key === "0" || event.key === "Delete" || event.key === "Backspace") {
+        event.preventDefault();
+        commit(0);
+      }
+    },
+    [commit, value]
+  );
 
   return (
-    <span className="sheet" aria-hidden="true">
-      {places.map((place, i) => (
-        <svg
-          key={i}
-          className="stk"
-          viewBox="0 0 12 12"
-          style={{
-            left: `${place.left.toFixed(1)}%`,
-            top: `${place.top.toFixed(1)}%`,
-            transform: `translate(-50%, -50%) rotate(${place.rot.toFixed(1)}deg) scale(${place.scale.toFixed(2)})`,
-          }}
-        >
-          <path
-            d={side === "likes" ? STAR_PATH : CROSS_PATH}
-            fill="none"
-            strokeWidth="1"
-            strokeLinecap="round"
-            strokeLinejoin="round"
+    <div className="rail">
+      <div className="el-head">
+        <span className="kick tf-plate">{label}</span>
+        {/* The word is aria-hidden because the slider's own `aria-valuetext` already says it —
+            announced twice, it reads as two facts. */}
+        <span className="grade-word" aria-hidden="true">{word}</span>
+      </div>
+      <div className="fader">
+        <span className="fader-end" aria-hidden="true">yikes</span>
+        {/*
+          THE `--f` CUSTOM PROPERTY LIVES ON THE GROOVE, not on the handle: the handle is positioned
+          from it and the groove is their only shared parent, so putting it on the handle would ask
+          the element to read a value it is itself setting.
+        */}
+        <div className="groove" ref={groove} style={{ "--f": String((value + DETENTS) / SPAN) } as CSSProperties}>
+          {/*
+            ONE FOCUS STOP, AND IT IS THE TRACK. The track is a real `<button role="slider">` filling
+            the groove's full 44px, so the drag target is legal on both axes and a press anywhere on
+            the bar lands on it — and the knob below is `aria-hidden` and `pointer-events: none`, so
+            it is a picture of the value rather than a second control. The alternative, a focusable
+            handle, would be an `aria-hidden` button that takes focus, which is an accessibility
+            violation rather than a convenience.
+          */}
+          <button
+            type="button"
+            role="slider"
+            className="fader-track"
+            aria-label={label}
+            aria-valuemin={-DETENTS}
+            aria-valuemax={DETENTS}
+            aria-valuenow={value}
+            aria-valuetext={value === 0 ? "not graded" : `${word}, ${side ?? "no side"}`}
+            onPointerDown={onPointerDown}
+            onPointerMove={onPointerMove}
+            onPointerUp={onPointerUp}
+            onPointerCancel={onPointerUp}
+            onKeyDown={onKeyDown}
           />
-        </svg>
-      ))}
-    </span>
+          <div className="fader-dots" aria-hidden="true">
+            {Array.from({ length: SPAN + 1 }, (_, i) => {
+              const detent = i - DETENTS;
+              const lit =
+                detent !== 0 && Math.abs(detent) <= Math.abs(value) && Math.sign(detent) === Math.sign(value);
+              return <i key={i} className={lit ? `on${detent < 0 ? " y" : ""}` : ""} />;
+            })}
+          </div>
+          <span className="fader-handle" aria-hidden="true">
+            <span />
+          </span>
+        </div>
+        <span className="fader-end" aria-hidden="true">likes</span>
+      </div>
+    </div>
   );
 };
 
@@ -492,177 +319,308 @@ const RoastSpecCard = ({
   spec,
   index,
   total,
+  author = ROAST_LIST_AUTHOR,
   side,
   votes,
   selected,
   onVote,
-  onToggleNote,
+  onSelectNotes,
   onSkip,
   onNext,
-  palette = "heat",
-  frame = "neon",
+  flick = false,
 }: RoastSpecCardProps) => {
-  const variant = FRAME_VARIANTS[frame];
-  // Each spec is cut differently, so the deck reads as fifteen cards rather than one frame fifteen
-  // times. Derived from the position, so it costs no state and cannot drift between renders.
-  const seed = index + 1;
-  // The chips are the data; this sentence is presentation, and it is derived rather than stored.
+  /** The three grades, -3..+3. 0 is "not graded" and is the only clearing value. */
+  const [grades, setGrades] = useState<Record<string, number>>({ balance: 0, ingredients: 0, presentation: 0 });
+  /** True while the visitor has asked to look at the front again after casting. */
+  const [peek, setPeek] = useState(false);
+  /** The glitch plays once as the card arrives; the class is dropped so nothing lingers. */
+  const [glitching, setGlitching] = useState(true);
+  const [scrolls, setScrolls] = useState(false);
+  const specsPan = useRef<HTMLDivElement>(null);
+
+  const isBack = Boolean(side) && !peek;
+
+  /*
+   * A NEW SPEC PUTS THE CARD BACK ON ITS FRONT. `key={spec.id}` on the caller remounts this
+   * component per spec, so this is belt-and-braces — but it is the invariant that matters: a
+   * fresh card must never be dealt already turned, or the visitor grades a drink whose name they
+   * have not seen.
+   */
+  useEffect(() => {
+    setPeek(false);
+  }, [spec.id]);
+
+  useEffect(() => {
+    setGlitching(true);
+    const t = window.setTimeout(() => setGlitching(false), 600);
+    return () => window.clearTimeout(t);
+  }, [spec.id]);
+
+  /*
+   * THE OVERFLOW CUE, MEASURED. The deck's recipes run 3 to 8 ingredients and the methods 1 to 3
+   * lines, so the tallest spec can be taller than the box at `--u`. The cue is a mark rather than
+   * a sentence and it appears only when the pan genuinely overflows — and the pan takes a tab stop
+   * when it does, so the rest of the list is reachable from the keyboard.
+   */
+  useLayoutEffect(() => {
+    const measure = () => {
+      const el = specsPan.current;
+      if (el) setScrolls(el.scrollHeight > el.clientHeight + 1);
+    };
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, [spec.id]);
+
+  /*
+   * THE STORED PAIR. Strongest grade wins; ties go to category order. Computed from the rails and
+   * pushed up in one call, so the deck never has to toggle two ids and hope the axes line up.
+   */
+  const pair = useMemo(() => {
+    if (!side) return [];
+    let best: (typeof RAILS)[number] | null = null;
+    for (const rail of RAILS) {
+      const grade = Math.abs(grades[rail.key]);
+      if (grade === 0) continue;
+      if (!best || grade > Math.abs(grades[best.key])) best = rail;
+    }
+    if (!best) return [];
+    // The level id is derived, never stored: `degree` is the rail's magnitude and the ladder is
+    // the app's. `notesFor` already filtered on the side.
+    const level = notesFor(side, "level")[Math.abs(grades[best.key]) - 1];
+    return level ? [level.id, best.elId] : [];
+  }, [grades, side]);
+
+  useEffect(() => {
+    /*
+     * NO-OP WRITES ARE SKIPPED ON PURPOSE. This effect fires on mount too, where the pair is empty
+     * and the deck's `selected` is already empty — so an unguarded call would re-render the whole
+     * deck once per card for nothing. The comparison is exact (length, then order) because the pair
+     * the rail produces is `[levelId, elementId]` and that is precisely the array the deck stores.
+     */
+    const same = pair.length === selected.length && pair.every((id, i) => selected[i] === id);
+    if (!same) onSelectNotes(pair);
+  }, [pair, selected, onSelectNotes]);
+
+  /**
+   * CASTING ALWAYS TURNS THE CARD, INCLUDING A RE-PRESS OF THE SAME SIDE.
+   *
+   * `back to the drink` is a local peek, not a change of vote, so the side can be identical on the
+   * next press — and a bare `onVote("yikes")` would then be a no-op in React's eyes, leaving the
+   * visitor on the front with no way back to the rails except the other button. Clearing the peek
+   * here is what makes the pair behave like a pair.
+   */
+  const castVote = useCallback(
+    (next: RoastSide) => {
+      setPeek(false);
+      onVote(next);
+    },
+    [onVote]
+  );
+
   const phrase = side ? phraseFor(side, selected) : "";
+  const readout = String(index + 1).padStart(2, "0");
 
   return (
-    <div className="deck" data-palette={palette}>
-      <FrameFilters />
-      <div className="persp">
-        <div className={side ? "inner flip" : "inner"}>
-          {/* ── front: the spec ────────────────────────────────────────── */}
-          <div className="face front">
-            <FrameStack variant={variant} seed={seed}>
-              <div className="cardtop">
-                <span className="kick">{ROAST_LIST_AUTHOR}</span>
-                <ProgressReadout index={index} total={total} votes={votes} side={side} />
-              </div>
+    <div className="stage">
+      <div className="tilt">
+        <span className="plate plate-b" aria-hidden="true" />
+        <span className="plate plate-a" aria-hidden="true" />
+        <span className="tape t1" aria-hidden="true" />
+        <span className="tape t2" aria-hidden="true" />
+        <span className="tape t3" aria-hidden="true" />
+        <span className="tape t4" aria-hidden="true" />
 
+        <div className={`card3d${isBack ? " is-back" : ""}${glitching ? " is-glitching" : ""}`}>
+          {/* ── front: the spec ─────────────────────────────────────────── */}
+          <article className="face face-front" aria-hidden={isBack} data-od-id="face-front">
+            <div className="row">
+              <span className="kick tf-plate">the record</span>
+              <Record index={index} total={total} votes={votes} side={side} />
+            </div>
 
-              <div className="titlebox glass">
-                <div className="name">{spec.name}</div>
-                <div className="nline" />
-              </div>
-
-              {/*
-               * THE DRINK ITSELF.
-               *
-               * `cocktailArt` is keyed by the file name, and this deck's spec ids follow the Census slug
-               * convention on purpose — 14 of the 15 exist in the Census already, so their illustrations were
-               * already drawn and this is the whole of the wiring. Lion's Tail is the fifteenth and the only
-               * one that needed a new file.
-               *
-               * The illustration is of the DRINK, not of this spec, and the two can disagree: the card states
-               * its own glass and garnish a few lines below. That is a deliberate trade — the art is the
-               * compositor's rendition and the card's text is the author's claim, and seeing both is closer to
-               * the point of the deck than hiding one.
-               *
-               * `alt` is empty because the card already names the drink; the picture is not the label.
-               */}
-              <div className="art glass">
-                {/* One element: the sticker border is a filter on the artwork, not a second copy. */}
-                <img src={cocktailArt(spec.id)} alt="" />
-              </div>
-
-              <div className="rule" />
-
-              <div className="textbox glass">
-                {spec.ingredients.map((ingredient) => (
-                  <div className="ing" key={`${ingredient.name}-${ingredient.amount}`}>
-                    <b>{ingredient.name}</b>
-                    <span>{ingredient.amount}</span>
-                  </div>
-                ))}
-
-                <div className="rule" />
-                <div className="kv">
-                  <i>GLASS</i>
-                  <b>{spec.glass}</b>
-                </div>
-                <div className="kv">
-                  <i>GARNISH</i>
-                  <b>{spec.garnish}</b>
-                </div>
-                <div className="rule" />
-                <div className="method">{spec.method}</div>
-              </div>
-
-              <div className="btnrow">
-                <button type="button" className="vbtn b1" onClick={() => onVote("yikes")}>
-                  Yikes ✗
-                </button>
-                <button type="button" className="vbtn b2" onClick={() => onVote("likes")}>
-                  Likes ✓
-                </button>
-              </div>
-
-              {/* A link, not a third button: "no opinion" is not an answer, and a visual peer of
-                  the two votes would read as one. */}
-              <button type="button" className="skip" onClick={onSkip}>
-                skip
-              </button>
-            </FrameStack>
-          </div>
-
-          {/* ── back: the notes ────────────────────────────────────────── */}
-          <div className="face back">
-            <FrameStack variant={variant} seed={seed}>
-              <div className="cardtop">
-                <span className="kick">Verdict</span>
-                <ProgressReadout index={index} total={total} votes={votes} side={side} />
-              </div>
-
-              <div className="markrow">
-                <div className={`mark ${side === "likes" ? "m-ag" : "m-dg"}`} aria-hidden="true">
-                  {side === "likes" ? "✓" : "✗"}
-                </div>
+            <div className="pan pan-name">
+              <div className="row">
                 <div>
-                  <div className={`markword ${side === "likes" ? "mw-likes" : "mw-yikes"}`}>{side === "likes" ? "Likes" : "Yikes"}</div>
+                  <span className="kick tf-plate">{author}</span>
+                  <div className="tf-plate big">
+                    {/*
+                      `aria-label` IS LOAD-BEARING. `::before` and `::after` are generated content
+                      and they count toward an element's accessible name, so the glitch's two
+                      channel copies would have the heading announce the drink three times over.
+                      The label names it once and the pseudo-elements stop contributing.
+                    */}
+                    <h2
+                      className="card-name glitch-host"
+                      id="roast-card-name"
+                      data-glitch={spec.name}
+                      aria-label={spec.name}
+                    >
+                      {spec.name}
+                    </h2>
+                  </div>
+                </div>
+                <div className="numcol">
+                  <span className="tf-plate big">
+                    <span className="readout" aria-hidden="true">{readout}</span>
+                  </span>
+                  <span className="kick tf-plate" aria-hidden="true">of {total}</span>
+                  <span className="sr-only">{`spec ${index + 1} of ${total}`}</span>
                 </div>
               </div>
+            </div>
 
-              <div className="rule" />
+            {/*
+              THE DRINK ITSELF. `cocktailArt` is keyed by the Census slug — `spec.art`, which is the
+              column the illustration file is named after. NOT `spec.id`: that is `spec_ref`, the row
+              uuid a vote is stored against, and on a dealt spec it is a uuid while the slug sits in
+              `specs.cocktail_slug`. Reading `id` here looked up a uuid, missed the map and drew the
+              placeholder on every card dealt from the Pool. `?? spec.id` is the static deck, whose id
+              already IS the slug. `alt` is empty because the card names the drink two lines above:
+              the picture is not the label.
+            */}
+            <div className={`pan pan-art${flick ? " is-flicking" : ""}`}>
+              <span className="tube" aria-hidden="true" />
+              <span className="led" aria-hidden="true" />
+              <div className="art">
+                <img src={cocktailArt(spec.art ?? spec.id)} alt="" />
+              </div>
+            </div>
 
-              {/* The chips are rendered per side because the level words are side-specific by
-                  design: "meh" and "fresh" are not two ends of one scale. */}
-              {/* The notes drawer. Rendered only when there IS a side: both faces are always mounted,
-                  so an unconditional panel would show an empty glass box on the back before the
-                  first vote. */}
-              {side && (
-                <div className="notesbox glass">
-                  {ROAST_AXES.map((axis: RoastAxis) => (
-                    <div key={axis}>
-                      <div className="axis kick">{AXIS_LABEL[axis]}</div>
-                      <div className="chips">
-                        {notesFor(side, axis).map((note) => {
-                          const on = selected.includes(note.id);
-                          const colour = axis === "level" ? "c-a" : "c-b";
-                          // Only the level chips carry the sticker sheet: the element chips have no
-                          // degree, so there is no density for them to express.
-                          const degree = axis === "level" ? note.degree : undefined;
-                          const sticker = degree ? ` s-${side} lv-${degree}` : "";
-                          return (
-                            <button
-                              key={note.id}
-                              type="button"
-                              className={`chip ${colour}${sticker}${on ? " c-on" : ""}`}
-                              aria-pressed={on}
-                              onClick={() => onToggleNote(note.id)}
-                            >
-                              {degree ? (
-                                <StickerSheet
-                                  side={side}
-                                  degree={degree}
-                                  seed={hashOf(note.id) + index}
-                                />
-                              ) : null}
-                              <span className="lbl">{note.text}</span>
-                            </button>
-                          );
-                        })}
-                      </div>
+            {/*
+              PAN 3, and the pan that scrolls when it must. The wrapper exists so the overflow cue
+              does not scroll with the content — an absolutely positioned child of a scroll
+              container scrolls with it, which would put the mark at the bottom of the LIST rather
+              than the bottom of the BOX.
+            */}
+            <div className={`panwrap${scrolls ? " is-scroll" : ""}`}>
+              <div
+                className={`pan pan-specs${scrolls ? " is-scroll" : ""}`}
+                ref={specsPan}
+                tabIndex={scrolls ? 0 : -1}
+                aria-label={scrolls ? "The recipe, scrollable" : undefined}
+              >
+                <dl className="rows">
+                  {spec.ingredients.map((ingredient) => (
+                    <div className="stat" key={`${ingredient.name}-${ingredient.amount}`}>
+                      <dt className="ing-name">{ingredient.name}</dt>
+                      <dd>{ingredient.amount}</dd>
                     </div>
                   ))}
-                </div>
-              )}
+                </dl>
+                <dl className="meta">
+                  <div className="stat">
+                    <dt className="kick">Glass</dt>
+                    <dd>{spec.glass}</dd>
+                  </div>
+                  <div className="stat">
+                    <dt className="kick">Garnish</dt>
+                    <dd>{spec.garnish}</dd>
+                  </div>
+                </dl>
+                <p className="how">
+                  <span className="kick">Method</span> {spec.method}
+                </p>
+              </div>
+              <span className="scroll-cue" aria-hidden="true">▾ more below</span>
+            </div>
 
-              {/* Rendered only when there is a sentence. An empty chip pair is a legal vote, and an
-                  empty dashed box would read as something that failed to load. */}
-              {phrase && (
-                <div className="phrase">
-                  <span>{phrase}</span>
-                </div>
-              )}
+            <div className="verdict">
+              <div className="vote" role="group" aria-label="Your verdict on this spec">
+                <button
+                  type="button"
+                  className="vbtn v-yikes"
+                  aria-pressed={side === "yikes"}
+                  onClick={() => castVote("yikes")}
+                >
+                  <span>Yikes ✗</span>
+                </button>
+                <button
+                  type="button"
+                  className="vbtn v-likes"
+                  aria-pressed={side === "likes"}
+                  onClick={() => castVote("likes")}
+                >
+                  <span>Likes ✓</span>
+                </button>
+              </div>
+              {/*
+                A button, not a third vote: "no opinion" is not an answer, and a visual peer of the
+                two votes would read as one. Demoted by WEIGHT only — no fill, no shadow, no display
+                face, and its ink RISES from --dim to --txt on hover rather than dropping.
+              */}
+              <div className="skiprow">
+                <button type="button" className="skip-btn" onClick={onSkip}>
+                  or skip this one
+                </button>
+              </div>
+            </div>
+          </article>
 
-              <button type="button" className="next" onClick={onNext}>
-                next
+          {/* ── back: the reasons ────────────────────────────────────────── */}
+          {/*
+            NO `inert` ATTRIBUTE, AND THAT IS DELIBERATE. The far face carries `visibility: hidden`
+            from the stylesheet, which already removes it from the tab order AND from the
+            accessibility tree — `inert` would be a second declaration of the same fact, and on
+            React 18 it is not a typed prop, so declaring it would mean a cast to assert something
+            the CSS already guarantees. `aria-hidden` stays because it is declarative and matches
+            the visibility exactly.
+          */}
+          <article className="face face-back" aria-hidden={!isBack} data-od-id="face-back">
+            <div className="row">
+              <span className="kick tf-plate"><span className="mis">the reasons</span></span>
+              <Record index={index} total={total} votes={votes} side={side} />
+            </div>
+
+            <div className="pan pan-reasons">
+              <div className="tf-plate big">
+                <h2
+                  className="btitle glitch-host"
+                  id="roast-card-reasons"
+                  data-glitch="the reasons for both"
+                  aria-label="the reasons for both"
+                >
+                  the reasons for both
+                </h2>
+              </div>
+              {/*
+                The composed sentence, from `phraseFor` in the app's own module. It falls back to
+                a mechanical join when a slot is unwritten — the phrase table is still marked
+                `TODO(copy session)` and every line in it is throwaway — so this is the one place
+                the authored copy lands when it does.
+              */}
+              <p className="kick tf-plate" id="roast-card-why">
+                {phrase || "grade a reason, then decide"}
+              </p>
+
+              <ul className="els">
+                {RAILS.map((rail) => (
+                  <li className="el" key={rail.key}>
+                    <Rail
+                      label={rail.label}
+                      value={grades[rail.key]}
+                      side={side}
+                      onChange={(next) => setGrades((prev) => ({ ...prev, [rail.key as RailKey]: next }))}
+                    />
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="actions">
+              <button type="button" className="back-btn" onClick={() => setPeek(true)}>
+                <span>↺ back to the drink</span>
               </button>
-            </FrameStack>
-          </div>
+              <button
+                type="button"
+                className="next-btn"
+                aria-label="next spec in the deck"
+                onClick={onNext}
+              >
+                <span>next ▸</span>
+              </button>
+            </div>
+          </article>
         </div>
       </div>
     </div>

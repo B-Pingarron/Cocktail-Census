@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import MartiniMark from "@/components/MartiniMark";
 import MenuCard from "@/components/MenuCard";
 import PartyAsk from "@/components/PartyAsk";
+import SessionNotice from "@/components/SessionNotice";
 import type { Room } from "@/data/roomCopy";
 
 /**
@@ -19,8 +20,15 @@ import type { Room } from "@/data/roomCopy";
  *   what they walked into.
  *
  * A ROOM WITH NO DOOR IS NOT A GAP IN THE TEMPLATE. The Recipe Manager has no app to enter
- * and the Compositor's destination is a later build, so neither invents one; the ask is how
- * out of the Recipe Manager, and the demo is how the Compositor explains itself.
+ * and the Compositor's destination is a later build, so neither invents one; the demo is how the
+ * Compositor explains itself, and the Recipe Manager gets a closing line (`room.closing`) instead
+ * of a front door it does not have. That closing line is temporary (2026-10-12): it exists
+ * because the app's ask is switched off in `PartyAsk`, and the ask was this room's only way in.
+ *
+ * THE SESSION LINE IS MOUNTED HERE, AND ONLY FOR ROAST. That room is the one that hands over an
+ * identifier to a round, so that is the one that says so before the door — see `SessionNotice`.
+ * Mounting it from here (rather than from `RoastEnter`) was deliberate: the entry screen was
+ * being rewritten by a concurrent session, and an informational line is not worth a merge.
  *
  * NO ARRIVAL ANIMATION HERE, and the reason is in MenuCard: a page turn needs two mounted
  * layers, a route change has one, and three attempts have already failed at this.
@@ -96,6 +104,14 @@ const RoomExplainer = ({ room }: { room: Room }) => (
           {room.door.label}
         </Link>
       )}
+
+      {/* The closing line, where a door would be. Set only on the room that has no door and no
+          other way in, so the page ends deliberately instead of just stopping. */}
+      {room.closing && (
+        <p className="font-body text-sm leading-relaxed text-muted-foreground">{room.closing}</p>
+      )}
+
+      {room.id === "roast" && <SessionNotice />}
 
       <PartyAsk />
 

@@ -48,10 +48,19 @@ export const HUB_STANDFIRST =
  * now, so the placeholders are gone rather than left answering "coming" about things that
  * have arrived.
  *
- * THE COMPOSITOR AND THE RECIPE MANAGER EACH HAVE ONE DOOR, not two. There is no app to
- * enter: the Compositor's room explains itself with its recorded demo, and the Recipe
- * Manager's ask is how you get in. A second door with nothing behind it is the exact thing
- * the /soon page used to be.
+ * THE COMPOSITOR AND THE RECIPE MANAGER EACH HAVE ONE DOOR, not two, AND THAT IS STILL TRUE.
+ *
+ * There is no app to enter: the Compositor's room explains itself with its recorded demo, and the
+ * RECIPE MANAGER IS A DIFFERENT PRODUCT THAT DOES NOT EXIST YET. An earlier edit on 2026-10-06 gave
+ * this seat a `straight in` pointing at `/roast/roster`, on the reasoning that the editor had landed.
+ * THAT WAS WRONG and it has been reverted. What landed is ROAST's OWN mini recipe manager -- the editor,
+ * the roster, the submission, the Pool. The Recipe Manager is a separate build, seeded by this one but
+ * with a bigger library capacity and COLLECTIONS, and section 7b is explicit about which of the two owns
+ * a collection: "A user's library is not a Collection. It is `specs where session_id = me and retired_at
+ * is null`. `collections`/`collection_specs` stay reserved for curated lists."
+ *
+ * So this seat keeps `learn more` until its own product is built. Pointing it at ROAST's roster would
+ * promise a library with collections and deliver one author's roast deck.
  *
  * About is one line and one door: there is nothing to learn about a page that does
  * not exist yet, so a second door would be a lie with extra steps.

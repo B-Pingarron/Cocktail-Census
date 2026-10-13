@@ -1,0 +1,57 @@
+-ux ui mastery:
+
+v1) reads good on mobile, fonts ok, , Background too bright some text is unreadable. card layouts are kind of ok. i like the "start roasting 15 specs the easiest thing here" element. dont like the way the stickers/post-it notes are displayed, but the essence is ok. 
+
+v2) the main difference i notice here is the top menu. everything else feels kind of similar to v1. readability is definitely better
+
+v3) probably my fave of them all, i like the header with name and basic stats. , and the button at the bottom
+
+-design taste:
+
+v1. ) on a first look, i like it. i like the background with texture, the shadows on the elements, the comic vibe, text is readable. menu is solid and doesnt hurt the eyes, but it might still be too much brightness in the brightest in the top left (most yellow point). ***
+i dont know if the grain on the door is intentional, but i dont hate it. adds a bit to the glitchiness vibe i want to bring there. 
+the card here is really cool too specially the frame, i like this vibe. problems are that its all crammed too much, name is behind the progress bar, drink image is hiding behind everything. i like the exture inside the progress bar tho. very nice. last bit of te card html is broken, but i loke te vibes. plus, te ilustration is not that bad, im really surprised. i also like the palette changes!
+
+v2) idea is interesting if we had time to actually build  a 3d room and make the spec a poster, but we dont have it. the car looks nice, framing and details are cool, tape, shadows, 3d and comics, all tere, thats awesome. but we are building mobile first app and this layout wont work unless we make it an actual small poster and zooms in on click. similar to v1, i like the risky idea but the execution is not great, and maybe not for this app,or at least this stage. door is cool.
+
+v3)different background and palette, i like the texture, yeah, makes it very comic like. in terms of the card, same layering issues (content too tight, no space for images when its all on one face of the card. readability is good tho, fonts are cool, probably the most sober of the 3. start roasting button is ok, menu is kinda meh. not sure if this was designed as mobile first, if it spreads so wide...
+
+- make interfaces feel better:
+
+v1.- like paletes and the card frame nice neon grandient. the menu is definitley a no go, the background is cool but theres no frame on the text, and it reads really really bad with bright background and white text. menu is definitley bad, but i dont hate the order and layout, just that theres no bacground on the frames for the text. guide is aon ok idea, but not how i wouldve done it. not bad tho. enter is ok, like the other ones, from design taste, better. more grungy, less blue, more grainy.
+
+v2) more sober card, its ok as a simple look, dont hate it. menu has the same problems, no background on frames for text labels, but i like the waz more subtle texture on the background. 
+opnions on the guide and enter are same as v1
+
+v3) same as v2 really, dont see much motion, much details.
+
+
+-Agents skills:
+
+
+v1 ) the card: love the framing on this one, and the style, probably one of my favs so far, at least the neon glow, and the card os not bad either. . dont like everything one face, the layout  as it is. love the motion on the likes/yikes clicks.  ****
+the menu here looks cool, readable, nice contrast, hint of the sunset vibes. 
+
+v2 and v3( not bad at all either, my favourite menu from this set is v2,  in terms of the card i feel like they are all similar, i dont see any changes with the mootion toggle on or off. but i like the little animation on the likes/yikes/skip buttons. i would still leave skip out or give it way less weight.
+
+
+Taste-skill:
+
+v1) the texture is too much, but apart from that, also not bad. i like all the titles and big letterings (old fashioned, read the card, stamp it) with "shadow" design. and the menu buttons look greate really. nice comic vibe. maybe its just too much on the background, the dots that almost, look like forming squares.  the card is not bad, honestly, one o g the bests,on the sober direction. not bad
+
+v2) its o, a mimddle point in between 1 and 3
+
+v3) definetley best cocktail card of the set. but the menu best is for v1
+
+
+- Mobile app ui design:
+
+v1) honestly, this is the closest to my original work on onepage io, at least the borders of the cocktail cards (which doesnt necesarily means i like it for the future of the project). this also might be one of the most readable of them all. i dont like how the ingredients are writen (from left to right, instead of a top/bottom list). i cant say my word on the guide section, its all kinda broken. ive seen better proposals for the menu from other skills. but theres something i like on the enter, and that is, the "logo" in yellow and shadow of a 3d kinda rendering on pink. looks cool.
+
+v2) nothing speciall really. 
+
+v3) same as v2.
+
+***extra note 1.- what about we spread the sunset palette in 2: bright colors (yellow to orange to red to pink) and dark (pink to lila to purple to dark blue), and use the dark colors for backgrounds, and the bright colors for accents??
+
+**** considering options, im thinking maybe reducing the cards widtch a bit, leve space for some lables on the sides, 3 on each. left is for yikes, right side is for likes, we can grade intensity of like/yike, then once that is chosen, the labels flip and show the elements (balance, ingredients, etc)

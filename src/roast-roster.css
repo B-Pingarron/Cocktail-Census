@@ -1,0 +1,689 @@
+/* ══════════════════════════════════════════════════════════════════════════════
+   ROAST — /roast/roster · "My drinks" — THE WIRING PASS.
+
+   This is the FIRST stylesheet this page has ever had. RoastRoster.tsx was built
+   from Tailwind utilities over `.roast` (rounded-md, border-gold/25, bg-card,
+   px-6 py-8) and rendered inside <MenuCard>. There was no roster stylesheet to map
+   onto, so unlike the menu — whose names already existed in roast-menu.css — this
+   file CREATES the vocabulary rather than substituting it. The page is the same
+   page: `reload`, `rpc`, `submit`, `toggle`, the four RPCs, the three row actions,
+   the toggle, and the classes. Only the classes moved — and the ONE copy change since
+   is the primary's label, which now comes from `selectionLabel()` in lib/roster.ts
+   (see the note under THE SUBMISSION below and RoastRoster.tsx's header).
+
+   Scoped under `.roast.roast-roster`, matching the app's per-room convention
+   (roast-enter.css, roast-menu.css). That convention is also why this file can keep
+   the study's plain names — `.frame`, `.row`, `.box`, `.primary` — instead of a
+   prefix: a `.roast.roast-roster .frame` rule is (0,3,0), so it beats any bare
+   `.frame` from anywhere, and no other room's markup is ever inside this root.
+
+   ONE NAME THE APP ALREADY OWNS: `.kick`, at roast.css:330 — sans, --fs-label,
+   0.16em tracking. This room overrides it in-scope to the family's mono micro
+   register. That override is deliberate and is the only one in this file.
+
+   ─────────────────────────────────────────────────────────────────────────────
+   §10 WAS HALF WRONG, SIXTH TIME. The handoff lists /roast/roster among the rooms
+   with "no design exists at all". The PAGE existed and carried its own copy; what
+   never existed was a study. So this is a wiring pass on a built, copy-bearing
+   screen, not a room invented from nothing.
+
+   THE TWO NOUNS, kept apart because the source says confusing them cost this
+   project real time. roster.ts, verbatim:
+
+     "the user creates a spec, right? then he creates more. those are NOT
+      submissions, those are simply their specs. their library. a submission is a
+      selection of those drinks, minimum of 3, that the author want to submit to
+      the arena."
+
+   So there are two facts on this screen and they keep two regions: the LIBRARY
+   (`specs where session_id = me and retired_at is null`) is the row list, and the
+   SUBMISSION (a selection of three or more, entered deliberately) is the block at
+   the foot with the toggle. WHY THE TOGGLE IS NOT PER DRINK, from the same source:
+   "A per-card switch could only ever submit one, which the database refuses."
+
+   ─────────────────────────────────────────────────────────────────────────────
+   ONE TEXTURE PER ELEMENT — the author's 2026-10-09 ruling, applied literally:
+
+       the ground   HALFTONE only — a 2x field and a loose 3x field, each on its
+                    own pseudo-element so the rule holds by construction and not by
+                    intent (two elements, two textures, no element carries both).
+       the frame    THE FILM (scanlines) only — a CHILD of .frame at z-index 3, so it
+                    stops dead at the plate's edge and no pixel outside carries it.
+                    This room is menu-family: it is a SCREEN surface, so it takes the
+                    screen's texture. (The card and the verdict readout are PRINT
+                    surfaces: halftone + dither.)
+       the patch    DITHER only, as a background LAYER on .tf-plate, so the glyph
+                    paints above it by construction. The film still crosses it,
+                    because the film belongs to the frame ELEMENT; published below
+                    so nobody reads the one-per-element rule as broken.
+
+   NOT HERE: tape (the menu's front-door idiom — repeating it in every room makes it
+   wallpaper), grain (assigned to Enter by name), glass pans (the card's), keylines,
+   notches and pixel corners (all DON'T).
+
+   ─────────────────────────────────────────────────────────────────────────────
+   CONTRAST — COMPUTED ARITHMETICALLY, NEVER FELT. Method: sRGB relative luminance
+   per WCAG 2.x (linearise each channel, 0.2126/0.7152/0.0722, ratio = (L1+0.05)/
+   (L2+0.05), lighter first). Composites are done per-pixel in sRGB and the resulting
+   8-bit value is what gets linearised — never an average of two ratios.
+
+   REPRODUCED — seventeen figures already published in this project, recomputed from
+   the hex values. They are the calibration, and they are why a NEW figure below
+   means anything at all:
+
+     --txt  #f2eeff on --plate #151327 .........  15.98:1   AAA
+     --dim  #b8aed0 on --plate .................   8.67:1   AAA
+     --b    #ffd400 on --plate .................  12.71:1   AAA
+     #fff            on --plate ................  18.19:1   AAA
+     --a    #ff3366 on --plate .................   5.13:1   AA
+     --txt  on --ink #050409 ...................  17.95:1   AAA
+     --dim  on --ink ...........................   9.73:1   AAA
+     #000   on --b  (a primary's ink) ..........  14.67:1   AAA
+     --plate on the ground's pink #ff3366 ......   5.13:1   the frame draws here
+     --plate on the ground's lila #b8aed0 ......   8.67:1
+     --plate on the ground's violet #7b5cff ....   4.17:1
+     --plate on the ink floor #050409 ..........   1.12:1   NOTHING draws  ← named
+     --a vs --ok, lime .........................   1.05:1   NAMED DEFECT
+     --a vs --ok, amber ........................   1.02:1   NAMED DEFECT
+     --b lime #7b5cff on --plate #151327 .......   4.17:1   NAMED DEFECT
+     --b lime on --plate lime #0b0813 ..........   4.55:1   AA, no margin
+     --rim rgba(255,255,255,.44) on --plate ....   4.35:1   every hairline and row rule
+
+   NEW — same method, and the two that decided this design:
+
+     #000 on the ground's pink #ff3366 .........   5.92:1   the frame's edge draws
+     #000 on the ground's lila #b8aed0 .........  10.00:1   and here it draws HARDEST
+     #000 on the ground's #2a2140 band .........   1.39:1   and here it stops
+     #000 on the ink floor #050409 .............   1.03:1   ← the arena's own figure
+
+     ** CORRECTED, ITEM F20 — the lila row, and it is a transposition, not a bad sum. ** The row
+     published 2.10:1 under the caption "and here it stops", which contradicts both its own number
+     and its own column: `#000` on `#b8aed0` is **10.00:1**, so the frame's black edge is at its
+     STRONGEST on the light lila, not at a stopping point. The three rows around it recompute to
+     the digit (5.92 / 1.39 / 1.03), so the method is sound and this one row was the outlier.
+     2.10:1 is a real figure — it is `#fff` on `#b8aed0` — so the RATIO was right and the
+     FOREGROUND was carried over from the other direction. The "stops" caption has moved to the
+     1.39 row, where the sixteen-point drop actually happens.
+     Corroboration that the ground and the method are both fine: the adjacent row records this
+     same lila ground FROM THE OTHER SIDE as `--plate on the ground's lila #b8aed0 ..... 8.67:1`,
+     and a pair's ratio is symmetric, so that figure is untouched by this correction.
+     The four grounds are this room's own gradient (`:162`):
+     `#ff3366 0%, #b8aed0 26%, #7b5cff 58%, #2a2140 82%, var(--ink) 100%`.
+     --rim on the ink floor ....................   4.89:1   so the rule survives the foot
+     --txt on --plate + film ...................  15.85:1   the film costs 0.13
+     --dim on --plate + film ...................   8.60:1   the film costs 0.07
+     --txt on --plate + dither + film ..........  15.40:1   the title patch's glyph
+     --dim on --plate + dither (bright cell) ...   8.13:1   the bounded worst case
+
+     --dim on the docked foot #0a0714 ..........   9.49:1   the status line
+     --txt on the docked foot #0a0714 ..........  17.50:1
+     --rim rgba(255,255,255,.44) on #0a0714 ....   4.32:1   the bar's own top rule
+
+   THE GROUND'S MIDDLE BAND IS WHY EVERYTHING CARRIES A HAIRLINE. `--plate` against
+   #2a2140 is 1.20:1 and against the ink floor 1.12:1 — between the violet stop and
+   the foot the page is effectively black and a `--plate` panel has NO fill boundary
+   at all. That is not hidden here; it is why the frame takes an INSET 1px `--rim`
+   hairline (4.35:1, 4.89:1 at the foot) and why every row is separated by the same
+   value. The plate reads as a plate even where its outer edge cannot be measured,
+   and the film is the second discriminator — the plate carries a texture the ground
+   does not.
+
+   ─────────────────────────────────────────────────────────────────────────────
+   THE ONE THING THAT HAD TO CHANGE TO FIT THIS APP, and it changes no pixels.
+
+   The study mounted the ground as three sibling divs at `z-index:-2` and `-1`, which
+   is correct against a bare page. In this app it would render NOTHING: `.roast` is
+   `position:relative` with `background:#050409` (roast.css:75) and no z-index, so it
+   does not create a stacking context — a negative-z-index descendant paints BEFORE
+   ordinary block backgrounds and is covered by that `#050409`. The room's ground is
+   therefore the root's OWN background plus two pseudo-elements, which is the same
+   three layers in the same order with no negative z-index and no texture divs. The
+   gradient, the alphas, the masks and the cell sizes are the study's, value for
+   value; only the paint route differs, and it differs so that the ground exists.
+
+   ─────────────────────────────────────────────────────────────────────────────
+   THE DENSITY FLOOR IS NO LONGER RESTATED HERE — IT WAS HOISTED, WHICH IS WHAT THIS
+   COMMENT SAID WAS THE END STATE. Through the roster's wiring pass roast.css still
+   carried the pre-density ladder (10/11/13/15/17/24/30/36) while every approved study
+   used the compact floor the editor pass set, so this room restated the five steps it
+   read. The wiring pass's first step re-homed the floor in roast.css — see that file's
+   "THE SECOND PASS" note — so the restatement is deleted and this room inherits, at the
+   same numbers it declared. The app's own card and verdict page move with it, in the
+   direction the author asked for by eye.
+ */
+
+.roast.roast-roster {
+  /* THE FAMILY VOCABULARY IS NO LONGER RESTATED HERE — IT WAS HOISTED. See the block
+     comment above, and roast.css's own "THE FAMILY VOCABULARY" section: the compact
+     ladder, --ink, --rim, --p-edge, --c-edge, --col and both font stacks now live on
+     the room's root and are read from there by every room in the family. This file was
+     the copy that proved the point — five ladder steps, six token restatements and two
+     font stacks duplicating a vocabulary that had exactly one canonical home going
+     spare. */
+
+  /* `--ease` MOVED TO roast.css IN THE SAME STEP, and the move is written down rather than done
+     silently. Three rooms were carrying two values — this file's .2/.7/.3/1 against the arena's
+     and the menu's .22/.61/.36/1 — so one of them had to give. The family value is the 2-of-3
+     one, which means this room's hover easing changes to a curve whose difference at these
+     durations is not perceptible; it is recorded here precisely because it is a change to an
+     approved file. Law 11 governs the CARD'S TURN (`--turn`, .62s) and is untouched. */
+
+  /* ── THE GROUND — the sunset's dark half, falling to the app's own arena floor.
+     The MENU stands on the full-strength wash (the bright front desk); every room
+     you walk into stands on this, so the walk from the desk into the room is a
+     darkening. Copied verbatim from the editor so the family cannot drift into four
+     sunsets, and it replaces `.roast`'s flat #050409 — see the paint-route note. */
+  background: linear-gradient(168deg, #ff3366 0%, #b8aed0 26%, #7b5cff 58%, #2a2140 82%, var(--ink) 100%);
+}
+
+/* The two halftone fields, one texture each on one element each. Fixed, because the
+   ground must not scroll with the list; masked and opposed so the middle of the page —
+   where the rows are — stays clean and the dots bloom at the head and the foot. */
+.roast.roast-roster::before,
+.roast.roast-roster::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-repeat: repeat;
+}
+.roast.roast-roster::before {
+  opacity: .48;
+  background-image: var(--tex-dot);
+  background-size: var(--dot-cell) var(--dot-cell);
+  -webkit-mask-image: linear-gradient(180deg, #000 0 9%, transparent 20% 74%, #000 92% 100%);
+          mask-image: linear-gradient(180deg, #000 0 9%, transparent 20% 74%, #000 92% 100%);
+}
+.roast.roast-roster::after {
+  opacity: .5;
+  background-image: var(--tex-dot-loose);
+  background-size: var(--dot-cell-loose) var(--dot-cell-loose);
+  background-position: 9px 7px;
+  -webkit-mask-image: linear-gradient(0deg, #000 0 22%, transparent 46%, #000 78% 100%);
+          mask-image: linear-gradient(0deg, #000 0 22%, transparent 46%, #000 78% 100%);
+}
+
+/* ══ THE PAGE COLUMN ══════════════════════════════════════════════════════════
+ * padding-inline 18px: the title patch's 6px --b impression is inset 6px and
+ * translated 6px, so the furthest ink reaches the patch edge inside the frame; 18px
+ * keeps the frame's own 5px black edge and its 5px offset plate clear of the clip.
+ * overflow-x:clip because the frame is rotated — `clip`, not `hidden`, because a
+ * hidden axis computes the other to auto and turns the page into a scroll container.
+ */
+.roast.roast-roster .page {
+  position: relative;
+  z-index: 10;
+  max-width: calc(var(--col) + 36px);
+  margin: 0 auto;
+  padding: 20px 18px calc(20px + env(safe-area-inset-bottom, 0px));
+  overflow-x: clip;
+}
+
+/* ══ THE EXIT ═════════════════════════════════════════════════════════════════
+ * ExitLink is a shared component and is NOT restyled as a component — this rule
+ * reaches only the copy of it that sits inside this room. The app's exit is
+ * lounge-styled (text-muted-foreground, no ground); here it takes a plate and arena
+ * type, so no glyph in this room sits on the wash. Presentation restyle only, and it
+ * is (0,3,1): it beats every Tailwind utility on the same anchor.
+ */
+.roast.roast-roster .exitrow { text-align: center; margin-bottom: 12px; }
+.roast.roast-roster .exitrow a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 12px;
+  background: var(--plate);
+  border: var(--c-edge) solid #000;
+  box-shadow: 3px 3px 0 #000;
+  color: var(--txt);
+  text-decoration: none;
+  font-size: var(--fs-label);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  transition: box-shadow .15s var(--ease), transform .15s var(--ease);
+}
+/* hover lifts the chip and adds a --b rim. The foreground never moves toward the
+   background, so the label's 15.98:1 holds in every state. */
+.roast.roast-roster .exitrow a:hover {
+  box-shadow: 3px 3px 0 #000, 0 0 0 2px var(--b);
+  transform: translateY(-1px);
+}
+
+/* ══ THE FRAME — what MenuCard was, now the room's own plate ═══════════════════
+ * 5px hard black edge, a 5px offset black plate, square, rotated -.6deg. Its one
+ * texture is the film child below; its inset 1px --rim hairline is what draws the
+ * plate's own edge where the fill cannot (1.20:1 on the #2a2140 band, 1.12:1 on the
+ * ink floor). Square and NOT notched: `frame-notch`, `frame-pixel`, `frame-soft` and
+ * `frame-edge-keyline` are all DON'T in the 2026-10-09 selection.
+ */
+.roast.roast-roster .frame {
+  position: relative;
+  z-index: 2;
+  background: var(--plate);
+  border: var(--edge) solid #000;
+  box-shadow: 5px 5px 0 #000, inset 0 0 0 1px var(--rim);
+  transform: rotate(-.6deg);
+  padding: 12px 11px 13px;
+}
+.roast.roast-roster .frame > * { position: relative; z-index: 2; }
+
+/* THE FILM — the menu's value for value: 1px of #ffffff05 every 5px, drifting one
+   full period over 9s, linear. A CHILD of the frame at z-index 3, so it stops at the
+   plate's edge. The drift is `background-position` and not a transform: a translated
+   layer would need overscan the frame cannot clip without cutting the offset plate at
+   the bottom edge. */
+.roast.roast-roster .frame > .film {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  background-image: var(--tex-film);
+  background-position: 0 0;
+  animation: rr-film-drift 9s linear infinite;
+}
+@keyframes rr-film-drift {
+  from { background-position: 0 0; }
+  to   { background-position: 0 5px; }
+}
+
+/* ══ THE BAR — the room's name, inside its own frame ═══════════════════════════
+ * §11's "the strip and five entries and nothing else" is the MENU's content
+ * contract, not this room's. What transfers is the placement: every room in this
+ * family keeps its name inside its frame. The bar is closed by the same hairline
+ * device every section head uses, so it reads as a PART of the plate rather than as
+ * a fourth plate stacked on it — which is the defect the editor's merge was fixing.
+ */
+.roast.roast-roster .bar {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  flex-wrap: wrap;
+  padding-bottom: 9px;
+  border-bottom: 1px solid var(--rim);
+}
+/* the only name this room takes from the app and re-registers. roast.css:330 owns
+   `.kick`; inside this room it becomes the family's mono micro eyebrow. */
+.roast.roast-roster .kick {
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+.roast.roast-roster .title {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  flex-wrap: wrap;
+  font-size: var(--fs-display-xs);
+  line-height: 1;
+}
+.roast.roast-roster .title .t {
+  font-family: var(--font-display);
+  font-style: italic;
+  text-transform: uppercase;
+  letter-spacing: -.012em;
+  color: #fff;
+  display: inline-block;
+  transform: rotate(-.6deg);
+  transform-origin: 50% 50%;
+}
+/* .triple — the room's name, and only the room's name. The author's mark, verbatim:
+   "i want a triple-print name here", source runs/agent-skills/v1.html · .card-name:
+   text-shadow:3px 3px 0 #000, 6px 6px 0 var(--b); transform:rotate(-.6deg).
+   Three impressions in press order — the paper (the white glyph), the key plate in
+   black at 3px, then --b alone at 6px. Shadow order matters: the FIRST entry paints
+   on top, so black sits OVER --b and the accent is never covered by the key. THE
+   BLACK IS A PRINT, NOT A GROUND: it does not sit against the plate, it CUTS the --b
+   plate behind it, at 14.67:1. No impression overlaps the glyph, so --b carries no
+   text and law 13 is untouched. ACCENT BUDGET: this print is the room's first
+   appearance and the action bar's primary fill is the second. TWO. */
+.roast.roast-roster .triple { text-shadow: 3px 3px 0 #000, 6px 6px 0 var(--b); }
+
+/* ══ THE PATCH — the plate under the name ══════════════════════════════════════
+ * Its fill IS the frame's ground (the same token, 1:1) and both its edge and its
+ * shadow are #000 at 1.15:1 against --plate, so without the ring it is a shape you
+ * have to infer from the glyph inside it. That is the defect the author marked on the
+ * menu's title patch, and the cure is his: "can we get some outline here for better
+ * definition? make it 2 px to begin with." The outline is the file's own paper — no
+ * new colour — and it clears the 3:1 a real boundary needs: #fff on --plate 18.19:1.
+ * It carries no glyph (an outline cannot), so the accent budget is unaffected.
+ * `outline` NEVER affects layout, which is why the frame's padding did not move.
+ */
+.roast.roast-roster .tf-plate {
+  display: inline-block;
+  max-width: 100%;
+  background-color: var(--plate);
+  background-image: var(--tex-dither);
+  background-size: var(--dither-cell) var(--dither-cell), var(--dither-cell) var(--dither-cell);
+  background-position: 0 0, calc(var(--dither-cell) / 2) calc(var(--dither-cell) / 2);
+  border: var(--p-edge) solid #000;
+  box-shadow: 3px 3px 0 #000;
+  padding: 2px 7px 3px;
+  outline: 2px solid #fff;
+  outline-offset: 0;
+}
+/* .big is used by ONE element — the room's name. The padding is the patch's
+   clearance for the third impression: a 6px offset needs 6px of padding-box to land
+   inside it rather than flush against the die edge, which reads as a clip. */
+.roast.roast-roster .tf-plate.big { padding: 5px 12px 10px; box-shadow: 4px 4px 0 #000; }
+
+/* ══ TYPE — the app's own sentences, in the family's registers ═════════════════ */
+.roast.roast-roster .lede {
+  margin-top: 10px;
+  font-size: var(--fs-small);
+  line-height: 1.45;
+  color: var(--txt);
+}
+.roast.roast-roster .note {
+  margin-top: 6px;
+  font-size: var(--fs-label);
+  line-height: 1.45;
+  color: var(--dim);
+}
+/* the section head is a kicker and a rule, and NOTHING ELSE. A number in the right
+   slot would restate the sentence directly under it — the redundancy this project has
+   rejected twice — so the head carries no readout at all. */
+.roast.roast-roster .sec { display: flex; align-items: center; gap: 8px; margin-top: 14px; }
+.roast.roast-roster .sec .hair { flex: 1 1 auto; height: 1px; background: var(--rim); }
+
+/* ══ THE LIBRARY — the rows ════════════════════════════════════════════════════
+ * NO PER-ROW PLATE. The app renders each spec as `rounded-md border border-gold/25`
+ * — a rounded lounge plaque inside a card. Here the frame IS the row's ground, and a
+ * panel inside a panel is the redundancy corrected twice on the card's spec list. The
+ * rows are separated by the file's one hairline value — the same rule that draws them
+ * where the plate's own fill boundary has collapsed against the dark ground.
+ */
+.roast.roast-roster .lib { list-style: none; margin-top: 6px; }
+.roast.roast-roster .row + .row { border-top: 1px solid var(--rim); }
+.roast.roast-roster .pick {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 44px;
+  padding: 5px 0 2px;
+  cursor: pointer;
+}
+/* the box: `appearance:none` so it stays a real checkbox to the keyboard and the a11y
+   tree, drawn as the family's ✓ glyph. UNCHECKED is transparent with a --rim edge;
+   CHECKED is white paper with a black edge and a black ✓ — PAPER, not accent, so the
+   budget stays at two, and the state is carried by FILL + GLYPH, never by a tint. */
+.roast.roast-roster .box {
+  appearance: none;
+  -webkit-appearance: none;
+  flex: 0 0 auto;
+  width: 20px;
+  height: 20px;
+  display: grid;
+  place-items: center;
+  border: var(--c-edge) solid var(--rim);
+  background: transparent;
+  transition: background .12s var(--ease), border-color .12s var(--ease);
+}
+.roast.roast-roster .box::after { content: "✓"; font-size: 12px; line-height: 1; color: #000; opacity: 0; }
+.roast.roast-roster .box:checked { background: #fff; border-color: #000; }
+.roast.roast-roster .box:checked::after { opacity: 1; }
+
+.roast.roast-roster .txt { min-width: 0; }
+.roast.roast-roster .nm {
+  display: block;
+  font-size: var(--fs-small);
+  line-height: 1.25;
+  color: var(--txt);
+  overflow-wrap: anywhere;
+}
+.roast.roast-roster .mt {
+  display: block;
+  margin-top: 2px;
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  color: var(--dim);
+  overflow-wrap: anywhere;
+}
+/* the state, law 5: a WORD plus a SHAPE at IDENTICAL contrast. Dimming a name to
+   signal a state lowers contrast, which this room does nowhere. Only two states can
+   appear here — `library()` filters retired specs out before the rows are built — so
+   there is no `.st--retired` rule: a selector with no element is the dead declaration
+   this project does not keep. */
+.roast.roast-roster .st { display: inline-flex; align-items: center; gap: 4px; }
+.roast.roast-roster .st::before { content: ""; width: 8px; height: 8px; border: 1px solid var(--txt); }
+.roast.roast-roster .st--live::before { background: var(--txt); }
+.roast.roast-roster .st--draft::before { background: transparent; }
+
+.roast.roast-roster .acts { display: flex; align-items: center; gap: 4px 12px; flex-wrap: wrap; padding-bottom: 5px; }
+.roast.roast-roster .act {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0;
+  background: none;
+  border: 0;
+  font-family: inherit;
+  font-size: var(--fs-label);
+  color: var(--dim);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  transition: color .12s var(--ease);
+}
+/* hover raises the ink toward --txt (8.67 -> 15.98) and never toward the ground. A DISABLED
+   action is excluded rather than merely left un-pressed: `:hover` still matches on a disabled
+   button, so without the guard a busy row's links would light up under the thumb. */
+.roast.roast-roster .act:hover:not([disabled]) { color: var(--txt); }
+.roast.roast-roster .act[disabled] { cursor: default; }
+.roast.roast-roster .empty { margin-top: 8px; font-size: var(--fs-small); line-height: 1.45; color: var(--dim); }
+
+/* ══ THE DOOR — secondary: a plate with a keyline and no fill ══════════════════ */
+.roast.roast-roster .door {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  margin-top: 10px;
+  background: var(--plate);
+  border: var(--c-edge) solid var(--rim);
+  color: var(--txt);
+  text-decoration: none;
+  font-size: var(--fs-small);
+  letter-spacing: .04em;
+  transition: border-color .12s var(--ease), box-shadow .15s var(--ease);
+}
+.roast.roast-roster .door:hover { border-color: var(--b); box-shadow: 3px 3px 0 #000; }
+
+/* ══ THE SUBMISSION — the second region, and the only other control ════════════
+ * The toggle is a PLATE WITH A KEYLINE AND NO FILL, deliberately secondary: in the
+ * app this button and the sticky action wore the SAME weight (both were
+ * `border border-gold/40`) AND nearly the same word. That is the defect — two
+ * controls for two different facts, dressed as one.
+ *
+ * BOTH HALVES ARE FIXED NOW, and they were one defect. The weight is this file's.
+ * The WORD is `selectionLabel()`'s: `save_submission` writes the SELECTION and lists
+ * nothing, `set_submission_listed` is what submits, so the primary says "Save this
+ * selection" / "Update my selection" and the TOGGLE KEEPS THE ONLY "submit" IN THE
+ * ROOM. Fixed in RoastRoster.tsx and in the study in the same pass, so the two cannot
+ * drift apart again. Nothing in this file changed for it — the class is the same class.
+ */
+.roast.roast-roster .probs { list-style: none; margin-top: 6px; }
+.roast.roast-roster .probs li {
+  position: relative;
+  padding-left: 14px;
+  font-size: var(--fs-label);
+  line-height: 1.45;
+  color: var(--txt);
+}
+/* the problem is marked with a SHAPE as well as the sentence, so the list is not
+   only text and the mark is not only colour. */
+.roast.roast-roster .probs li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 5px;
+  width: 8px;
+  height: 8px;
+  border: 1px solid var(--a);
+}
+.roast.roast-roster .toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 44px;
+  margin-top: 10px;
+  background: var(--plate);
+  border: var(--c-edge) solid var(--rim);
+  color: var(--txt);
+  font-family: inherit;
+  font-size: var(--fs-small);
+  cursor: pointer;
+  transition: border-color .12s var(--ease), box-shadow .15s var(--ease);
+}
+.roast.roast-roster .toggle:hover { border-color: var(--b); box-shadow: 3px 3px 0 #000; }
+.roast.roast-roster .toggle[aria-pressed="true"] { border-color: var(--b); }
+/* RESTATED ON PURPOSE, and this is the third time this project has had to. `.toggle` declares
+   `display:flex` in the AUTHOR sheet, and an author declaration beats the UA sheet's
+   `[hidden]{display:none}` no matter that `hidden` is a semantic attribute — so a toggle with no
+   label would still paint as an empty 44px button. The editor hit the identical trap on
+   `.note-line` and `.pr-more`; here it is guarded by construction. */
+.roast.roast-roster .toggle[hidden] { display: none; }
+/* an EMPTY <ul> still spends its own margin-top. The list has to stay in the DOM, because the
+   primary carries `aria-describedby` pointing at it, so it is de-spaced rather than unmounted. */
+.roast.roast-roster .probs:empty { margin-top: 0; }
+
+/* ══ THE ACTION BAR — the room's one act, docked at the PLATE'S own foot ══════
+ * DOCKED FOOT, 2026-10-12 — lifted from the study's own change 2, which is where the
+ * reasoning is written out in full. It is INSIDE `.frame` now, after the toggle, as the plate's last child —
+ * the same object as the editor's save bar, whose card carries the identical -.6deg
+ * rotation and the identical sticky foot. It began at the column level so its sticky
+ * ancestor would be untransformed; the containing block is the frame instead, and the
+ * sticky offset is still measured against the document scrollport, which is what the
+ * app's own note requires: "the browser pass measured it at y=1080 on an 844-tall
+ * screen — BELOW THE FOLD". If an engine disagrees the degradation is benign: the bar
+ * simply sits at the plate's foot.
+ *
+ * THREE VALUES MOVED WITH IT, each already argued elsewhere in this file:
+ *   · the top rule is the .44 hairline (4.32:1 over the new fill), not a 5px black
+ *     band. That band drew because the bar sat on the WASH, where #000 is 4.82:1;
+ *     inside the plate #000 on --plate is 1.15:1 and would draw NOTHING.
+ *   · the fill is #0a0714, the editor's docked-foot value: --plate on a --plate
+ *     ground is 1:1, so a docked bar has to sit a shade under the plate it docks to.
+ *   · `z-index: 2`, under the film's 3 — the bar is PART OF the plate, so it keeps the
+ *     plate's one texture instead of punching a hole in it. It still paints over the
+ *     rows and the toggle, which are unpositioned. `.frame > *` already sets z-index 2;
+ *     this rule would win on source order, so the value is restated here.
+ *
+ * THE STATUS LINE IS ABOVE THE BUTTON, so the card ends on its one primary.
+ * The bar does NOT bleed past the frame's padding: every other block inside the plate
+ * is inset by the same amount, and a negative margin would also paint over the frame's
+ * inset rim hairline at the bottom corners.
+ */
+.roast.roast-roster .actionbar {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  margin-top: 14px;
+  padding: 10px 0 calc(8px + env(safe-area-inset-bottom, 0px));
+  background: #0a0714;
+  border-top: 2px solid var(--rim);
+  box-shadow: 0 -7px 20px rgba(0, 0, 0, .55);
+}
+.roast.roast-roster .primary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 48px;
+  background: var(--b);
+  border: var(--c-edge) solid #000;
+  box-shadow: 4px 4px 0 #000;
+  color: #000;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: var(--fs-action);
+  letter-spacing: .02em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: box-shadow .15s var(--ease), transform .15s var(--ease);
+}
+/* hover LIFTS (bigger offset) and never writes the ink; :active presses. Both keep
+   #000 on --b at 14.67:1 in every palette, and neither touches the foreground. */
+.roast.roast-roster .primary:hover:not([disabled]) { box-shadow: 5px 5px 0 #000; transform: translate(-1px, -1px); }
+.roast.roast-roster .primary:active:not([disabled]) { box-shadow: 1px 1px 0 #000; transform: translate(2px, 2px); }
+/* DISABLED KEEPS ITS ACCENT FILL AND LOSES ITS HARD SHADOW — the SHAPE channel, not
+   a wash. The label already carries the reason ("Pick at least three"), and the
+   sentence list is wired to the button with aria-describedby so it is announced once
+   rather than twice. The app's `disabled:opacity-40` is gone with it: opacity on a
+   filled control lowers its own contrast, which is the one thing a disabled state is
+   allowed to do and the one thing this room chooses not to. */
+.roast.roast-roster .primary[disabled] { cursor: not-allowed; box-shadow: none; transform: none; }
+/* the one link that carries `?dry=1` forward — ExitLink takes no flag, which is why this copy
+   survives the study's single-exit layout. Quiet register and centred: the top chip is the exit,
+   this is the footnote. */
+.roast.roast-roster .foot { margin-top: 10px; text-align: center; }
+/* ABOVE the primary now, so the last thing in the room is its one act (change 7). The
+   6px gap moved from the top to the bottom; --dim on the bar's #0a0714 is 9.49:1. */
+.roast.roast-roster .status {
+  margin: 0 0 7px;
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  line-height: 1.4;
+  color: var(--dim);
+}
+
+/* ══ THE LOADING AND FAILED STATES — the app's own two sentences ═══════════════
+ * Kept OUT of the frame so the frame can be swapped whole, and PLATED: --dim on the
+ * wash's pink band is 1.69:1, and 1.00:1 where the gradient passes through --dim's
+ * own value. The sentence travels with its own ground, like every other glyph here.
+ */
+.roast.roast-roster .alt {
+  padding: 22px 14px;
+  background: var(--plate);
+  border: var(--c-edge) solid #000;
+  box-shadow: 4px 4px 0 #000;
+}
+.roast.roast-roster .alt p { font-size: var(--fs-small); color: var(--dim); }
+
+/* ══ FOCUS ═════════════════════════════════════════════════════════════════════
+ * Every focusable element carries a visible ring, and the tone is chosen so it clears
+ * 3:1 against what it sits on. Default: --b on the plate (12.71:1). The PRIMARY's own
+ * ground IS --b, so a --b ring on it would be 1:1 — it takes #000 (14.67:1). The
+ * CHECKBOX is white when checked, so it takes #fff at a 2px offset: the gap shows the
+ * plate, which separates the ring from the box by VALUE rather than by hue.
+ */
+.roast.roast-roster :focus-visible { outline: 3px solid var(--b); outline-offset: 2px; }
+.roast.roast-roster .primary:focus-visible { outline-color: #000; }
+.roast.roast-roster .box:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
+.roast.roast-roster .toggle:focus-visible,
+.roast.roast-roster .door:focus-visible,
+.roast.roast-roster .exitrow a:focus-visible,
+.roast.roast-roster .act:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
+
+/* ══ REDUCED MOTION IS A BRANCH, NOT AN AFTERTHOUGHT ═══════════════════════════
+ * The film's drift is CSS, so silencing the animation is the whole job here — and the
+ * film stays VISIBLE and still, it does not disappear. The study also carried
+ * [data-motion="still"] rules that had to be kept identical to this query; this room
+ * ships no manual control, so there is no second copy to drift out of parity with.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .roast.roast-roster .frame > .film { animation: none; }
+  .roast.roast-roster .exitrow a,
+  .roast.roast-roster .door,
+  .roast.roast-roster .toggle,
+  .roast.roast-roster .primary,
+  .roast.roast-roster .box,
+  .roast.roast-roster .act { transition: none; }
+  .roast.roast-roster .exitrow a:hover,
+  .roast.roast-roster .primary:hover:not([disabled]) { transform: none; }
+  .roast.roast-roster * { scroll-behavior: auto !important; }
+}
+
+/* ══ NARROW — 320px-class devices ══════════════════════════════════════════════
+ * The room list's action line is the only thing that can pinch, and it wraps rather
+ * than clipping; the column loses 4px of padding.
+ */
+@media (max-width: 359px) {
+  .roast.roast-roster .page { padding-left: 14px; padding-right: 14px; }
+  .roast.roast-roster .acts { gap: 2px 9px; }
+  .roast.roast-roster .frame { padding: 10px 9px 11px; }
+}

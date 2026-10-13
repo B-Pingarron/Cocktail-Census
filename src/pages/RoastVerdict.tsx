@@ -6,6 +6,7 @@ import { noteById, roastNotes } from "@/data/roastNotes";
 import { ROAST_LIST_ID, roastSpecs } from "@/data/roastSpecs";
 import { getSessionId } from "@/lib/session";
 import { supabase } from "@/lib/supabase";
+import { SPECS_PER_ROUND, roundCount } from "@/lib/rounds";
 import {
   formatPercent,
   crossLine,
@@ -21,6 +22,7 @@ import {
 } from "@/lib/verdict";
 import type { CensusVoteRow, RoastVoteRow, Tally, VoteValue } from "@/lib/verdict";
 import "@/roast.css";
+import "@/roast-review.css";
 
 /**
  * The verdict — screen 3 of ROAST, and the payoff of the whole game (plan §5).
@@ -40,6 +42,30 @@ import "@/roast.css";
  * AGGREGATE ONLY. The two rates are compared to each other and never to a per-drink number: there is
  * no per-spec comparison on this screen and there must not be one. The per-spec rows are the room's
  * own split, which is a different statement.
+ *
+ * ─────────────────────────────────────────────────────────────────────────────────────────────
+ * THE WIRING PASS (2026-10-12) replaced the `.vd-*` block of roast.css with this room's own
+ * vocabulary in "@/roast-review.css", which is scoped `.roast.roast-review`. The page is the same
+ * page: the same three selects, the same all-or-nothing failure, the same module calls, the same
+ * sentences. Three things changed in the LAYERING, and each is one rule to revert:
+ *
+ *   1. THE TWO RATES LIVE IN ONE PLATE, STACKED. They were side by side; at 360px that is two 158px
+ *      plates and the old CSS already needed `min-width: 0` to survive. One full-width plate gives
+ *      each rate ~302px, every proportion on the page can share ONE block scale, and the comparison
+ *      this page exists to make happens inside one object.
+ *   2. THE SPEC LIST IS GROUPED BY THE DECK'S OWN ROUNDS — three groups of five from lib/rounds.ts's
+ *      SPECS_PER_ROUND, whose "Round 1 of 3" is the app's own phrasing (`recapLine` opens every
+ *      boundary sentence with it). A fifteen-row wall becomes the deck's shape.
+ *   3. A WAITING SPEC HAS NO BAR. The module is explicit: "A spec reading 0 / 0 would be a claim the
+ *      room has not made." The old block field printed twelve unlit blocks for a spec nobody had
+ *      reached, which is exactly that claim. The word takes the count slot now and a dotted rule
+ *      holds nothing.
+ *
+ * The `draft · awaiting approval` chips are NOT decoration: VERDICT_HINT and the four CROSS_LINES
+ * branches are marked DRAFT inside the frozen module ("he did not pick a wording for these four
+ * branches… and these are the agent's on the same footing"), and a screen that presents an unpicked
+ * draft as the design is claiming authority it has not got. NO_CLASSICS_LINE is the author's own, so
+ * the no-classics branch carries no chip.
  */
 
 /** The element ids, in the vocabulary's order. verdict.ts cannot import the vocabulary, so it takes
@@ -99,49 +125,84 @@ const asCensusRows = (data: unknown): CensusVoteRow[] => {
   return rows;
 };
 
-/** One rate, its label and its sample size. The sample is not decoration: a percentage alone cannot
- *  be read, and this screen is read at a bar. */
-const TallyCard = ({ label, tally: t, unit }: { label: string; tally: Tally; unit: string }) => (
-  <div className="vd-tally">
-    <span className="kick">{label}</span>
-    <span className="vd-pct">{formatPercent(t.rate)}</span>
-    <span className="vd-sample">
-      {t.total === 0 ? "nothing voted yet" : `${t.agree} of ${t.total} ${unit}`}
-    </span>
-  </div>
-);
-
 /**
- * The segmented bar, on the deck's healthbar block treatment. The counts are printed beside it as
- * text: the bar is the glance, the numbers are the record, and the bar is aria-hidden for exactly
- * that reason.
+ * THE BLOCK FIELD. The app's own healthbar block: 12 blocks, 8px, 2px black border, heights cycling
+ * hi/md/lo. That cycle is the deck's low-fi rhythm and is DECORATIVE — it repeats every three whatever
+ * the state, so it cannot be misread as data. Position is the load-bearing channel (agreement always
+ * left of disagreement), the black seam between the runs survives greyscale, and the counts are
+ * printed as text beside every bar. aria-hidden, which is the app's own decision: "the bar is the
+ * glance, the numbers are the record, and the bar is aria-hidden for exactly that reason."
  */
-const SplitBlocks = ({ tally: t }: { tally: Tally | null }) => {
+const BlockField = ({ tally: t, small }: { tally: Tally | null; small?: boolean }) => {
   const bar = splitBar(t ?? NO_VOTES);
   return (
-    <div className="hp vd-hp" aria-hidden="true">
+    <span className={small ? "blk blk--sm" : "blk"} aria-hidden="true">
       {Array.from({ length: bar.blocks }, (_, i) => {
         const height = i % 3 === 0 ? "hi" : i % 3 === 1 ? "md" : "lo";
-        if (i < bar.agree) return <i key={i} className={`on ag ${height}`} />;
-        if (i < bar.agree + bar.disagree) return <i key={i} className={`on dg ${height}`} />;
+        if (i < bar.agree) return <i key={i} className={`${height} ag`} />;
+        if (i < bar.agree + bar.disagree) return <i key={i} className={`${height} dg`} />;
         return <i key={i} className={height} />;
       })}
-    </div>
+    </span>
   );
 };
 
-/** One spec of the deck, in deck order. No votes reads as waiting, never as a zero. */
-const SpecRow = ({ name, t }: { name: string; t: Tally | null }) => (
-  <li className="vd-spec">
-    <div className="vd-specname">
-      <b>{name}</b>
-      {t ? (
-        <span className="vd-count">{`${t.agree} agree · ${t.disagree} disagree`}</span>
-      ) : (
-        <span className="vd-wait">waiting</span>
-      )}
+/**
+ * One rate, its label and its sample size. The sample is not decoration: a percentage alone cannot be
+ * read, and this screen is read at a bar. The percentage is `--txt`, not `--b`, and that is measured
+ * rather than budgeted — white on --plate is 15.98:1 in all four palettes, where --b is 4.55:1 in
+ * lime. Display type is AA-large either way; white is the better floor.
+ */
+const RateRow = ({ label, tally: t, unit }: { label: string; tally: Tally; unit: string }) => (
+  <div className="rec-row">
+    <div className="rec-top">
+      <span className="rec-lab">{label}</span>
+      <span className="rec-sam">
+        {t.total === 0 ? "nothing voted yet" : `${t.agree} of ${t.total} ${unit}`}
+      </span>
     </div>
-    <SplitBlocks tally={t} />
+    <div className="rec-mid">
+      <span className="rec-pct">{formatPercent(t.rate)}</span>
+      <BlockField tally={t} />
+    </div>
+  </div>
+);
+
+/** A provisional mark. Dashed and unfilled: it spends no accent. */
+const DraftChip = () => <span className="draft">draft · awaiting approval</span>;
+
+/**
+ * THE ONE MECHANICALLY DERIVED LINE, with its label bolded. The SENTENCE is the frozen module's own —
+ * the prefix is measured off `fightLine`'s output rather than retyped here, so lib/verdict.ts stays
+ * the single source of that wording and this component cannot drift from it.
+ */
+const FightLine = ({ label, line }: { label: string; line: string }) => {
+  const at = line.indexOf(label);
+  if (at < 0) return <p className="fight">{line}</p>;
+  return (
+    <p className="fight">
+      {line.slice(0, at)}
+      <b>{label}</b>
+    </p>
+  );
+};
+
+/** One spec of the deck. No votes reads as waiting, never as a zero, and draws no bar. */
+const SpecRow = ({ name, t }: { name: string; t: Tally | null }) => (
+  <li className={t ? "row" : "row row--wait"}>
+    <div className="row-top">
+      <span className="row-name">{name}</span>
+      <span className="row-count">
+        {t ? `${t.agree} agree · ${t.disagree} disagree` : "waiting"}
+      </span>
+    </div>
+    {t ? (
+      <BlockField tally={t} small />
+    ) : (
+      <div className="row-wait">
+        <span className="fill" />
+      </div>
+    )}
   </li>
 );
 
@@ -158,11 +219,11 @@ const SpecRow = ({ name, t }: { name: string; t: Tally | null }) => (
  * open, but the ask is, and "ask for the beta" says exactly that without over-claiming.
  */
 const exits = (
-  <div className="vd-exits">
-    <Link to="/census" className="vd-cta">
+  <div className="exits">
+    <Link to="/census" className="cta">
       Now do the classics.
     </Link>
-    <Link to="/room/recipe-manager" className="vd-beta">
+    <Link to="/room/recipe-manager" className="beta">
       ask for the beta
     </Link>
   </div>
@@ -241,20 +302,11 @@ const RoastVerdict = () => {
    * surrounding shapes — the tallies, the buckets, the copy — do not change when that arrives.
    */
   const shell = (children: ReactNode) => (
-    <div className="roast vd">
-      <div className="vd-wrap">
+    <div className="roast roast-review">
+      <div className="col">
+        <ExitLink where="menu" className="exit" />
         <span className="kick">Roast · the review</span>
-        <h1 className="vd-title">The verdict</h1>
-      {/*
-        The emergency exit, in the header rather than with the doors below. The two forward
-        doors belong at the end of the page — you read the result, then you choose where to go —
-        but an escape hatch that only appears after scrolling a fifteen-row tally is not an
-        escape hatch. This leaves the doors where they are and puts the way out where it is
-        already on screen.
-      */}
-      <div className="mb-2">
-        <ExitLink where="menu" />
-      </div>
+        <h1 className="title">The verdict</h1>
         {children}
         {exits}
       </div>
@@ -263,22 +315,33 @@ const RoastVerdict = () => {
 
   if (state.status === "offline") {
     return shell(
-      <p className="vd-state">
-        No tally connected. This screen is a read of the room's votes, and with no database client
-        there is nothing to read. The roast still works — the deck just writes nothing.
-      </p>
+      <div className="rp state">
+        <p>
+          No tally connected. This screen is a read of the room's votes, and with no database client
+          there is nothing to read. The roast still works — the deck just writes nothing.
+        </p>
+      </div>
     );
   }
 
   if (state.status === "loading") {
-    return shell(<p className="vd-state">Reading the room…</p>);
+    return shell(
+      <div className="rp state">
+        <p>Reading the room…</p>
+        {/* The one animated element on the page, and the only thing the reduced-motion branch has to
+            reach. It is a real pending read, not decoration. */}
+        <span className="sweep" aria-hidden="true">
+          <i />
+        </span>
+      </div>
+    );
   }
 
   if (state.status === "failed") {
     return shell(
-      <p className="vd-state">
-        The tally didn't answer. It is one read, so it is worth a reload in a minute.
-      </p>
+      <div className="rp state">
+        <p>The tally didn't answer. It is one read, so it is worth a reload in a minute.</p>
+      </div>
     );
   }
 
@@ -292,7 +355,13 @@ const RoastVerdict = () => {
   const bySpec = tallyBySpec(room);
   const disagreeLabels = labelCounts(room.filter((r) => r.vote === "disagree"));
   const top = topLabel(disagreeLabels, ELEMENT_IDS);
-  const fight = fightLine(top ? (noteById(top.id)?.text ?? null) : null);
+  const fightLabel = top ? (noteById(top.id)?.text ?? null) : null;
+  const fight = fightLine(fightLabel);
+
+  /* The deck's own shape: rounds of SPECS_PER_ROUND, from lib/rounds.ts. Both ends clamped, so a
+     short deck cannot produce an inverted range. */
+  const per = SPECS_PER_ROUND;
+  const rounds = roundCount(roastSpecs.length, per);
 
   return shell(
     <>
@@ -303,33 +372,61 @@ const RoastVerdict = () => {
         moment you submit you are both a Roaster and a Contender, and an adaptive page would hide your
         own Submission the moment you had one — which is backwards.
 
-        The two shapes were already being rendered here: `TallyCard` and `SplitBlocks` carry both
-        readings. This is a split, not a new screen.
+        The two shapes were already being rendered here. This is a split, not a new screen.
       */}
-      <h2 className="vd-sub">Your record, as a Roaster</h2>
-      <p className="vd-line">{bucket.text}</p>
+      <h2 className="sub">Your record, as a Roaster</h2>
 
-      <div className="vd-tallies">
-        <TallyCard label="you vs the classics" tally={classicsTally} unit="classics" />
-        <TallyCard label="you vs the author" tally={myTally} unit="specs" />
+      {/* THE VERDICT PATCH — the author's line about the visitor, given the weight of an answer. Its
+          fill is --plate on a --plate ground, so the only thing drawing it is the paper ring. */}
+      <div className="rp verdict">
+        <p>{bucket.text}</p>
       </div>
-      <p className="vd-hint">{VERDICT_HINT}</p>
 
-      {/* Absent only when the visitor rated nothing at all — see crossLine. Silence beats a branch
-          invented to fill the gap. */}
-      {comparison && (
-        <p className="vd-cross">
-          <span>{comparison.text}</span>
-        </p>
-      )}
+      {/* THE RECORD — both rates in one plate, stacked, then the hint, then the cross line. The
+          comparison the page exists to make happens inside one object. */}
+      <div className="rp record">
+        <RateRow label="you vs the author" tally={myTally} unit="specs" />
+        <div className="rule" />
+        <RateRow label="you vs the classics" tally={classicsTally} unit="classics" />
+        <div className="rec-cap">
+          <p className="rec-hint">{VERDICT_HINT}</p>
+          <DraftChip />
+          {/* Absent only when the visitor rated nothing at all — see crossLine. Silence beats a
+              branch invented to fill the gap. */}
+          {comparison && (
+            <div className="rec-cross">
+              <span>{comparison.text}</span>
+            </div>
+          )}
+          {/* No chip on the no-classics branch: that sentence is the author's own, not a draft. */}
+          {comparison && comparison.id !== "no-classics" && <DraftChip />}
+        </div>
+      </div>
 
-      <h2 className="vd-sub">The room, spec by spec</h2>
-      {fight && <p className="vd-fight">{fight}</p>}
-      <ul className="vd-specs">
-        {roastSpecs.map((spec) => (
-          <SpecRow key={spec.id} name={spec.name} t={bySpec.get(spec.id)?.tally ?? null} />
-        ))}
-      </ul>
+      <h2 className="sub">The room, spec by spec</h2>
+      {fight && fightLabel && <FightLine label={fightLabel} line={fight} />}
+
+      {Array.from({ length: rounds }, (_, r) => {
+        const from = r * per;
+        const to = Math.min(from + per, roastSpecs.length);
+        const slice = roastSpecs.slice(from, to);
+        const reached = slice.filter((spec) => bySpec.has(spec.id)).length;
+        return (
+          <div className="rp sheet" key={`round-${r}`}>
+            <div className="sheet-head">
+              {/* "Round n of m" is the app's own phrasing for this fact — `recapLine` opens every
+                  boundary sentence with it — so the group header is the deck's wording. */}
+              <span className="kick">{`Round ${r + 1} of ${rounds}`}</span>
+              <span className="sheet-n">{`${reached} of ${slice.length} with votes`}</span>
+            </div>
+            <ul className="rows">
+              {slice.map((spec) => (
+                <SpecRow key={spec.id} name={spec.name} t={bySpec.get(spec.id)?.tally ?? null} />
+              ))}
+            </ul>
+          </div>
+        );
+      })}
 
       {/*
         THE CONTENDER READING — and the empty state is the real design work, not an afterthought.
@@ -338,11 +435,13 @@ const RoastVerdict = () => {
         roasted but not yet submitted — which is every visitor until 5c ships the editor. It says what
         will fill it and how, and it does not dress itself up as a result.
       */}
-      <h2 className="vd-sub">Your Submission</h2>
-      <p className="vd-empty">
-        Nothing submitted yet. When you write your own specs and send them to the arena, the room's
-        answer lands here — who agreed, who didn't, and on which of them.
-      </p>
+      <h2 className="sub">Your Submission</h2>
+      <div className="rp empty">
+        <p>
+          Nothing submitted yet. When you write your own specs and send them to the arena, the room's
+          answer lands here — who agreed, who didn't, and on which of them.
+        </p>
+      </div>
     </>
   );
 };

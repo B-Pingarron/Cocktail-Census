@@ -1,0 +1,420 @@
+/* ══════════════════════════════════════════════════════════════════════════════
+   ROAST — /roast/keep · "Your things" — THE WIRING PASS.
+
+   THIS IS THE FIRST STYLESHEET THIS PAGE HAS EVER HAD. RoastRecovery.tsx was built
+   from Tailwind utilities over `.roast` (rounded-md, border-gold/25, text-cream,
+   bg-transparent) and rendered inside <MenuCard>. There was no keep stylesheet to map
+   onto, so this file CREATES the vocabulary rather than substituting it — the same
+   position the roster and the editor were in. The page is the same page: `loadForExport`,
+   `copy`, `restore`, `download`, the three RPC-free paths, `encodeKey`/`decodeKey`/
+   `keyAdvice`, and every sentence. Only the classes moved.
+
+   Scoped under `.roast.roast-keep`, matching the app's per-room convention
+   (roast-enter.css, roast-menu.css, roast-roster.css, roast-edit.css, roast-arena.css).
+   That convention is why this file can keep the study's plain names — `.frame`, `.key`,
+   `.primary` — instead of a prefix: a `.roast.roast-keep .frame` rule is (0,3,0), so it
+   beats a bare `.frame` or a Tailwind utility from anywhere, and no other room's markup
+   is ever inside this root.
+
+   ONE NAME THE APP ALREADY OWNS: `.kick`, at roast.css. This room overrides it in-scope to
+   the family's mono micro register. That override is the only one in this file.
+
+   ─────────────────────────────────────────────────────────────────────────────
+   §10 WAS HALF WRONG, SEVENTH TIME. The handoff lists /roast/keep among the rooms with
+   "no design exists at all". The PAGE existed and carried its own copy; what never existed
+   was a study. This is a wiring pass on a built, copy-bearing screen.
+
+   THE TWO HALVES DO OPPOSITE THINGS, and that is the whole design of this page, stated in
+   the page's own header (handoff §7b):
+
+     "Recovery is the SESSION KEY, exported as a saveable string or QR: the data is already
+      server-side, only the key is lost. The CSV export stays recipes-only."
+
+   So RECOVERY restores a CLAIM — the specs never left the database, and pasting a key back
+   is all it takes. The EXPORT takes a COPY — for leaving with your work, not for coming
+   back to it. "Mixing them would produce a screen that promises one and delivers the
+   other." They are carried apart by STRUCTURE, not by colour: the key half is an OBJECT
+   (a patch, with the ring and the dither) and the export half is a READOUT (text, a count
+   sentence, the generated row, on hairlines). No invented labels and no drawn arrow — five
+   invented CSS glyphs were refused on the menu's doors for the same reason.
+
+   WHY THE KEY IS SHOWN IN FULL. The page's own comment: "It is not a password. ADR-035 has
+   no accounts, so there is nothing this string unlocks that its holder was not already
+   given — and hiding it behind a 'show' toggle would imply a secrecy the design does not
+   have." So no reveal control, `user-select: all` so one tap takes the whole string, and a
+   real `tabindex="0"` so it is reachable by keyboard.
+
+   ─────────────────────────────────────────────────────────────────────────────
+   ONE TEXTURE PER ELEMENT — the author's 2026-10-09 ruling, applied literally:
+
+       the ground   HALFTONE only — a 2x field and a loose 3x field, one on each
+                    pseudo-element, so the rule holds by construction and not by intent.
+       the frame    THE FILM (scanlines) only — a CHILD of .frame at z-index 3, so it stops
+                    dead at the plate's edge. This room is menu-family: it is a SCREEN
+                    surface, so it takes the screen's texture. (The card and the verdict
+                    readout are PRINT surfaces: halftone + dither.)
+       the patches  DITHER only, as a background LAYER on .tf-plate and .key, so the glyph
+                    paints above it by construction and no z-index has to be invented.
+
+   NOT HERE: tape and the misregister plates (the menu's front-door idioms — repeating them
+   in every room makes them wallpaper), and grain (the Enter page's, "losing signal").
+
+   ─────────────────────────────────────────────────────────────────────────────
+   CONTRAST — computed arithmetically, method in roast.css's measured record. This file
+   introduces no new pair; it states the ones it reads, against the two grounds it can be on
+   (`.frame`'s own --plate, and the wash where the patch and the primary do not sit):
+
+     --txt on --plate .................. 15.98:1   the key, the labels, the notes
+     --dim on --plate ..................  8.67:1   the advisory sentences, the status line
+     #000 on --b ....................... 14.67:1   the primary's label, all four palettes
+     --rim (.44 over --plate) ..........  4.36:1   the control edges and the hairlines
+     #fff on --plate ................... 18.19:1   the patch ring, and it carries no glyph
+     --b on --plate .................... 12.71:1 heat · 12.90 mag · 5.73 amber · 4.55 lime
+     #000 on the wash's pink band ......  5.92:1   the frame's edge, where the plate meets it
+
+   THE ONE FIGURE TO WATCH IS LIME'S --b AT 4.55:1 — AA for the primary's #000 label, and the
+   tightest pair in the file. It is a palette value, not a styling one.
+
+   THE PRIMARY'S FOCUS RING IS TWO-TONE, and it is not decoration: the primary's fill IS --b,
+   so a --b ring on it would paint colour on colour. White outline over a black halo — one of
+   the two always clears 3:1 against a ground that runs from the lila band to the ink floor.
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+/* ── THE GROUND — the sunset's dark half, falling to the app's own arena floor.
+   The MENU stands on the full-strength wash (the bright front desk); every room you walk
+   into stands on this, so the walk from the desk into the room is a darkening. Copied
+   verbatim from the roster and the editor so the family cannot drift into four sunsets, and
+   it replaces `.roast`'s flat #050409. */
+.roast.roast-keep {
+  position: relative;
+  min-height: 100vh;
+  padding: 20px 18px calc(20px + env(safe-area-inset-bottom, 0px));
+  overflow-x: clip;
+  background: linear-gradient(168deg, #ff3366 0%, #b8aed0 26%, #7b5cff 58%, #2a2140 82%, var(--ink) 100%);
+}
+
+/* The two halftone fields, one texture each on one element each. Fixed, because the ground
+   must not scroll with the page; masked and opposed so the middle of the page — where the
+   frame is — stays clean and the dots bloom at the head and the foot.
+
+   THE Z-INDEX IS NOT NEGATIVE, and that is the roster's recorded defect rather than a
+   preference: `.roast` is `position: relative` with a background and no z-index, so it
+   creates no stacking context, and a negative-index descendant paints BEFORE ordinary block
+   backgrounds and gets covered. z-index 0, with the content column lifted to 1. */
+.roast.roast-keep::before,
+.roast.roast-keep::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-repeat: repeat;
+}
+.roast.roast-keep::before {
+  opacity: .48;
+  background-image: var(--tex-dot);
+  background-size: var(--dot-cell) var(--dot-cell);
+  -webkit-mask-image: linear-gradient(180deg, #000 0 9%, transparent 20% 74%, #000 92% 100%);
+          mask-image: linear-gradient(180deg, #000 0 9%, transparent 20% 74%, #000 92% 100%);
+}
+.roast.roast-keep::after {
+  opacity: .5;
+  background-image: var(--tex-dot-loose);
+  background-size: var(--dot-cell-loose) var(--dot-cell-loose);
+  background-position: 9px 7px;
+  -webkit-mask-image: linear-gradient(0deg, #000 0 22%, transparent 46%, #000 78% 100%);
+          mask-image: linear-gradient(0deg, #000 0 22%, transparent 46%, #000 78% 100%);
+}
+
+/* THE COLUMN. The mockup put `max-width` on the page wrapper and the ground on separate
+   fixed layers; here the root carries the ground full-bleed and the column is this inner
+   element, so the wash reaches both edges on a wide screen. `overflow-x: clip` rather than
+   hidden: the frame rotates and carries a hard offset, and clip does not create a scroll
+   container the way hidden can. */
+.roast.roast-keep .col {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: calc(var(--col) + 36px);
+  margin: 0 auto;
+  overflow-x: clip;
+}
+
+/* ── THE EXIT — above the frame, centred, where ExitLink puts it. A patch, like the menu's
+   exit chip and the review's: the same object, because it is the same promise. ────────── */
+.roast.roast-keep .exitrow { text-align: center; margin-bottom: 12px; }
+/* the trailing one, below the frame, where the exit is the last thing on the page. */
+.roast.roast-keep .footlink { margin: 14px 0 0; text-align: center; }
+.roast.roast-keep .exit { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 12px;
+  background: var(--plate); color: var(--txt);
+  border: var(--c-edge) solid #000; box-shadow: 3px 3px 0 #000;
+  text-decoration: none;
+  font-family: var(--font-mono); font-size: var(--fs-label);
+  letter-spacing: .12em; text-transform: uppercase;
+  transition: box-shadow .15s var(--ease), transform .15s var(--ease);
+}
+.roast.roast-keep .exit:hover {
+  box-shadow: 3px 3px 0 #000, 0 0 0 2px var(--b);
+  transform: translateY(-1px);
+}
+
+/* ── THE FRAME — the family's. 5px hard black edge, a 5px offset black plate, square,
+   rotated -.6deg. Its one texture is the film child below; its inset 1px --rim hairline is
+   what draws the plate's own edge where the fill cannot (1.20:1 on the #2a2140 band, 1.12:1
+   on the ink floor). Square and NOT notched: `frame-notch`, `frame-pixel`, `frame-soft` and
+   `frame-edge-keyline` are all DON'T in the 2026-10-09 selection. */
+.roast.roast-keep .frame {
+  position: relative;
+  z-index: 2;
+  background: var(--plate);
+  border: var(--edge) solid #000;
+  box-shadow: 5px 5px 0 #000, inset 0 0 0 1px var(--rim);
+  transform: rotate(-.6deg);
+  padding: 12px 11px 13px;
+}
+.roast.roast-keep .frame > * { position: relative; z-index: 2; }
+
+/* THE FILM — the menu's value for value: 1px of #ffffff05 every 5px, drifting one full
+   period over 9s, linear. A CHILD of the frame at z-index 3, so it stops at the plate's
+   edge. The drift is `background-position` and not a transform: a translated layer needs
+   overscan the frame cannot clip without cutting the offset plate at the bottom edge.
+   UNDER REDUCED MOTION IT LOCKS STILL AND STAYS VISIBLE. It does not disappear. */
+.roast.roast-keep .frame > .film {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  background-image: var(--tex-film);
+  background-position: 0 0;
+  animation: keep-film-drift 9s linear infinite;
+}
+@keyframes keep-film-drift {
+  from { background-position: 0 0; }
+  to { background-position: 0 var(--film-gap); }
+}
+
+/* ── THE BAR — the room's name inside the frame, closed by the hairline every section head
+   uses, so it reads as a PART of the plate and not another plate stacked on it. A plate
+   here is the "plates and nameplates" defect the editor's merge was made to end. ──────── */
+.roast.roast-keep .bar {
+  display: flex; align-items: baseline; gap: 9px; flex-wrap: wrap;
+  padding-bottom: 9px; border-bottom: 1px solid var(--rim);
+}
+.roast.roast-keep .kick {
+  font-family: var(--font-mono); font-size: var(--fs-micro);
+  letter-spacing: .12em; text-transform: uppercase; color: var(--dim);
+}
+.roast.roast-keep .title {
+  display: flex; align-items: baseline; gap: 9px; flex-wrap: wrap;
+  font-size: var(--fs-display-xs); line-height: 1;
+}
+.roast.roast-keep .title .t {
+  font-family: var(--font-display); font-style: italic; text-transform: uppercase;
+  letter-spacing: -.012em; color: #fff; display: inline-block;
+  transform: rotate(-.6deg); transform-origin: 50% 50%;
+}
+/* .triple — the page's name, and only the page's name. The author's mark, verbatim:
+   "i want a triple-print name here", source runs/agent-skills/v1.html · .card-name:
+   text-shadow: 3px 3px 0 #000, 6px 6px 0 var(--b); transform: rotate(-.6deg).
+   Three impressions in press order — paper, the black key plate at 3px, then --b alone at
+   6px. The FIRST entry in a shadow list paints on top, so black sits over --b and the accent
+   is never covered by the key plate. THE BLACK IS A PRINT, NOT A GROUND: it does not sit
+   against the plate, it CUTS the --b plate behind it, 14.67:1. No impression overlaps the
+   glyph, so --b carries no text (law 13). ACCENT BUDGET: this print is the file's first
+   appearance, the primary's fill in the docked foot is the second. TWO. */
+.roast.roast-keep .triple { text-shadow: 3px 3px 0 #000, 6px 6px 0 var(--b); }
+
+/* ── THE PATCHES — the element name the 2026-10-09 selection already uses.
+   A --plate fill on a --plate ground is 1:1, and both the edge and the shadow are #000 at
+   1.15:1 — so without the ring a patch is a shape the eye has to infer from the glyph inside
+   it. That is the defect he marked on the menu's title patch and his cure is the ring:
+   "can we get some outline here for better definition? make it 2 px to begin with." The
+   outline is the file's own paper (#fff on --plate 18.19:1), it carries no glyph, and an
+   outline never affects layout. */
+.roast.roast-keep .tf-plate {
+  display: inline-block;
+  border: var(--p-edge) solid #000;
+  box-shadow: 3px 3px 0 #000;
+  padding: 2px 7px 3px;
+  outline: 2px solid #fff; outline-offset: 0;
+  background-color: var(--plate);
+  background-image: var(--tex-dither);
+  background-size: var(--dither-cell) var(--dither-cell);
+  background-position: 0 0, calc(var(--dither-cell) / 2) calc(var(--dither-cell) / 2);
+}
+/* .big is used by ONE element — the room's name. The padding is the patch's clearance for
+   the third impression: a 6px offset needs 6px of padding-box to land inside it. */
+.roast.roast-keep .tf-plate.big { padding: 5px 12px 10px; box-shadow: 4px 4px 0 #000; }
+
+/* ── TYPE. The section heads are the app's own two kickers, divided by the file's one
+   hairline. ───────────────────────────────────────────────────────────────────────────── */
+.roast.roast-keep .sec { display: flex; align-items: center; gap: 8px; margin-top: 15px; }
+.roast.roast-keep .sec .hair { flex: 1 1 auto; height: 1px; background: var(--rim); }
+.roast.roast-keep .note {
+  margin-top: 6px; font-size: var(--fs-label); line-height: 1.45; color: var(--dim);
+}
+
+/* ── THE KEY — the room's first object, and a real string. overflow-wrap + break-all so the
+   54 characters wrap inside the patch instead of widening it; user-select:all so one tap
+   takes the whole thing, which is the whole point of showing it in full. ──────────────── */
+.roast.roast-keep .key-wrap { margin-top: 8px; }
+.roast.roast-keep .key {
+  display: block; width: 100%;
+  padding: 9px 11px 10px;
+  border: var(--p-edge) solid #000;
+  box-shadow: 3px 3px 0 #000;
+  outline: 2px solid #fff; outline-offset: 0;
+  background-color: var(--plate);
+  background-image: var(--tex-dither);
+  background-size: var(--dither-cell) var(--dither-cell);
+  background-position: 0 0, calc(var(--dither-cell) / 2) calc(var(--dither-cell) / 2);
+  font-family: var(--font-mono); font-size: var(--fs-label); line-height: 1.6;
+  color: var(--txt);
+  overflow-wrap: anywhere; word-break: break-all;
+  -webkit-user-select: all; user-select: all;
+}
+
+/* ── THE SECONDARY CONTROLS. Plate + --rim edge, no fill: the file's one primary is the
+   export in the docked foot, so nothing here competes with it. ─────────────────────────── */
+.roast.roast-keep .btn2 {
+  display: flex; align-items: center; justify-content: center;
+  width: 100%; min-height: 44px; margin-top: 8px;
+  background: var(--plate);
+  border: var(--c-edge) solid var(--rim);
+  color: var(--txt);
+  font-family: var(--font-body); font-size: var(--fs-small);
+  cursor: pointer;
+  transition: border-color .12s var(--ease), box-shadow .15s var(--ease);
+}
+.roast.roast-keep .btn2:hover:not([disabled]) { border-color: var(--b); box-shadow: 3px 3px 0 #000; }
+/* disabled is signalled by BOTH a word (the status line) and the loss of the shadow; the ink
+   is never dimmed below its measured pair. */
+.roast.roast-keep .btn2[disabled] { cursor: not-allowed; box-shadow: none; }
+
+.roast.roast-keep .lbl {
+  display: block; margin-top: 14px;
+  font-size: var(--fs-label); letter-spacing: .04em; color: var(--txt);
+}
+/* the restore field. --rim on --plate is 4.36:1, so the field's boundary draws even where
+   the plate's own fill boundary has collapsed against the dark ground. */
+.roast.roast-keep .restore {
+  display: block; width: 100%; margin-top: 6px;
+  padding: 9px 10px; min-height: 62px;
+  background: var(--plate);
+  border: var(--c-edge) solid var(--rim);
+  color: var(--txt);
+  font-family: var(--font-mono); font-size: var(--fs-label); line-height: 1.5;
+  resize: vertical;
+  overflow-wrap: anywhere;
+}
+.roast.roast-keep .restore::placeholder { color: var(--dim); }
+
+/* ── THE EXPORT — a READOUT, not a patch. Ruled by the file's one hairline, and the
+   generated row is the file's real shape. This is the half's object. ──────────────────── */
+.roast.roast-keep .readout { margin-top: 8px; padding-top: 9px; border-top: 1px solid var(--rim); }
+/* the header row the real columnsFor() writes. DECORATIVE TO A SCREEN READER and aria-hidden
+   ON PURPOSE: it is 204 characters of column names, and the count sentence directly above it
+   already carries the fact as a sentence. Printing it is how the "no cap" claim is made
+   visible instead of asserted. */
+.roast.roast-keep .rowline {
+  display: block; width: 100%; margin-top: 8px;
+  padding: 8px 10px;
+  background: var(--plate);
+  border: var(--c-edge) solid var(--rim);
+  font-family: var(--font-mono); font-size: var(--fs-micro); line-height: 1.6;
+  color: var(--txt);
+  white-space: pre-wrap; word-break: break-all;
+}
+/* THE GUARD, RE-POINTED — ITEM F8. The class it named, `.emptyrow`, exists in the study
+   (roast-keep.html:497 renders `class="note emptyrow"` carrying the very sentence this page
+   prints, hidden by state at :389) but was never carried into RoastRecovery.tsx: the app owns
+   that empty state as the `#ready` note, its two sentences are one ternary, and the header row
+   (`.rowline`) is conditionally rendered rather than hidden — so a `.emptyrow` rule was a guard
+   on a class nothing renders, the dead declaration this project's sheets condemn. The guard now
+   tracks the real element; it is still kept rather than relying on the branch, as before. */
+.roast.roast-keep #ready[hidden] { display: none; }
+
+/* ── THE DOCKED FOOT — the room's one act.
+   MOVED INSIDE THE FRAME. The study had it as a sibling under the plate, on the reasoning
+   that its sticky ancestor should be untransformed. Two things overrode that: the roster and
+   the editor now both dock their action bar into the plate's foot (the author's own note —
+   "submit at least 3 should be the bottom"), and a bar outside the frame reads as a second
+   object under the card rather than as the card's last line. Sticky inside a transformed
+   ancestor is what the editor already relies on: the containing block is the frame's padding
+   box and the offset is still measured against the document scrollport.
+   ONE-LINE REVERT: move the `.actionbar` element back out of `.frame` in RoastRecovery.tsx
+   and delete `position: sticky; bottom: 0`. */
+.roast.roast-keep .actionbar {
+  position: sticky; bottom: 0; z-index: 2;
+  margin-top: 14px; padding: 10px 0 4px;
+  /* --plate on --plate is 1:1, so the bar's ground is the editor's docked-foot value and its
+     top rule is the file's own hairline — a 5px #000 band here would draw 1.15:1, nothing. */
+  background: #0a0714;
+  border-top: 1px solid var(--rim);
+}
+.roast.roast-keep .primary {
+  display: flex; align-items: center; justify-content: center;
+  width: 100%; min-height: 48px;
+  background: var(--b);
+  border: var(--c-edge) solid #000;
+  box-shadow: 4px 4px 0 #000;
+  color: #000;
+  font-family: var(--font-display); font-style: italic;
+  font-size: var(--fs-action); letter-spacing: .02em; text-transform: uppercase;
+  cursor: pointer;
+  transition: box-shadow .15s var(--ease), transform .15s var(--ease);
+}
+.roast.roast-keep .primary:hover:not([disabled]) { box-shadow: 5px 5px 0 #000; transform: translate(-1px, -1px); }
+.roast.roast-keep .primary:active:not([disabled]) { box-shadow: 1px 1px 0 #000; transform: translate(2px, 2px); }
+/* DISABLED KEEPS ITS ACCENT FILL AND LOSES ITS HARD SHADOW — the shape channel, not a wash.
+   #000 on --b is 14.67:1 in every palette, so the label stays fully legible and the reason is
+   the sentence above, wired with aria-describedby. */
+.roast.roast-keep .primary[disabled] { cursor: not-allowed; box-shadow: none; transform: none; }
+.roast.roast-keep .status {
+  margin-top: 6px;
+  font-family: var(--font-mono); font-size: var(--fs-micro); line-height: 1.4;
+  color: var(--dim);
+}
+
+/* ── FOCUS. Every focusable element carries a visible ring and the tone is chosen so it clears
+   3:1 on what it sits against. Default --b on --plate = 12.71:1; the PRIMARY's ground IS --b,
+   so a --b ring on it would be colour on colour and it takes a two-tone paper/black ring; the
+   outline-only patches take #fff, the same paper as their ring.
+   `.primary:focus-visible` must be fully restated rather than left to the bare
+   `:focus-visible` rule: (0,3,0) vs (0,1,0) means the scoped rule's `outline` shorthand would
+   otherwise win and a focused primary would look exactly like a resting one. */
+.roast.roast-keep :focus-visible { outline: 3px solid var(--b); outline-offset: 2px; }
+.roast.roast-keep .primary:focus-visible {
+  outline: 3px solid #fff; outline-offset: 3px;
+  box-shadow: 4px 4px 0 #000, 0 0 0 7px #000;
+}
+.roast.roast-keep .key:focus-visible,
+.roast.roast-keep .tf-plate:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+.roast.roast-keep .restore:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
+.roast.roast-keep .btn2:focus-visible,
+.roast.roast-keep .exit:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
+
+/* ── REDUCED MOTION IS A BRANCH, NOT AN AFTERTHOUGHT. The film's drift is CSS, so silencing the
+   animation is the whole job — and the film stays VISIBLE and still; it does not disappear.
+
+   THE STUDY CARRIED A SECOND COPY OF THESE RULES under `[data-motion="still"]`, for its manual
+   toggle, and the author's rule is that a manual control must carry the SAME rules as this query.
+   THE APP HAS NO SUCH CONTROL, so that block is not ported — it would be four dead declarations, and
+   the roster and the editor made the same call for the same reason. When a manual motion control is
+   built, its rules are this list, stated a second time, and `html.rm *` comes with it. */
+@media (prefers-reduced-motion: reduce) {
+  .roast.roast-keep .frame > .film { animation: none; }
+  .roast.roast-keep .exit,
+  .roast.roast-keep .btn2,
+  .roast.roast-keep .primary { transition: none; }
+  .roast.roast-keep .exit:hover,
+  .roast.roast-keep .primary:hover:not([disabled]) { transform: none; }
+}
+
+/* THE NARROWEST CANVAS — 359px and below. The frame's padding gives the key patch its only
+   extra room; the column padding does the same for the frame. Nothing else changes, because
+   every other size in this file is already the compact floor. */
+@media (max-width: 359px) {
+  .roast.roast-keep { padding-left: 14px; padding-right: 14px; }
+  .roast.roast-keep .frame { padding: 10px 9px 11px; }
+}

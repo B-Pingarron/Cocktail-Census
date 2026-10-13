@@ -52,6 +52,32 @@ function mintUuid(): string {
 }
 
 /**
+ * Adopt an existing session id — the other half of recovery.
+ *
+ * WHY THIS LIVES HERE AND NOT IN THE RECOVERY SCREEN: this module owns `SESSION_KEY`. A second copy of
+ * that string in another file is the kind of duplication that drifts silently -- one of them gets renamed
+ * and the recovery screen writes to a key nobody reads, which looks exactly like recovery not working.
+ *
+ * WHAT IT DOES NOT DO: it does not validate. Deciding whether a pasted string is a plausible id is
+ * `lib/recovery.ts`'s job, and it has its own checks; this function writes what it is given, because it
+ * is the only thing that knows where the id is kept.
+ *
+ * Returns false when localStorage refused the write -- a full or unavailable store, which is a real case
+ * on a locked-down browser. The caller has to say so, because a silent failure here would tell a visitor
+ * their drinks were recovered when they were not.
+ */
+export function setSessionId(id: string): boolean {
+  const value = id.trim();
+  if (value === "") return false;
+  try {
+    localStorage.setItem(SESSION_KEY, value);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Get the current session id, minting one if this is the first visit.
  *
  * The id is stable across page reloads and "Reset progress" actions.

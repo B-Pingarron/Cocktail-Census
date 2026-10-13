@@ -1,0 +1,963 @@
+/*
+ * ROAST — THE ARENA ROOM (/roast/deck), wired from the approved study
+ * (roast-arena.html), which carried the card forward from roast-card-fit.html.
+ *
+ * SCOPED `.roast.roast-arena`, matching the family convention the menu and the roster already
+ * use. Two reasons, both load-bearing:
+ *
+ *   1. `.roast` alone is shared with every room, and a rule at (0,2,0) can be beaten by a later
+ *      block of the same weight on source order; (0,3,0) cannot. The arena also re-uses three of
+ *      the old card's names on purpose — `.vbtn`, `.skip`-adjacent controls and `.art` — and the
+ *      scope is what keeps them from fighting.
+ *   2. `.kick` and `.hp` are family vocabulary that other rooms consume too. Overriding them
+ *      *inside the room* is the roster's move and it is the right one: this room's kicker is the
+ *      mockup's, and each room states its own. (As of 2026-10-12 every room scopes both — the
+ *      review room took the last un-scoped readers with it when it was wired, and roast.css's base
+ *      `.kick` and `.hp` were deleted with them.)
+ *
+ * ── WHAT CHANGED IN THE APP, AND WHY IT IS NOT A SUBSTITUTION ───────────────
+ *
+ * The wiring plan said "the card is already there; this adds the room around it". Reading
+ * `RoastSpecCard.tsx` proved that wrong. The app renders the **v10 card** — a canvas pixel
+ * field, a rejection-sampled quad frame (`lib/frameGeometry.ts`), ink drips, tape, a neon SVG,
+ * and two axes of chips. The approved card is a different object: three glass pans on a plated
+ * face with two misregister plates, and **three bipolar rails** where the chips were.
+ *
+ * So this pass is a substitution for the ROOM and a replacement for the CARD. The rails are not
+ * a new model: the app's `roastNotes.ts` already holds exactly three element ids and a
+ * per-side ladder of three level words, and the mockup's seven-detent fader IS that ladder made
+ * spatial — -3..-1 is the yikes ladder, +1..+3 is the likes ladder, and the rail's own category
+ * is the element id. One rail gesture therefore produces a legal `roast_votes.labels` pair with
+ * no data change at all.
+ *
+ * ── THE RULES THAT ARE NOT MINE TO MOVE ─────────────────────────────────────
+ *
+ * LAW 11 — the card's turn is `.62s`, authored. This file declares it and does not re-derive it.
+ * LAW 13 — bright stops never carry text. Every glyph below sits on `--plate`, a `.tf-plate`
+ *          patch or a `.pan`; nothing sits on the wash.
+ * LAW 5  — no state is carried by colour alone. The rails have four channels (dot count, side of
+ *          centre, the word, and a hatch on a lit yikes dot) precisely because `--a` vs `--ok`
+ *          measures 1.05:1 in lime and 1.02:1 in amber.
+ *
+ * ── CONTRAST, COMPUTED ARITHMETICALLY ──────────────────────────────────────
+ *
+ * Method: WCAG 2.1 relative luminance. Each channel is linearised (c/12.92 below 0.04045,
+ * ((c+0.055)/1.055)^2.4 above), weighted 0.2126 R + 0.7152 G + 0.0722 B, and the ratio is
+ * (Llight + 0.05) / (Ldark + 0.05). Alpha composites are resolved BEFORE the ratio, in sRGB.
+ *
+ * FIRST, THE CALIBRATION — five figures the project has already published, reproduced here to
+ * the last decimal so the numbers below this line mean something:
+ *
+ *   --txt #f2eeff on --plate #151327 ........... 15.98:1
+ *   --dim #b8aed0 on --plate ...................  8.67:1
+ *   --b   #ffd400 on --plate ................... 12.71:1
+ *   #000 on --b ................................ 14.67:1
+ *   #000 on --ok #BDF524 ....................... 16.25:1
+ *   #000 on --a  #ff3366 .......................  5.92:1   (the named defect: --f2eeff #fff is 3.12:1, FAILS)
+ *
+ * SECOND, THE FIGURES THAT DECIDED THIS FILE:
+ *
+ *   #000 on --a at 40% over --ink .............. 1.03:1   the frame's black edge at the page's
+ *                                                          foot, where it stops drawing
+ *   --plate on the ground's #2a2140 band ....... 1.20:1   the card's fill boundary mid-page
+ *   --a #ff3366 at 40% over --ink .............. 1.03:1   the frame's black edge at the page's
+ *                                                          foot, where it stops drawing
+ *   --plate #151327 on the ground's #2a2140 .... 1.20:1   the card's fill boundary mid-page; the
+ *                                                          frame's 5px black edge is 4.82:1 there
+ *   --rail-line .14 over --rail ................ 1.55:1   the row hairline on a rail — decorative,
+ *                                                          carries no state and no boundary, and
+ *                                                          labelled as such rather than dressed as
+ *                                                          one
+ *   pan rim rgba(255,255,255,.26) over --plate . 2.32:1   UNDER 3:1, and that is known: the rim is
+ *                                                          not what draws the pan. Its lit top edge
+ *                                                          (inset .34) is 3.10:1 and the face's own
+ *                                                          5px --edge frame is 4.82:1 against the
+ *                                                          ground, and those two carry the boundary.
+ *   #fff on --plate (the paper ring) ........... 18.19:1
+ *   --txt on --rail #2a2140 .................... 13.27:1  the rail's grade readout
+ *   --dim on --rail ............................  7.20:1  the two poles
+ *   --slot on --plate ..........................  3.46:1  the unlit record block. It was 1.05:1
+ *                                                          once and the bar showed no length
+ *   --ok #BDF524 on --plate ....................  14.08:1  ** CORRECTED, ITEM F17 ** the token was
+ *                                                          written here as `--phos`, WHICH IS
+ *                                                          DECLARED NOWHERE in `src/`; it is `--ok`,
+ *                                                          and #BDF524 is that token's own value, so
+ *                                                          the pair was recoverable even though the
+ *                                                          name was not. The figure was not: this row
+ *                                                          published 15.81 where the recomputed value
+ *                                                          is 14.08. The dead number is quoted here
+ *                                                          WITHOUT the pair shape on purpose — a
+ *                                                          figure sweep would otherwise re-read it as
+ *                                                          a live claim.
+ *   --phos-dim on --plate ......................  7.79:1  ** LEFT STANDING, ITEM F17 ** no token of
+ *                                                          that name exists and NOTHING in the file
+ *                                                          names the colour it stood for, so this
+ *                                                          figure cannot be recomputed and is NOT
+ *                                                          guessed at. It is load-bearing — the
+ *                                                          caption calls it "the floor: nothing in the
+ *                                                          file is dimmer" and that claim is now
+ *                                                          unverifiable in both directions: nothing
+ *                                                          IS dimmer, because nothing is there. Name
+ *                                                          the replacement or strike the row.
+ *
+ * THIRD, WHAT I COULD NOT MEASURE, NAMED RATHER THAN GUESSED: the glass pans composite through
+ * `backdrop-filter: blur(10px) saturate(125%)`, and no browser exists on the box this was written
+ * on. The pan's own fill is `color-mix(--plate 74%, #000)` for the art pan and
+ * `color-mix(--plate 88%, transparent)` for the rest, so every glyph on a pan is quoted against
+ * the SHEEN-LIFTED band the mockup published (--txt 10.33:1, --dim 5.60:1) rather than against a
+ * number this file cannot compute.
+ *
+ * ── NO FIT LOOP; `--u` IS DERIVED FROM THE VIEWPORT (T6, 2026-10-12) ────────
+ *
+ * `roast-card-fit.html` solved `--u` in JS: measure both faces, binary-search the largest unit that
+ * still fits `viewportHeight - strip - padding`. That loop needs a HEIGHT CONTRACT and this page has
+ * none — it carries the exit, the brief and the dry-run note and scrolls — so the loop was not
+ * ported and `--u` was hardcoded at the mockup's own 360x640 value.
+ *
+ * That hardcode was the card's one unkept promise, and it failed in a specific direction: a 320x480
+ * screen got the SAME unit as a 414x896 one, so the small phone was the one that overflowed.
+ *
+ * THE FIRST ATTEMPT AT THE FIX WAS BROKEN AND SHIPPED A CARD WITH NO TYPE SCALE. It declared
+ * `--u: clamp(0.84, min(calc(0.72 + 0.00055 * 100vw), ...), 1)`. `0.00055 * 100vw` is a LENGTH, and
+ * `0.72` is a NUMBER — `number + length` is a type error, so that `calc()` is invalid, so `--u` was
+ * never set. An unset custom property does not fall back to a sibling declaration: every `var(--u)`
+ * consumer becomes invalid at computed-value time, and this room derives its ENTIRE type ladder
+ * (`--fs-micro` .. `--fs-name`), its spacing (`--gut`, `--pan-pad`, `--plate-pad-y`, `--plate-ink`)
+ * and the artwork box (`--art`) from it. The reported symptom was exactly that: `--fs-name` and
+ * `--fs-display-sm` are read by `.card-name` and `.readout`, so both collapsed to the inherited
+ * body size and the card rendered with no hierarchy and no pan padding at all.
+ *
+ * THERE IS NO WAY TO GET A UNITLESS MULTIPLIER OUT OF A VIEWPORT LENGTH IN PLAIN CSS — a `calc()`
+ * that adds a length to a number cannot be repaired, only replaced. So `--u` is a media ladder: the
+ * measured value per band, and one short-viewport override LAST so it wins on source order. See the
+ * ladder below for the bands and the figures they were measured at. This is still APPROXIMATE —
+ * see the paragraph above — and it is now at least VALID, which the clamp() was not.
+ *
+ * Still true, and deliberately so: this is APPROXIMATE. The unit cannot know how many ingredient
+ * rows a given drink carries, so the Singapore Sling's eight rows still make a card taller than one
+ * screen and the page scrolls. What is fixed is the degenerate case, not the ceiling.
+ */
+
+.roast.roast-arena {
+  /* THE PALETTE IS THE ROOM'S, per the family convention the menu declared: `data-pal` on the
+     room root, and the absence of the attribute means heat. Nothing writes that attribute yet —
+     the settings layer does not exist — so the three rules below are the mirror of the menu's
+     own three, waiting for the same writer. */
+  --rail: #2a2140;
+  --rail-line: rgba(255, 255, 255, 0.14);
+  --slot: color-mix(in srgb, var(--dim) 55%, transparent);
+
+  /* THE UNIT — there is no fit loop (see the header), so this is a LADDER rather than a clamp().
+   *
+   * The default is the small-phone band; the media queries below move it up by width, and one
+   * short-viewport query sits LAST in the file because it has to beat the width queries on source
+   * order. Every value is the figure the old `clamp()` was trying to express, evaluated by hand
+   * rather than by a `calc()` that could not legally produce it (see the header for the incident).
+   *
+   * The four type FLOORS below are unaffected either way: they are `max()` clamps, so no step can be
+   * spent past them however small `--u` resolves. */
+  --u: 0.86;
+
+  --gut: max(5px, calc(6px * var(--u)));
+  --pan-pad: max(5px, calc(8px * var(--u)));
+  --pan-r: calc(14px * var(--u));
+  --plate-pad-y: max(1px, calc(2px * var(--u)));
+  --plate-ink: max(2px, calc(3px * var(--u)));
+  /* The artwork box's height, and it has to be a definite length: the illustration SVGs carry no
+     intrinsic size (see the `.art` rule), so an auto axis would leave the <img> undrawable. */
+  --art: calc(96px * var(--u));
+
+  /* LAW 11. The turn was authored, and this file is where the arena declares it — `roast.css`
+     hoisted `--ease` for the family and said in its own comment that `--turn` stays here. */
+  --turn: 0.62s;
+
+  /* THE EIGHT STEPS — §5's scale at the approved study's own values (roast-arena.html:317-323),
+     floored at the COMPACT LADDER's four small values — NOT at §5's. ** SUPERSEDED BY ITEM F5b **
+     The comment this replaces claimed "the four FLOORS the constitution records"; that provenance
+     was half false. §5 records the eight steps (10 / 11 / 13 / 15 / 17 / 24 / 30 / 36) and names
+     four labels as hard to read, but it records no floor VALUES. The 9.5 / 10.5 / 12 / 14 floors
+     written below are the NEWER COMPACT LADDER that `roast.css` (lines 203-210) now carries and
+     the other six rooms use; the name step is the study's own 32, not §5's family 36. THE
+     DIVERGENCE IS THE AUTHOR'S RULING, NOT DRIFT: the arena keeps §5's higher ceiling because the
+     card is the protagonist (law 2), while its four small steps may never be spent below the
+     compact ladder — those four labels were named as hard to read, so height may never be bought
+     from them. The parent is amending §5 separately to register this exception. */
+  --fs-micro: max(9.5px, calc(10px * var(--u)));
+  --fs-label: max(10.5px, calc(11px * var(--u)));
+  --fs-small: max(12px, calc(13px * var(--u)));
+  --fs-body: max(14px, calc(15px * var(--u)));
+  --fs-action: max(15px, calc(17px * var(--u)));
+  --fs-display-xs: calc(24px * var(--u));
+  --fs-display-sm: calc(30px * var(--u));
+  --fs-name: calc(32px * var(--u));
+
+  --p-black: 0.075em;
+  --p-gold: 0.15em;
+
+  position: relative;
+  min-height: 100vh;
+  overflow-x: clip;
+  color: var(--txt);
+  /* THE BODY STACK, named rather than inherited. `roast.css` hoists the display and mono stacks and
+     leaves this one to the app, so a room that only relies on inheritance is not stating its own
+     register — and a room that reads `var(--font-body)` without declaring it gets an invalid
+     `font-family` instead of a fallback. */
+  font-family: var(--font-body);
+  font-size: var(--fs-body);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* THE UNIT LADDER. Ascending width, then the short-viewport override LAST — equal specificity, so
+   source order is what makes the last one win. Figures are the ones the old clamp() named. */
+@media (min-width: 360px) { .roast.roast-arena { --u: 0.918; } }   /* 360x640 -> 0.918 */
+@media (min-width: 414px) { .roast.roast-arena { --u: 0.948; } }   /* 414x896 -> 0.948 */
+@media (min-width: 768px) { .roast.roast-arena { --u: 1; } }       /* the clamp ceiling */
+@media (max-height: 560px) { .roast.roast-arena { --u: 0.84; } }   /* 320x480 -> 0.864, floored */
+
+.roast.roast-arena[data-pal="mag"]   { --a: #ff2d95; --b: #00e5ff; --c: #00e5ff; --d: #00e5ff; --plate: #0b0813; }
+.roast.roast-arena[data-pal="lime"]  { --a: #39ff14; --b: #7b5cff; --c: #39ff14; --d: #7b5cff; --plate: #0b0813; }
+.roast.roast-arena[data-pal="amber"] { --a: #ffe600; --b: #ff2d95; --c: #ff2d95; --d: #ffe600; --plate: #0b0813; }
+
+.roast.roast-arena .sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+.roast.roast-arena h2 { text-wrap: balance; margin: 0; }
+.roast.roast-arena dl, .roast.roast-arena dd, .roast.roast-arena p { margin: 0; }
+.roast.roast-arena ul { margin: 0; padding: 0; list-style: none; }
+.roast.roast-arena button { font: inherit; color: inherit; }
+.roast.roast-arena a { color: inherit; }
+
+/* THE DISPLAY STACK, as a list rather than a class per element. Every one of these carries the
+   same four properties, which is why they were one list in the mockup and are one list here. */
+.roast.roast-arena .card-name,
+.roast.roast-arena .btitle,
+.roast.roast-arena .vbtn,
+.roast.roast-arena .back-btn,
+.roast.roast-arena .next-btn,
+.roast.roast-arena .who span,
+.roast.roast-arena .grade-word,
+.roast.roast-arena .rd-line {
+  font-family: var(--font-display);
+  font-style: italic;
+  text-transform: uppercase;
+  letter-spacing: -0.012em;
+}
+
+.roast.roast-arena .row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+
+/* ── tf-plate — a --plate panel under every label and display line ──────────
+   The two vote fills are the one declared exemption, fixed by the brief: a black key plate under
+   black text would be black on black. */
+.roast.roast-arena .tf-plate {
+  display: inline-block; background: var(--plate); border: 2px solid #000;
+  box-shadow: var(--plate-ink) var(--plate-ink) 0 #000;
+  padding: var(--plate-pad-y) 6px calc(var(--plate-pad-y) + 1px);
+  max-width: 100%;
+}
+.roast.roast-arena .tf-plate.big {
+  padding: calc(var(--plate-pad-y) + 1px) 8px calc(var(--plate-pad-y) + 2px);
+  box-shadow: max(3px, calc(4px * var(--u))) max(3px, calc(4px * var(--u))) 0 #000;
+}
+/* THE PAPER RING, and the reason it is not decoration: the patch's fill IS the frame's ground —
+   both `--plate`, 1.00:1 — and both its edge and its shadow are #000, which is 1.15:1 against
+   `--plate`. Without the ring the patch is a glyph floating in a hole with nothing drawing it.
+   #fff on --plate is 18.19:1, and it carries no glyph, so law 13 is untouched. */
+.roast.roast-arena .tf-plate.big { outline: 2px solid #fff; outline-offset: 0; }
+
+/* Misregistration on the section leaders. SURVIVES ON ONE, and it is not on this card: the front
+   carries none and the back's kicker is the only `.mis` left in the room. The measured reason the
+   seven row labels and `your verdict` lost theirs — `--a` at 70% composites to rgb(185,41,83) at
+   3.04:1 and `--b` at 60% to rgb(161,135,16) at 5.19:1, both visible marks in their own right,
+   flanking an 8.67:1 glyph at a .19em offset on 10.5px caps — is in the card's own record. */
+.roast.roast-arena .tf-plate .mis {
+  text-shadow:
+    -2px 0 0 color-mix(in srgb, var(--a) 70%, transparent),
+     2px 0 0 color-mix(in srgb, var(--b) 60%, transparent);
+}
+
+.roast.roast-arena :focus { outline: none; }
+.roast.roast-arena :focus-visible { outline: 3px solid var(--b); outline-offset: 2px; }
+.roast.roast-arena :focus:not(:focus-visible) { outline: none; }
+
+/* The skip link. Off-screen above the room until it takes focus, which is the only state in which
+   a skip link is ever useful. */
+.roast.roast-arena .jump {
+  position: absolute; left: 8px; top: -52px; z-index: 60;
+  background: var(--b); color: #000; font-weight: 700; padding: 10px 14px;
+  border: var(--edge) solid #000;
+  transition: top 0.18s var(--ease);
+}
+.roast.roast-arena .jump:focus-visible { top: 8px; }
+
+/* ══ THE GROUND — the sunset's DARK half (law 13), ending on the app's own arena floor. ────────
+   The menu stands on the bright wash; this room stands on the dark half, so the visitor walks
+   from the bright desk into the dark room, which is what the app already does.
+
+   WHY IT CANNOT BE FLAT INK, measured: `--plate` on `--ink` is 1.12:1, so the card would have no
+   fill boundary at all. On the dark half it is 8.67:1 at the lila band and 4.17:1 at the violet.
+
+   THE Z-INDEX IS NOT NEGATIVE, and that is the roster's recorded defect rather than a preference:
+   `.roast` is `position: relative` with a background and no z-index, so it creates no stacking
+   context, and a negative-index descendant paints BEFORE ordinary block backgrounds and gets
+   covered. The ground is the root's own two pseudo-elements at z-index 0 instead, with the room's
+   content lifted to 1.
+
+   ONE TEXTURE, ON THE GROUND: halftone. Not grain (that is the Enter page's, "losing signal") and
+   not scanlines (those are the menu's). */
+.roast.roast-arena { background: var(--ink); }
+.roast.roast-arena::before {
+  content: ""; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background: linear-gradient(168deg, #ff3366 0%, #b8aed0 26%, #7b5cff 58%, #2a2140 82%, #050409 100%);
+}
+.roast.roast-arena::after {
+  content: ""; position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: 0.48;
+  background-image: radial-gradient(rgba(16, 6, 32, 0.34) 1px, transparent 1.5px);
+  background-size: 12px 12px;
+  -webkit-mask-image: linear-gradient(180deg, #000 0 9%, transparent 20% 74%, #000 92% 100%);
+          mask-image: linear-gradient(180deg, #000 0 9%, transparent 20% 74%, #000 92% 100%);
+}
+.roast.roast-arena .hud,
+.roast.roast-arena .page { position: relative; z-index: 1; }
+
+/* ── the standing strip ─────────────────────────────────────────────────────
+   It carries the byline and the exit and nothing else: `roasted` and `rate` are the MENU's three
+   facts (§11's contract) and this room has no count of its own to invent. */
+.roast.roast-arena .plate-room {
+  position: relative;
+  background: radial-gradient(rgba(0, 0, 0, 0.2) 1px, transparent 1.4px), var(--plate);
+  background-size: 10px 10px;
+  border: var(--edge) solid #000;
+  box-shadow: 5px 5px 0 #000;
+}
+.roast.roast-arena .hud {
+  position: sticky; top: 0; z-index: 50;
+  display: flex; align-items: center; gap: 8px; padding: 5px 10px;
+  border-width: 0 0 var(--edge) 0; box-shadow: 0 4px 0 #000;
+}
+.roast.roast-arena .hud .who { min-width: 0; flex: 1 1 auto; }
+.roast.roast-arena .hud .who small {
+  display: block; font-size: var(--fs-micro); letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--dim);
+}
+/* The byline takes the REAL oblique, written in full here rather than through the display list, so
+   it cannot run both a synthesised italic and a skew. */
+.roast.roast-arena .hud .who span {
+  display: inline-block; font-size: var(--fs-action); color: #fff; line-height: 1.15;
+  text-shadow: 2px 2px 0 #000; overflow-wrap: anywhere;
+  font-style: normal; transform: skewX(-9deg);
+}
+
+/* ── the exit ───────────────────────────────────────────────────────────────
+   This is `ExitLink` dressed for the room. The component's own Tailwind utilities are all (0,1,0),
+   so this (0,3,0) rule carries the presentation and the component keeps owning the label, the
+   destination and the 44px hit area — one decision, one place.
+
+   Hover LIFTS to --txt rather than dropping to --a: the app's own `.exit:hover` goes to the
+   accent, which is a contrast LOSS (--a on --plate is 5.13:1 against --txt's 15.98:1), and this
+   file does not copy it. */
+.roast.roast-arena .exit {
+  display: inline-flex; align-items: center; min-height: 44px; padding: 0 6px;
+  flex: 0 0 auto; font-size: var(--fs-label); letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--dim); text-decoration: underline; text-underline-offset: 3px;
+  text-decoration-style: dotted; text-decoration-thickness: 1px;
+}
+.roast.roast-arena .exit:hover,
+.roast.roast-arena .exit:focus-visible { color: var(--txt); }
+
+/* ── the brief — RoastDeck's own instructions, shown on the first card of a sitting only ────── */
+.roast.roast-arena .brief {
+  margin: 8px auto 0; max-width: 336px; padding: 5px 8px calc(5px + 1px);
+  font-size: var(--fs-label); line-height: 1.5; color: var(--dim);
+}
+
+/* ── the page ───────────────────────────────────────────────────────────────
+   `overflow-x: clip` is the mockup's and it is load-bearing: the misregister plates extend 18px
+   right and the tapes 15px, and without it the room scrolls sideways on a phone. */
+.roast.roast-arena .page {
+  padding: 10px 12px calc(14px + env(safe-area-inset-bottom, 0px));
+  overflow-x: clip;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   THE CARD
+   ══════════════════════════════════════════════════════════════════════════ */
+.roast.roast-arena .stage { perspective: 1200px; max-width: 336px; margin: 0 auto; }
+.roast.roast-arena .tilt { position: relative; transform: rotate(-1deg); }
+.roast.roast-arena .card3d {
+  position: relative; display: grid; grid-template-rows: 1fr;
+  transform-style: preserve-3d;
+  transition: transform var(--turn) var(--ease);
+}
+.roast.roast-arena .card3d.is-back { transform: rotateY(180deg); }
+
+/* THE BACK SHADOWS — the author's own defect report, in code: TWO plates, TWO colours, glow kept,
+   both offsets down-right and inset so nothing appears at the bottom-left. */
+.roast.roast-arena .plate { position: absolute; inset: 0; z-index: -1; pointer-events: none; }
+.roast.roast-arena .plate-a { inset: 3px; background: var(--a); transform: translate(9px, 12px) rotate(0.6deg); }
+.roast.roast-arena .plate-b {
+  inset: 6px; background: var(--b); opacity: 0.9;
+  transform: translate(18px, 23px) rotate(-0.6deg);
+  box-shadow: 7px 9px 16px color-mix(in srgb, var(--b) 55%, transparent),
+              0 0 9px color-mix(in srgb, var(--b) 45%, transparent);
+}
+
+.roast.roast-arena .face {
+  grid-area: 1 / 1; position: relative; min-width: 0;
+  background: var(--plate);
+  border: var(--edge) solid #000; box-shadow: 5px 5px 0 #000;
+  padding: calc(var(--pan-pad) + 1px) calc(var(--pan-pad) + 1px) calc(var(--pan-pad) + 2px);
+  display: flex; flex-direction: column; gap: var(--gut);
+  backface-visibility: hidden; -webkit-backface-visibility: hidden;
+  overflow: visible;
+}
+/* The faces are not `.back` — that name belongs to the old card block in `roast.css` and would
+   pick up its `position: absolute; inset: 0` rule. */
+.roast.roast-arena .face-back { transform: rotateY(180deg); }
+/* The far face is hidden twice over — visibility for the paint, `visibility: hidden` for the tab
+   order and the accessibility tree (it makes the subtree unfocusable, which is what `inert` would
+   add). `pointer-events: none` is the third channel and it is declared FIRST so the rule that
+   turns the near face back on is the one that reads as the exception. */
+.roast.roast-arena .face-front,
+.roast.roast-arena .face-back { pointer-events: none; }
+.roast.roast-arena .card3d:not(.is-back) .face-back,
+.roast.roast-arena .card3d.is-back .face-front { visibility: hidden; }
+.roast.roast-arena .card3d:not(.is-back) .face-front,
+.roast.roast-arena .card3d.is-back .face-back { pointer-events: auto; }
+
+/* ONE texture on the face: the halftone. The lab carried a second (a dither veil, masked to the
+   bottom) — the collision this project has now ruled on three times: one texture per element. */
+.roast.roast-arena .face::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 0;
+  background-image: radial-gradient(#ffffff12 1px, transparent 1px);
+  background-size: 12px 12px;
+}
+.roast.roast-arena .face > * { position: relative; z-index: 2; }
+
+/* ── the pans — softer, liquid edges against the frame's hard square ─────────
+   Their ONE texture is the dither, painted as a BACKGROUND LAYER so it is always under the glyph:
+   a background layer cannot paint over text, so no pan's contrast depends on a z-index. */
+.roast.roast-arena .pan {
+  position: relative;
+  border-radius: var(--pan-r);
+  border: 1px solid rgba(255, 255, 255, 0.26);
+  background:
+    radial-gradient(rgba(0, 0, 0, 0.22) 1px, transparent 1.4px),
+    linear-gradient(158deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.02) 44%, rgba(255, 255, 255, 0.08)),
+    color-mix(in srgb, var(--plate) 88%, transparent);
+  background-size: 10px 10px, 100% 100%;
+  -webkit-backdrop-filter: blur(10px) saturate(125%);
+          backdrop-filter: blur(10px) saturate(125%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.34),
+              inset 0 -1px 0 rgba(255, 255, 255, 0.10),
+              0 5px 16px rgba(0, 0, 0, 0.42);
+}
+
+/* ── pan 1 · the name ─────────────────────────────────────────────────────── */
+.roast.roast-arena .pan-name { padding: var(--pan-pad) calc(var(--pan-pad) + 1px) calc(var(--pan-pad) + 2px); }
+.roast.roast-arena .kick,
+.roast.roast-arena .fader-end {
+  display: inline-block; font-size: var(--fs-label); letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--dim);
+}
+/* The three-print name, value for value from the constitution §5: paper, the black key at
+   --p-black, then --b alone at --p-gold. The skew and the tilt are what stop it reading as a CSS
+   drop shadow — a transform rotates the glyph AND both plates together. */
+.roast.roast-arena .card-name {
+  display: block; font-size: var(--fs-name); line-height: 0.96; color: #fff;
+  margin: calc(var(--plate-pad-y) + 3px) 0 calc(var(--plate-pad-y) + 2px);
+  font-style: normal; transform: skewX(-9deg) rotate(-0.6deg);
+  overflow-wrap: anywhere;
+  text-shadow: var(--p-black) var(--p-black) 0 #000,
+               var(--p-gold) var(--p-gold) 0 var(--b);
+}
+/* The die-cut readout: eight hard shadows, which is the outline WITHOUT a stroke — a stroke would
+   thin the glyph's own counters on a 30px numeral. */
+.roast.roast-arena .readout {
+  display: inline-block; font-size: var(--fs-display-sm); line-height: 1; color: #fff;
+  font-style: normal; font-variant-numeric: tabular-nums;
+  text-shadow: 2px 0 0 #000, -2px 0 0 #000, 0 2px 0 #000, 0 -2px 0 #000,
+               2px 2px 0 #000, -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000;
+}
+.roast.roast-arena .numcol {
+  display: flex; flex-direction: column; align-items: flex-end;
+  gap: calc(var(--plate-pad-y) + 2px); text-align: right; flex: 0 0 auto;
+}
+.roast.roast-arena .numcol .kick { white-space: nowrap; }
+
+/* ── pan 2 · the artwork. The tube is scoped here and nowhere else: law 4 — neon is a signal,
+   never the environment. ──────────────────────────────────────────────────────────────────────
+   `flex: 1` makes this the pan that absorbs the card's slack, and it is the only element here
+   that can shrink without losing a glyph (constitution §6). */
+.roast.roast-arena .pan-art {
+  padding: var(--pan-pad); flex: 1 1 auto; min-height: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  background:
+    radial-gradient(rgba(0, 0, 0, 0.20) 1px, transparent 1.4px),
+    linear-gradient(158deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.02) 50%, rgba(255, 255, 255, 0.06)),
+    color-mix(in srgb, var(--plate) 74%, #000);
+  background-size: 10px 10px, 100% 100%;
+}
+.roast.roast-arena .art {
+  display: flex; align-items: center; justify-content: center;
+  /* A DEFINITE BOX, and it is the repair rather than a tidy-up. The illustration SVGs declare
+     `width="100%" height="auto"` — a percentage width and no definite height — so they carry an
+     intrinsic RATIO and no intrinsic SIZE. A `width:auto;height:auto` <img> then has nothing to
+     derive a used size from, and `object-fit` is inert on any axis left auto. The box is what makes
+     the picture draw and `contain` mean what it says; `--art` is that box's height. */
+  width: 100%;
+  height: var(--art);
+  position: relative;
+}
+/* A BLACK SILHOUETTE NEEDS AN OUTLINE, and this is the same answer the name patch got: eight
+   hard white drop-shadows. The compositor's glass is `stroke="black" fill="none"` over
+   `fill="#000000"` paths, which draws nothing on a pan this dark. */
+.roast.roast-arena .art img {
+  display: block; width: 100%; height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(2px 0 0 #f2eeff) drop-shadow(-2px 0 0 #f2eeff)
+          drop-shadow(0 2px 0 #f2eeff) drop-shadow(0 -2px 0 #f2eeff)
+          drop-shadow(1px 1px 0 #f2eeff) drop-shadow(-1px 1px 0 #f2eeff)
+          drop-shadow(1px -1px 0 #f2eeff) drop-shadow(-1px -1px 0 #f2eeff);
+}
+.roast.roast-arena .tube {
+  position: absolute; inset: 3px; z-index: 6; pointer-events: none;
+  border: 3px solid var(--a); border-radius: calc(var(--pan-r) - 3px);
+  box-shadow: 0 0 12px var(--a), 0 0 30px var(--a),
+              inset 0 0 16px color-mix(in srgb, var(--a) 40%, transparent);
+}
+.roast.roast-arena .led {
+  position: absolute; right: 8px; top: 8px; width: 7px; height: 7px; z-index: 7;
+  background: var(--a); border: 1px solid #000; box-shadow: 0 0 8px var(--a);
+}
+/* ONE FLICK PER ROUND, not per card: fifteen opacity steps in a sitting is a flash risk, so the
+   animation is applied by the deck when a round opens and the card only carries it while it
+   stands. The reduced-motion branch below pins it lit rather than removing it. */
+.roast.roast-arena .pan-art.is-flicking .tube,
+.roast.roast-arena .pan-art.is-flicking .led { animation: arena-flick 2.4s steps(1, end) 1 both; }
+@keyframes arena-flick {
+  0%, 6% { opacity: 1 } 7%, 10% { opacity: 0.12 } 11%, 37% { opacity: 1 }
+  38%, 40% { opacity: 0.28 } 41%, 69% { opacity: 1 } 70%, 72% { opacity: 0.08 } 73%, 100% { opacity: 1 }
+}
+
+/* ── pan 3 · the spec list — the reference card's own layout. Two tiers: the ingredient rows
+   carry the sentence-case name and a right-aligned tabular measure, GLASS and GARNISH keep the
+   uppercase --dim kick. ──────────────────────────────────────────────────────────────────────
+   NO PLATE PER ROW. Every item used to carry a `.tf-plate`, whose fill IS `--plate` while this
+   pan's ground resolves to `--plate` too — a 1:1 fill boundary that painted only its own black
+   border and hard shadow, on six lines, inside a pan that already carries a white rim AND a
+   hairline between every row. Three edge systems on one surface. The panel is the text's ground,
+   which is the same rule that put the copy on `--plate` in the first place. It also returns the
+   plate's own box: ~5px a line, ~30px over the Old Fashioned, plus 12px of row width that long
+   ingredient names were wrapping into. The scarce axis on this card is height.
+   THE RAILS KEEP THEIRS: a rail's ground is `--rail`, not `--plate`, so there the plate is a
+   different surface doing a different job. Per-surface call, not a global one.
+
+   THE PAN SCROLLS, AND ONLY WHEN IT MUST. The deck's recipes run 3 to 8 ingredients and the
+   methods 1 to 3 lines, so the tallest spec can be taller than the box. Scrolling is the honest
+   answer rather than deleting a row or breaking the card's one promise. */
+/* The wrapper exists so the overflow CUE does not scroll with the content: an absolutely
+   positioned child of a scroll container scrolls with it, which would put the mark at the bottom
+   of the list instead of the bottom of the box. */
+.roast.roast-arena .panwrap {
+  position: relative; display: flex; flex-direction: column; min-height: 0; flex: 0 1 auto;
+}
+.roast.roast-arena .pan-specs {
+  padding: var(--pan-pad) calc(var(--pan-pad) + 1px) calc(var(--pan-pad) + 2px);
+  flex: 1 1 auto; min-height: 0; overflow-y: auto; overflow-x: hidden; z-index: 2;
+  scrollbar-width: none;
+}
+.roast.roast-arena .pan-specs::-webkit-scrollbar { width: 0; height: 0; }
+.roast.roast-arena .pan-specs.is-scroll {
+  -webkit-mask-image: linear-gradient(180deg, #000 0 92%, rgba(0, 0, 0, 0.35));
+          mask-image: linear-gradient(180deg, #000 0 92%, rgba(0, 0, 0, 0.35));
+}
+.roast.roast-arena .stat { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+.roast.roast-arena .stat dt { flex: 0 0 auto; max-width: 64%; }
+.roast.roast-arena .stat dd {
+  text-align: right; font-size: var(--fs-small); color: var(--txt);
+  font-variant-numeric: tabular-nums; overflow-wrap: anywhere;
+}
+.roast.roast-arena .stat dt.ing-name {
+  font-size: var(--fs-small); color: var(--txt); font-weight: 600;
+  letter-spacing: 0; text-transform: none;
+}
+.roast.roast-arena .meta { margin-top: 2px; border-top: 1px solid var(--rail-line); }
+.roast.roast-arena .rows .stat:not(:last-child),
+.roast.roast-arena .meta .stat:not(:last-child) { border-bottom: 1px solid var(--rail-line); }
+.roast.roast-arena .how {
+  margin-top: 2px; border-top: 1px solid var(--rail-line); padding-top: 2px;
+  font-size: var(--fs-small); color: var(--txt);
+}
+.roast.roast-arena .how .kick { margin-right: 4px; display: inline; }
+/* The overflow cue: a mark, not a sentence, and only while the pan actually scrolls. */
+.roast.roast-arena .scroll-cue {
+  position: absolute; right: 8px; bottom: 5px; font-size: var(--fs-micro);
+  color: var(--dim); pointer-events: none; display: none;
+}
+.roast.roast-arena .panwrap.is-scroll .scroll-cue { display: block; }
+
+/* ── the verdict ──────────────────────────────────────────────────────────── */
+.roast.roast-arena .verdict { margin-top: auto; display: flex; flex-direction: column; gap: calc(var(--gut) - 1px); }
+.roast.roast-arena .vote { display: flex; gap: 10px; }
+.roast.roast-arena .vbtn {
+  flex: 1 1 0; min-width: 0; min-height: max(46px, calc(50px * var(--u)));
+  border: var(--edge) solid #000; cursor: pointer; padding: 8px 4px; text-align: center;
+  font-size: var(--fs-action); box-shadow: 5px 5px 0 #000;
+  touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+  transition: transform 0.14s var(--ease), box-shadow 0.14s var(--ease);
+}
+.roast.roast-arena .vbtn span { display: block; transform: skewX(9deg); }
+.roast.roast-arena .vbtn:hover { transform: skewX(-9deg) rotate(-1deg) translate(-1px, -1px); box-shadow: 6px 6px 0 #000; }
+.roast.roast-arena .vbtn:active { transform: skewX(-9deg) rotate(-1deg) translate(3px, 3px); box-shadow: 1px 1px 0 #000; }
+/* The two fills carry BLACK only, and that is measured: #f2eeff on --a is 3.12:1 and on --ok
+   every bit as bad — both FAIL. Black on --a is 5.92:1 and on --ok 16.25:1, both PASS. */
+.roast.roast-arena .v-yikes { background: var(--a); color: #000; transform: skewX(-9deg) rotate(-1.1deg); }
+.roast.roast-arena .v-likes { background: var(--ok); color: #000; transform: skewX(-9deg) rotate(1deg); }
+.roast.roast-arena .v-yikes:hover { transform: skewX(-9deg) rotate(-1.1deg) translate(-1px, -1px); }
+.roast.roast-arena .v-likes:hover { transform: skewX(-9deg) rotate(1deg) translate(-1px, -1px); }
+.roast.roast-arena .v-yikes[aria-pressed="true"] { transform: skewX(-9deg) rotate(-1.1deg) translate(3px, 3px); box-shadow: 1px 1px 0 #000; }
+.roast.roast-arena .v-likes[aria-pressed="true"] { transform: skewX(-9deg) rotate(1deg) translate(3px, 3px); box-shadow: 1px 1px 0 #000; }
+/* The vote pair's own focus ring, restated in full value. `:focus-visible` (0,1,0) and `.vbtn`
+   (0,1,0)... but this file's `.vbtn` rule is above it in source order, so the shorthand would be
+   swallowed the moment the ring were written without the full outline again. Two-tone, because the
+   fill runs from --a to --ok and no single tone clears 3:1 on both. */
+.roast.roast-arena .vbtn:focus-visible,
+.roast.roast-arena .skip-btn:focus-visible,
+.roast.roast-arena .back-btn:focus-visible,
+.roast.roast-arena .next-btn:focus-visible,
+.roast.roast-arena .rd-go:focus-visible,
+.roast.roast-arena .rd-exit:focus-visible {
+  outline: 3px solid #fff; outline-offset: 2px;
+  box-shadow: 0 0 0 5px #000;
+}
+
+/* Skip is NOT a third vote button and NOT a red peer of them: "skip just text, under yikes/likes,
+   right in the middle, way smaller". One row, one control, dead-centred. It is demoted by WEIGHT
+   and never by contrast — there is no fill, no shadow, no display face, and its ink moves from
+   --dim to --txt on hover, which is a RISE. */
+.roast.roast-arena .skiprow { position: relative; display: block; text-align: center; }
+.roast.roast-arena .skip-btn {
+  min-height: 44px; padding: 5px 8px; background: none; border: 0; box-shadow: none;
+  cursor: pointer; font-size: var(--fs-small); color: var(--dim); text-align: center;
+  text-decoration: underline; text-underline-offset: 3px;
+  text-decoration-style: dotted; text-decoration-thickness: 1px;
+  touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+}
+.roast.roast-arena .skip-btn:hover { color: var(--txt); }
+.roast.roast-arena .skip-btn:active { color: var(--txt); }
+
+/* ══ THE GLITCH — gold-only, ONE play, 600ms, no luminance change. Five legibility rules, and
+   each one is arithmetic rather than taste:
+     1. the GLYPH's own jitter is gone (`jitp` moves the PAPER/plates, never the letterform);
+     2. the black key plate never moves in any keyframe, so the outline is constant;
+     3. the solid impressions stay inside the counters of the display face — the widest travel below
+        is .152em, under the ~.155em an Impact counter is (there is no `--p-cap` token here: the
+        bound is stated as the number it is rather than as a declaration nothing reads);
+     4. the two channel copies are 1.5px STROKES, not filled glyph copies — an outline cannot fill
+        a counter, so it keeps the full +-5px travel and the effect stays unmissable;
+     5. `font-style: italic` is not synthesised on Impact (a face with no italic); the oblique is a
+        real `skewX(-9deg)` on the display lines only.
+   ══════════════════════════════════════════════════════════════════════════ */
+.roast.roast-arena .glitch-host { position: relative; z-index: 0; }
+.roast.roast-arena .glitch-host::before,
+.roast.roast-arena .glitch-host::after {
+  content: attr(data-glitch);
+  position: absolute; left: 0; top: 0; width: 100%; z-index: -1; opacity: 0;
+  pointer-events: none; text-shadow: none; color: transparent;
+  -webkit-text-stroke: 1.5px var(--g);
+}
+.roast.roast-arena .glitch-host::before { --g: var(--a); }
+.roast.roast-arena .glitch-host::after { --g: #7b5cff; }
+.roast.roast-arena .is-glitching .glitch-host::before { animation: arena-gost-a 600ms steps(1, end) 1 both; }
+.roast.roast-arena .is-glitching .glitch-host::after { animation: arena-gost-b 600ms steps(1, end) 1 both; }
+.roast.roast-arena .is-glitching .card-name { animation: arena-jitp 600ms steps(1, end) 1 both; }
+.roast.roast-arena .is-glitching .btitle { animation: arena-jitp2 600ms steps(1, end) 1 both; }
+@keyframes arena-jitp {
+  0%, 100% { text-shadow: var(--p-black) var(--p-black) 0 #000, var(--p-gold) var(--p-gold) 0 var(--b) }
+  12% { text-shadow: var(--p-black) var(--p-black) 0 #000, .062em .145em 0 var(--b) }
+  26% { text-shadow: var(--p-black) var(--p-black) 0 #000, .148em .07em 0 var(--b) }
+  40% { text-shadow: var(--p-black) var(--p-black) 0 #000, .05em .13em 0 var(--b) }
+  54% { text-shadow: var(--p-black) var(--p-black) 0 #000, .14em .05em 0 var(--b) }
+  68% { text-shadow: var(--p-black) var(--p-black) 0 #000, .09em .152em 0 var(--b) }
+  82% { text-shadow: var(--p-black) var(--p-black) 0 #000, .152em .09em 0 var(--b) }
+}
+.roast.roast-arena .btitle {
+  display: block; font-size: var(--fs-display-xs); line-height: 1; color: #fff;
+  font-style: normal; transform: skewX(-9deg) rotate(-0.6deg);
+  text-shadow: var(--p-black) var(--p-black) 0 #000, var(--p-gold) var(--p-gold) 0 var(--b);
+}
+@keyframes arena-jitp2 {
+  0%, 100% { text-shadow: var(--p-black) var(--p-black) 0 #000, var(--p-gold) var(--p-gold) 0 var(--b) }
+  12% { text-shadow: var(--p-black) var(--p-black) 0 #000, .06em .14em 0 var(--b) }
+  26% { text-shadow: var(--p-black) var(--p-black) 0 #000, .145em .065em 0 var(--b) }
+  40% { text-shadow: var(--p-black) var(--p-black) 0 #000, .05em .125em 0 var(--b) }
+  54% { text-shadow: var(--p-black) var(--p-black) 0 #000, .135em .05em 0 var(--b) }
+  68% { text-shadow: var(--p-black) var(--p-black) 0 #000, .085em .15em 0 var(--b) }
+  82% { text-shadow: var(--p-black) var(--p-black) 0 #000, .15em .085em 0 var(--b) }
+}
+@keyframes arena-gost-a {
+  0%, 100% { opacity: 0; transform: translate(0, 0) }
+  12% { opacity: .9; transform: translate(-5px, 1px) }
+  26% { opacity: .85; transform: translate(-3px, -2px) }
+  40% { opacity: .9; transform: translate(-5px, 2px) }
+  54% { opacity: .8; transform: translate(-2px, 0) }
+  68% { opacity: .9; transform: translate(-4px, -2px) }
+  82% { opacity: 0; transform: translate(-2px, 0) }
+}
+@keyframes arena-gost-b {
+  0%, 100% { opacity: 0; transform: translate(0, 0) }
+  12% { opacity: .85; transform: translate(5px, -1px) }
+  26% { opacity: .8; transform: translate(3px, 2px) }
+  40% { opacity: .85; transform: translate(4px, -2px) }
+  54% { opacity: .75; transform: translate(2px, 1px) }
+  68% { opacity: .85; transform: translate(3px, 2px) }
+  82% { opacity: 0; transform: translate(2px, 0) }
+}
+
+/* ══ THE BACK — three bipolar rails, one per category, laid on their side (law 14: yikes left,
+   likes right; grade the intensity, and the words are the app's own per-side ladder).
+   FOUR CHANNELS, NEVER COLOUR ALONE: the dot COUNT is the magnitude, the side of CENTRE is the
+   polarity, the WORD is both, and colour only repeats the polarity (a lit yikes dot is HATCHED —
+   the same idiom the record's disagreement block uses — while a lit likes dot is solid). That is
+   what makes the side survive in lime and amber, where --a vs --ok is 1.05:1.
+   ══════════════════════════════════════════════════════════════════════════ */
+.roast.roast-arena .pan-reasons {
+  padding: var(--pan-pad); flex: 1 1 auto; display: flex;
+  flex-direction: column; min-height: 0;
+}
+.roast.roast-arena .els {
+  display: flex; flex-direction: column; gap: var(--gut); margin-top: 8px;
+  flex: 1 1 auto; justify-content: space-evenly; min-height: 0;
+}
+.roast.roast-arena .el { display: flex; flex-direction: column; min-width: 0; }
+.roast.roast-arena .rail {
+  background: var(--rail); border: 3px solid #000; box-shadow: 2px 2px 0 #000;
+  padding: 5px 7px 6px; display: flex; flex-direction: column; gap: 4px; min-width: 0;
+}
+.roast.roast-arena .el-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; min-width: 0; }
+/* The grade word is --txt and NOT --b. --b on --rail is 10.55:1 in heat, but `[data-pal="lime"]`
+   re-points --b at #7b5cff, which on --rail #2a2140 is 3.47:1 — under the 4.5:1 a 10px word
+   needs. --txt is 13.27:1 and palette-independent, so this readout cannot break in any palette.
+   ** CORRECTED, ITEM F19: ** the figure above read 12.71:1. 12.71 is `--b` on `--plate` #151327,
+   NOT on `--rail` — the ground was swapped between the two comments. On `--rail` #2a2140 the
+   arithmetic gives 10.55:1. The tell is this sentence itself: `--txt` on `--rail` recomputes to
+   13.27:1 exactly, so the paragraph was genuinely working on `--rail` and the number alone was
+   carried over from the plate. THE DECISION DOES NOT MOVE — 10.55 clears the 4.5:1 a 10px word
+   needs with room to spare, so `--txt` remains the right choice for the grade word. */
+.roast.roast-arena .grade-word {
+  flex: 0 0 auto; font-size: var(--fs-micro); color: var(--txt);
+  letter-spacing: 0.02em; line-height: 1.1;
+}
+/* THE GROOVE IS 44px TALL AND THE TRACK FILLS IT, so the drag target is legal on both axes. The
+   handle's 44px WIDTH is bought back as a 22px inset at each end — the handle travels
+   `22px -> (100% - 22px)` and the dots run `19px -> (100% - 19px)` because a 6px dot's own centre
+   is 3px in from its edge, so dot and handle always agree. The two poles are IN FLOW, never
+   absolutely placed, so the handle can never be painted over the polarity it is reading. */
+.roast.roast-arena .fader { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.roast.roast-arena .fader-end { flex: 0 0 auto; }
+.roast.roast-arena .groove { position: relative; flex: 1 1 auto; height: 44px; min-width: 0; }
+/* THE TRACK IS THE CONTROL and the handle is its picture. The track fills the groove's full 44px,
+   so the drag target is legal on both axes AND clickable anywhere along the bar; the handle below it
+   is `pointer-events: none` so every press lands on the track. This is also why there is exactly one
+   focus stop in the rail: a second focusable handle would either duplicate the slider or be an
+   `aria-hidden` button that takes focus, which is a violation rather than a convenience. */
+.roast.roast-arena .fader-track {
+  position: absolute; left: 0; right: 0; top: 50%; height: 44px;
+  transform: translateY(-50%); background: none; border: 0; cursor: pointer; padding: 0;
+  touch-action: none; z-index: 2;
+}
+.roast.roast-arena .fader-track::before {
+  content: ""; position: absolute; left: 0; right: 0; top: 50%;
+  height: 5px; transform: translateY(-50%); background: var(--rail-line); border: 1px solid #000;
+}
+/* The focus ring is the GROOVE's rectangle, not the 14px knob's: it has to be findable on a control
+   whose whole affordance is a hairline. Two-tone — white outline, black halo — because the ring sits
+   on `--rail` in one palette and on the sheet's own sheen in another, and no single tone clears 3:1
+   on both. */
+.roast.roast-arena .fader-track:focus-visible { outline: 3px solid #fff; outline-offset: 2px; box-shadow: 0 0 0 5px #000; }
+.roast.roast-arena .fader-dots {
+  position: absolute; left: 19px; right: 19px; top: 50%;
+  transform: translateY(-50%); display: flex; justify-content: space-between;
+  pointer-events: none; z-index: 3;
+}
+.roast.roast-arena .fader-dots i {
+  display: block; width: 6px; height: 6px; border: 1.5px solid #000; background: var(--ink);
+}
+.roast.roast-arena .fader-dots i.on { background: var(--ok); }
+.roast.roast-arena .fader-dots i.on.y {
+  background: var(--a);
+  background-image: repeating-linear-gradient(45deg, rgba(0, 0, 0, 0.55) 0 2px, transparent 2px 4px);
+}
+.roast.roast-arena .fader-handle {
+  position: absolute; top: 50%;
+  left: calc(22px + (100% - 44px) * var(--f, 0.5));
+  width: 44px; height: 44px; transform: translate(-50%, -50%);
+  pointer-events: none; z-index: 4;
+  display: flex; align-items: center; justify-content: center;
+}
+.roast.roast-arena .fader-handle > span {
+  display: block; width: 14px; height: 26px; background: var(--ink);
+  border: 2px solid #000; position: relative;
+}
+.roast.roast-arena .fader-handle > span::after {
+  content: ""; position: absolute; left: 2px; right: 2px; top: 50%;
+  height: 2px; background: var(--b); transform: translateY(-50%);
+}
+
+/* ══ THE ACTION ROW — ONE PRIMARY PER VIEWPORT. `next` takes the --b fill and the turn-back
+   control gives it up; two solid buttons in one row doing different things is the defect the
+   action-economy rule names. The demoted control needs the paper ring because the face's ground
+   IS --plate, so a --plate button on it is a 1.15:1 boundary. ══════════════════════════════ */
+.roast.roast-arena .actions {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: var(--gut); margin-top: 10px; min-width: 0; flex-wrap: wrap;
+}
+.roast.roast-arena .back-btn {
+  min-height: 44px; padding: 9px 14px;
+  background: var(--plate); color: var(--txt); border: 2px solid #000;
+  outline: 2px solid #fff; outline-offset: 0; cursor: pointer;
+  font-size: var(--fs-action); box-shadow: 3px 3px 0 #000;
+  transform: skewX(-9deg) rotate(-0.5deg);
+  touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+}
+.roast.roast-arena .back-btn span { display: block; transform: skewX(9deg); }
+.roast.roast-arena .back-btn:hover { box-shadow: 4px 4px 0 #000; transform: skewX(-9deg) rotate(-0.5deg) translate(-1px, -1px); }
+.roast.roast-arena .back-btn:active { box-shadow: 1px 1px 0 #000; transform: skewX(-9deg) rotate(-0.5deg) translate(3px, 3px); }
+.roast.roast-arena .next-btn {
+  min-height: 44px; padding: 9px 16px;
+  background: var(--b); color: #000; border: var(--edge) solid #000; cursor: pointer;
+  font-size: var(--fs-action); box-shadow: 4px 4px 0 #000;
+  transform: skewX(-9deg) rotate(-0.5deg);
+  touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+}
+.roast.roast-arena .next-btn span { display: block; transform: skewX(9deg); }
+.roast.roast-arena .next-btn:hover { box-shadow: 5px 5px 0 #000; transform: skewX(-9deg) rotate(-0.5deg) translate(-1px, -1px); }
+.roast.roast-arena .next-btn:active { box-shadow: 1px 1px 0 #000; transform: skewX(-9deg) rotate(-0.5deg) translate(3px, 3px); }
+
+/* ══ THE RECORD — a record, not a meter. Top right of the card, one block per spec, and EVERY LIT
+   BLOCK CARRIES THE VOTE ITS SPEC GOT. Four states in four channels, so the shape alone reads:
+     agreement  solid --ok
+     disagreement  diagonal hatch over --a   (a skip is NOT this, and it is never red)
+     skip  short dotted grey — "a skip is not a disagreement"
+     here  taller, flagged with a rule above it
+   The unlit slot carries --slot at 3.46:1. It was 1.05:1 once and the bar showed no length at all,
+   which is the defect that made the record unreadable.
+   `.seen` — the mockup's fifth state — is NOT defined here: in the app, reaching a spec and leaving
+   without voting IS a skip (`advance` is shared by `skip` and `next`), so the state is unreachable
+   and a rule for it would be a dead declaration. ═══════════════════════════════════════════ */
+.roast.roast-arena .record { display: flex; align-items: center; gap: 5px; flex: 0 0 auto; min-width: 0; margin-left: auto; }
+.roast.roast-arena .hp { display: flex; gap: 1.5px; align-items: flex-end; }
+.roast.roast-arena .hp i {
+  display: block; width: max(6px, calc(7px * var(--u)));
+  height: max(9px, calc(11px * var(--u)));
+  border: 1.5px solid var(--slot); background: transparent;
+}
+.roast.roast-arena .hp i.ag { background: var(--ok); border-color: #000; }
+.roast.roast-arena .hp i.dis {
+  background: repeating-linear-gradient(45deg, rgba(0, 0, 0, 0.6) 0 2px, transparent 2px 5px), var(--a);
+  border-color: #000;
+}
+.roast.roast-arena .hp i.skip {
+  height: max(7px, calc(8px * var(--u)));
+  background: repeating-linear-gradient(135deg, rgba(184, 174, 208, 0.55) 0 1px, transparent 1px 3px);
+  border-color: var(--slot);
+}
+.roast.roast-arena .hp i.here {
+  height: max(13px, calc(15px * var(--u))); margin-left: 3px;
+  box-shadow: 0 -3px 0 -1px var(--txt);
+}
+
+/* ══ TAPE — around the page, no order, holding things up. Four pieces, placed by hand in the
+   mockup and carried here unchanged: two above the title band (y 19-57) and two at 37% and the
+   card's foot, so none of the four can cross the name patch or the strip. ═══════════════════ */
+.roast.roast-arena .tape {
+  position: absolute; width: 60px; height: 19px; background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.30); pointer-events: none; z-index: 9;
+}
+.roast.roast-arena .tape.t1 { top: -10px; left: 14px; transform: rotate(-4.5deg); }
+.roast.roast-arena .tape.t2 { top: 37%; right: -15px; transform: rotate(7deg) scaleY(0.85); }
+.roast.roast-arena .tape.t3 { bottom: 52px; left: -15px; transform: rotate(-12deg) scaleX(0.8); }
+.roast.roast-arena .tape.t4 { bottom: -10px; right: 20px; transform: rotate(2.5deg); }
+
+/* ── the dry-run / sync note, carried from RoastDeck unchanged ───────────────
+   It keeps the app's own class name so the deck's markup needed no new name for a fact that is
+   not the room's design. */
+.roast.roast-arena .decknote {
+  margin: 12px auto 0; max-width: 336px; text-align: center;
+  font-size: var(--fs-micro); letter-spacing: 0.1em; text-transform: uppercase; color: var(--dim);
+}
+.roast.roast-arena .decknote.warn { color: var(--a); }
+
+/* ══ THE ROUND BOUNDARY — the deck's stopping point. Copy verbatim from `lib/rounds.ts`; the
+   arithmetic that fills it is that module's. Same plate vocabulary as everything else in the
+   room, on the same rotated card tilt as the strip. ═══════════════════════════════════════ */
+.roast.roast-arena .rd {
+  max-width: 336px; margin: 14px auto 0; padding: 14px 13px 15px;
+  transform: rotate(-0.6deg);
+}
+.roast.roast-arena .rd-head { display: flex; align-items: center; gap: 5px; margin-bottom: 10px; }
+.roast.roast-arena .rd-kick { font-size: var(--fs-label); letter-spacing: 0.1em; text-transform: uppercase; color: var(--dim); }
+.roast.roast-arena .rd-line {
+  display: block; font-size: var(--fs-display-xs); line-height: 1.12; color: var(--txt);
+  font-style: normal; transform: skewX(-6deg); text-shadow: 2px 2px 0 #000;
+  text-wrap: balance;
+}
+.roast.roast-arena .rd-sub {
+  margin-top: 8px; font-size: var(--fs-label); letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--dim);
+}
+.roast.roast-arena .rd-go {
+  display: block; width: 100%; margin-top: 16px; border: var(--edge) solid #000;
+  background: var(--b); color: #000; text-align: center; padding: 12px 0; cursor: pointer;
+  text-decoration: none; font-size: var(--fs-action); box-shadow: 5px 5px 0 #000;
+  transform: skewX(-8deg) rotate(-0.6deg);
+  touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+}
+.roast.roast-arena .rd-go:hover { box-shadow: 6px 6px 0 #000; transform: skewX(-8deg) rotate(-0.6deg) translate(-1px, -1px); }
+.roast.roast-arena .rd-go:active { box-shadow: 2px 2px 0 #000; transform: translate(3px, 3px) skewX(-8deg) rotate(-0.6deg); }
+.roast.roast-arena .rd-exits { margin-top: 10px; display: flex; flex-direction: column; }
+.roast.roast-arena .rd-exit {
+  display: block; min-height: 44px; line-height: 44px; text-align: center;
+  font-size: var(--fs-label); letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--dim); text-decoration: underline; text-underline-offset: 3px;
+  text-decoration-style: dotted; text-decoration-thickness: 1px;
+  background: none; border: 0; cursor: pointer; width: 100%;
+}
+.roast.roast-arena .rd-exit:hover,
+.roast.roast-arena .rd-exit:focus-visible { color: var(--txt); }
+
+/* ══ REDUCED MOTION — a BRANCH, never a disappearance. The room builds no manual motion control,
+   so the media query is the only branch and there is nothing that can disagree with it. ══════ */
+@media (prefers-reduced-motion: reduce) {
+  .roast.roast-arena .card3d,
+  .roast.roast-arena .pan,
+  .roast.roast-arena .vbtn,
+  .roast.roast-arena .back-btn,
+  .roast.roast-arena .next-btn,
+  .roast.roast-arena .fader-handle,
+  .roast.roast-arena .jump,
+  .roast.roast-arena .rd,
+  .roast.roast-arena .rd-go,
+  .roast.roast-arena .brief { transition: none !important; }
+  .roast.roast-arena .tube,
+  .roast.roast-arena .led,
+  .roast.roast-arena .glitch-host,
+  .roast.roast-arena .glitch-host::before,
+  .roast.roast-arena .glitch-host::after,
+  .roast.roast-arena .card-name,
+  .roast.roast-arena .btitle { animation: none !important; }
+  /* the flick holds LIT rather than going dark: a still frame of a signal is a signal. */
+  .roast.roast-arena .pan-art.is-flicking .tube,
+  .roast.roast-arena .pan-art.is-flicking .led { animation: none !important; opacity: 1; }
+  .roast.roast-arena .is-glitching .card-name {
+    text-shadow: var(--p-black) var(--p-black) 0 #000, .062em .145em 0 var(--b);
+  }
+  .roast.roast-arena .is-glitching .btitle {
+    text-shadow: var(--p-black) var(--p-black) 0 #000, .06em .14em 0 var(--b);
+  }
+  .roast.roast-arena .is-glitching .glitch-host::before { opacity: .9; transform: translate(-3px, 1px); }
+  .roast.roast-arena .is-glitching .glitch-host::after { opacity: .85; transform: translate(3px, -1px); }
+  .roast.roast-arena * { scroll-behavior: auto !important; }
+}

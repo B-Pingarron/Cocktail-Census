@@ -14,9 +14,9 @@ export const cocktails: Cocktail[] = [
       id: "negroni-std",
       label: "Standard",
       ingredients: [
-          { name: "Rutte Dry Gin", amount: "3 cl" },
-          { name: "Italian red bitter liqueur", amount: "3 cl" },
-          { name: "Martini Rosso sweet vermouth", amount: "3 cl" }
+          { name: "dry gin", amount: "3 cl" },
+          { name: "italian red bitter liqueur", amount: "3 cl" },
+          { name: "red vermouth", amount: "3 cl" }
       ],
       method: "Stir all ingredients over ice. Strain into glass.",
       glass: "Old-fashioned glass",
@@ -34,9 +34,9 @@ export const cocktails: Cocktail[] = [
       id: "old-fashioned-std",
       label: "Standard",
       ingredients: [
-          { name: "Bourbon whiskey", amount: "6 cl" },
-          { name: "Sugar syrup (65.0°brix, 2 sugar to 1 water rich syrup)", amount: "1.25 cl" },
-          { name: "Angostura Aromatic Bitters", amount: "3 dash" }
+          { name: "bourbon whiskey", amount: "6 cl" },
+          { name: "sugar syrup", amount: "1 cl" },
+          { name: "angostura bitters", amount: "3 cl" }
       ],
       method: "Stir all ingredients over ice. Strain into glass.",
       glass: "Old-fashioned glass",
@@ -54,14 +54,13 @@ export const cocktails: Cocktail[] = [
       id: "margarita-std",
       label: "Standard",
       ingredients: [
-          { name: "Patrón Silver blanco tequila", amount: "4.5 cl" },
-          { name: "De Kuyper Triple Sec (40%)", amount: "2.25 cl" },
-          { name: "Lime juice (freshly squeezed)", amount: "2.25 cl" },
-          { name: "Sugar syrup (65.0°brix, 2 sugar to 1 water rich syrup)", amount: "1.5 cl" }
+          { name: "blanco tequila", amount: "6 cl" },
+          { name: "triple sec liqueur", amount: "3 cl" },
+          { name: "lime juice", amount: "1.5 cl" }
       ],
       method: "Shake all ingredients with ice. Strain into chilled glass.",
       glass: "Coupe glass",
-      garnish: "Luxardo cherry",
+      garnish: "Salt rim & lime wedge",
     },
     alternativeRecipes: [],
   }
@@ -75,14 +74,13 @@ export const cocktails: Cocktail[] = [
       id: "espresso-martini-std",
       label: "Standard",
       ingredients: [
-          { name: "Ketel One Vodka", amount: "4.5 cl" },
-          { name: "Espresso coffee (freshly made & hot)", amount: "3 cl" },
-          { name: "Coffee liqueur", amount: "2 cl" },
-          { name: "Difford\'s Saline Solution (or ½ pinch salt) (optional)", amount: "2 drop" }
+          { name: "vodka", amount: "4.5 cl" },
+          { name: "espresso coffee", amount: "3 cl" },
+          { name: "coffee liqueur", amount: "2 cl" }
       ],
       method: "Shake all ingredients vigorously with ice. Fine strain into glass.",
       glass: "Martini glass",
-      garnish: "Lemon twist",
+      garnish: "Coffee beans",
     },
     alternativeRecipes: [],
   }
@@ -96,11 +94,9 @@ export const cocktails: Cocktail[] = [
       id: "daiquiri-std",
       label: "Standard",
       ingredients: [
-          { name: "Bacardi Carta Blanca light rum", amount: "5 cl" },
-          { name: "Lime juice (freshly squeezed)", amount: "1.5 cl" },
-          { name: "Sugar syrup (65.0°brix, 2 sugar to 1 water rich syrup)", amount: "1 cl" },
-          { name: "Difford\'s Daiquiri Bitters (optional)", amount: "4 drop" },
-          { name: "Chilled water (omit if using wet ice)", amount: "1 cl" }
+          { name: "rum", amount: "6 cl" },
+          { name: "lime juice", amount: "1.5 cl" },
+          { name: "sugar syrup", amount: "1 cl" }
       ],
       method: "Shake all ingredients with ice. Strain into chilled glass.",
       glass: "Coupe glass",
@@ -118,9 +114,9 @@ export const cocktails: Cocktail[] = [
       id: "dry-martini-std",
       label: "Standard",
       ingredients: [
-          { name: "Rutte Dry Gin", amount: "6.25 cl" },
-          { name: "Martini Extra Dry vermouth", amount: "1.25 cl" },
-          { name: "Orange Bitters by Angostura (optional)", amount: "1 dash" }
+          { name: "gin", amount: "6 cl" },
+          { name: "dry vermouth", amount: "1.5 cl" },
+          { name: "orange bitters", amount: "3 dash" }
       ],
       method: "Stir all ingredients over ice. Strain into glass.",
       glass: "Martini glass",
@@ -138,9 +134,9 @@ export const cocktails: Cocktail[] = [
       id: "manhattan-std",
       label: "Standard",
       ingredients: [
-          { name: "Bourbon whiskey", amount: "6 cl" },
-          { name: "Martini Extra Dry vermouth", amount: "2.5 cl" },
-          { name: "Angostura Aromatic Bitters", amount: "2 dash" }
+          { name: "bourbon whiskey", amount: "6 cl" },
+          { name: "red vermouth", amount: "3 cl" },
+          { name: "angostura bitters", amount: "1 dash" }
       ],
       method: "Stir all ingredients over ice. Strain into glass.",
       glass: "Coupe glass",
@@ -158,14 +154,14 @@ export const cocktails: Cocktail[] = [
       id: "whiskey-sour-std",
       label: "Standard",
       ingredients: [
-          { name: "Bulleit Kentucky Straight Bourbon Whiskey (45%)", amount: "4 cl" },
-          { name: "Lemon juice (freshly squeezed)", amount: "2 cl" },
-          { name: "Sugar syrup (65.0°brix, 2 sugar to 1 water rich syrup)", amount: "1 cl" },
-          { name: "Egg white", amount: "1.5 cl" }
+          { name: "bourbon whiskey", amount: "6 cl" },
+          { name: "lemon juice", amount: "3 cl" },
+          { name: "sugar syrup", amount: "2 cl" },
+          { name: "egg white", amount: "" }
       ],
       method: "Dry shake all ingredients without ice. Shake again with ice. Strain into chilled glass.",
-      glass: "Old-fashioned glass",
-      garnish: "Lemon twist",
+      glass: "Rocks glass",
+      garnish: "",
     },
     alternativeRecipes: [],
   }
@@ -179,11 +175,11 @@ export const cocktails: Cocktail[] = [
       id: "mojito-std",
       label: "Standard",
       ingredients: [
-          { name: "Mint leaves", amount: "14 fresh" },
-          { name: "Havana Club 3 Year Old rum", amount: "6 cl" },
-          { name: "Lime juice (freshly squeezed)", amount: "1.5 cl" },
-          { name: "Sugar syrup (65.0°brix, 2 sugar to 1 water rich syrup)", amount: "1 cl" },
-          { name: "Thomas Henry Soda Water", amount: "1.5 cl" }
+          { name: "mint leaves", amount: "14 fresh" },
+          { name: "rum", amount: "6 cl" },
+          { name: "lime juice", amount: "1.5 cl" },
+          { name: "sugar syrup", amount: "1 cl" },
+          { name: "soda water", amount: "1.5 cl" }
       ],
       method: "Muddle herbs/sugar in shaker. Add remaining ingredients. Shake with ice. Strain. Top with soda.",
       glass: "Collins glass",
@@ -201,9 +197,9 @@ export const cocktails: Cocktail[] = [
       id: "aperol-spritz-std",
       label: "Standard",
       ingredients: [
-          { name: "Prosecco sparkling wine", amount: "9 cl" },
-          { name: "Bittersweet orange-red aperitivo", amount: "6 cl" },
-          { name: "Thomas Henry Soda Water", amount: "3 cl" }
+          { name: "prosecco sparkling wine", amount: "9 cl" },
+          { name: "red orange aperitivo", amount: "6 cl" },
+          { name: "soda water", amount: "3 cl" }
       ],
       method: "Shake base ingredients with ice. Strain into glass. Top with soda.",
       glass: "Wine glass",
@@ -221,17 +217,12 @@ export const cocktails: Cocktail[] = [
       id: "sazerac-std",
       label: "Standard",
       ingredients: [
-          { name: "La Fée Parisienne absinthe", amount: "1 cl" },
-          { name: "Chilled water", amount: "7 cl" },
-          { name: "Rémy Martin 1738 Cognac", amount: "2 cl" },
-          { name: "Straight rye whiskey (100 proof / 50% alc./vol.)", amount: "2 cl" },
-          { name: "Bourbon whiskey", amount: "2 cl" },
-          { name: "Sugar syrup (65.0°brix, 2 sugar to 1 water rich syrup)", amount: "1 cl" },
-          { name: "Peychaud\'s or other Creole-style bitters", amount: "3 dash" },
-          { name: "Angostura Aromatic Bitters", amount: "1 dash" }
+          { name: "straight rye whiskey", amount: "6 cl" },
+          { name: "sugar syrup", amount: "1 cl" },
+          { name: "peychaud\'s aromatic bitters", amount: "6 dash" }
       ],
       method: "Stir all ingredients over ice. Strain into glass.",
-      glass: "Old-fashioned glass",
+      glass: "Rocks glass",
       garnish: "Lemon twist",
     },
     alternativeRecipes: [],
@@ -246,11 +237,10 @@ export const cocktails: Cocktail[] = [
       id: "last-word-std",
       label: "Standard",
       ingredients: [
-          { name: "Rutte Dry Gin", amount: "3 cl" },
-          { name: "Green Chartreuse liqueur", amount: "2 cl" },
-          { name: "Luxardo Maraschino liqueur", amount: "2 cl" },
-          { name: "Lime juice (freshly squeezed)", amount: "2 cl" },
-          { name: "Chilled water (omit if using wet ice)", amount: "1 cl" }
+          { name: "green chartreuse liqueur", amount: "2 cl" },
+          { name: "maraschino liqueur", amount: "2 cl" },
+          { name: "lime juice", amount: "2 cl" },
+          { name: "gin", amount: "2 cl" }
       ],
       method: "Shake all ingredients with ice. Strain into chilled glass.",
       glass: "Coupe glass",
@@ -268,15 +258,13 @@ export const cocktails: Cocktail[] = [
       id: "paloma-std",
       label: "Standard",
       ingredients: [
-          { name: "Patrón Silver blanco tequila", amount: "5 cl" },
-          { name: "Grapefruit juice (pink)", amount: "2.5 cl" },
-          { name: "Lime juice (freshly squeezed)", amount: "1.25 cl" },
-          { name: "Agave syrup", amount: "0.75 cl" },
-          { name: "Thomas Henry Pink Grapefruit soda", amount: "5 cl" }
+          { name: "blanco tequila", amount: "5 cl" },
+          { name: "lime juice", amount: "0.75 cl" },
+          { name: "pink grapefruit soda", amount: "12 cl" }
       ],
       method: "Muddle herbs/sugar in shaker. Add remaining ingredients. Shake with ice. Strain. Top with soda.",
       glass: "Collins glass",
-      garnish: "Salt rim",
+      garnish: "Salt rim & grapefruit wedge",
     },
     alternativeRecipes: [],
   }
@@ -290,10 +278,10 @@ export const cocktails: Cocktail[] = [
       id: "pina-colada-std",
       label: "Standard",
       ingredients: [
-          { name: "Bacardi Carta Blanca light rum", amount: "6 cl" },
-          { name: "Pineapple juice (fresh pressed)", amount: "9 cl" },
-          { name: "Cream of coconut (e.g. Coco Lopez, Re\'al etc.)", amount: "2 cl" },
-          { name: "Lime juice (freshly squeezed)", amount: "1.5 cl" }
+          { name: "light rum", amount: "6 cl" },
+          { name: "pineapple juice", amount: "9 cl" },
+          { name: "cream of coconut", amount: "1.5 cl" },
+          { name: "angostura bitters", amount: "4 dash" }
       ],
       method: "Blend all ingredients with crushed ice until smooth. Pour into glass.",
       glass: "Pineapple shell (frozen) glass",
@@ -311,11 +299,11 @@ export const cocktails: Cocktail[] = [
       id: "mai-tai-std",
       label: "Standard",
       ingredients: [
-          { name: "Havana Club 7yo rum", amount: "6 cl" },
-          { name: "Orange Curaçao liqueur", amount: "1.5 cl" },
-          { name: "Lime juice (freshly squeezed)", amount: "2.25 cl" },
-          { name: "Giffard Orgeat Syrup", amount: "1 cl" },
-          { name: "Sugar syrup (65.0°brix, 2 sugar to 1 water rich syrup)", amount: "0.75 cl" }
+          { name: "rum", amount: "6 cl" },
+          { name: "orange curaçao liqueur", amount: "1.5 cl" },
+          { name: "lime juice", amount: "2.25 cl" },
+          { name: "orgeat syrup", amount: "1 cl" },
+          { name: "sugar syrup", amount: "0.75 cl" }
       ],
       method: "Stir all ingredients over ice. Strain into glass over fresh ice.",
       glass: "Double old-fashioned",
@@ -333,10 +321,10 @@ export const cocktails: Cocktail[] = [
       id: "sidecar-std",
       label: "Standard",
       ingredients: [
-          { name: "Rémy Martin 1738 Cognac", amount: "4.5 cl" },
-          { name: "De Kuyper Triple Sec (40%)", amount: "3 cl" },
-          { name: "Lemon juice (freshly squeezed)", amount: "1.5 cl" },
-          { name: "Chilled water (omit if using wet ice)", amount: "1.5 cl" }
+          { name: "cognac", amount: "4.5 cl" },
+          { name: "triple sec", amount: "3 cl" },
+          { name: "lemon juice", amount: "1.5 cl" },
+          { name: "chilled water", amount: "1.5 cl" }
       ],
       method: "Shake all ingredients with ice. Strain into chilled glass.",
       glass: "Coupe glass",
@@ -354,10 +342,10 @@ export const cocktails: Cocktail[] = [
       id: "french-75-std",
       label: "Standard",
       ingredients: [
-          { name: "Lemon juice (freshly squeezed)", amount: "1.5 cl" },
-          { name: "Powdered sugar (ground in mortar and pestle) (or use 5ml of 2:1 sugar syrup per spoon)", amount: "1 1⁄2 spoon" },
-          { name: "Rutte Dry Gin", amount: "4.5 cl" },
-          { name: "Brut Champagne", amount: "7.5 cl" }
+          { name: "lemon juice", amount: "1.5 cl" },
+          { name: "powdered sugar", amount: "1 1/2 spoon" },
+          { name: "dry gin", amount: "4.5 cl" },
+          { name: "brut champagne", amount: "7.5 cl" }
       ],
       method: "Shake all ingredients with ice. Strain into glass.",
       glass: "Flute glass",
@@ -375,9 +363,9 @@ export const cocktails: Cocktail[] = [
       id: "boulevardier-std",
       label: "Standard",
       ingredients: [
-          { name: "Bourbon whiskey", amount: "4.5 cl" },
-          { name: "Martini Rosso sweet vermouth", amount: "3 cl" },
-          { name: "Italian red bitter liqueur", amount: "3 cl" }
+          { name: "bourbon whiskey", amount: "4.5 cl" },
+          { name: "red vermouth", amount: "3 cl" },
+          { name: "italian red bitter liqueur", amount: "3 cl" }
       ],
       method: "Stir all ingredients over ice. Strain into glass.",
       glass: "Old-fashioned glass",
@@ -395,13 +383,13 @@ export const cocktails: Cocktail[] = [
       id: "bloody-mary-std",
       label: "Standard",
       ingredients: [
-          { name: "Ketel One Vodka", amount: "6 cl" },
-          { name: "Tomato juice", amount: "12 cl" },
-          { name: "Lemon juice (freshly squeezed)", amount: "1.5 cl" },
-          { name: "Hot pepper sauce (red)", amount: "8 drop" },
-          { name: "Worcestershire sauce", amount: "4 dash" },
-          { name: "Black pepper", amount: "2 grind" },
-          { name: "Celery salt", amount: "1 pinch" }
+          { name: "vodka", amount: "6 cl" },
+          { name: "tomato juice", amount: "12 cl" },
+          { name: "lemon juice", amount: "1.5 cl" },
+          { name: "hot pepper sauce", amount: "8 drop" },
+          { name: "worcestershire sauce", amount: "4 dash" },
+          { name: "black pepper", amount: "2 grind" },
+          { name: "celery salt", amount: "1 pinch" }
       ],
       method: "Build ingredients directly in glass over ice. Stir gently.",
       glass: "Collins glass",
@@ -419,14 +407,13 @@ export const cocktails: Cocktail[] = [
       id: "moscow-mule-std",
       label: "Standard",
       ingredients: [
-          { name: "Ketel One Vodka", amount: "6 cl" },
-          { name: "Lime juice (freshly squeezed)", amount: "1.5 cl" },
-          { name: "Sugar syrup (65.0°brix, 2 sugar to 1 water rich syrup)", amount: "1 cl" },
-          { name: "Thomas Henry Ginger Beer", amount: "9 cl" }
+          { name: "vodka", amount: "5 cl" },
+          { name: "lime juice", amount: "2 cl" },
+          { name: "ginger ale", amount: "Top up with" }
       ],
       method: "Build ingredients directly in glass over ice. Stir gently.",
       glass: "Copper mug or Collins glass",
-      garnish: "Lime wheel",
+      garnish: "Cucumber slice",
     },
     alternativeRecipes: [],
   }
@@ -440,10 +427,10 @@ export const cocktails: Cocktail[] = [
       id: "tom-collins-std",
       label: "Standard",
       ingredients: [
-          { name: "Portobello Old Tom gin", amount: "6 cl" },
-          { name: "Lemon juice (freshly squeezed)", amount: "2.5 cl" },
-          { name: "Sugar syrup (65.0°brix, 2 sugar to 1 water rich syrup)", amount: "1.5 cl" },
-          { name: "Thomas Henry Soda Water", amount: "5 cl" }
+          { name: "dry gin", amount: "4.5 cl" },
+          { name: "lemon juice", amount: "3 cl" },
+          { name: "sugar syrup", amount: "2 cl" },
+          { name: "soda water", amount: "9 cl" }
       ],
       method: "Shake base ingredients with ice. Strain into glass. Top with soda.",
       glass: "Collins glass",
@@ -461,11 +448,10 @@ export const cocktails: Cocktail[] = [
       id: "aviation-std",
       label: "Standard",
       ingredients: [
-          { name: "Rutte Dry Gin", amount: "5.25 cl" },
-          { name: "Luxardo Maraschino liqueur", amount: "1.5 cl" },
-          { name: "Crème de violette liqueur", amount: "0.75 cl" },
-          { name: "Lemon juice (freshly squeezed)", amount: "1.5 cl" },
-          { name: "Chilled water (omit if using wet ice)", amount: "0.75 cl" }
+          { name: "gin", amount: "6 cl" },
+          { name: "maraschino liqueur", amount: "1.5 cl" },
+          { name: "lime juice", amount: "1.5 cl" },
+          { name: "crème de violette liqueur", amount: "0.75 cl" }
       ],
       method: "Shake all ingredients with ice. Strain into chilled glass.",
       glass: "Coupe glass",
@@ -483,10 +469,10 @@ export const cocktails: Cocktail[] = [
       id: "paper-plane-std",
       label: "Standard",
       ingredients: [
-          { name: "Bourbon whiskey", amount: "2.25 cl" },
-          { name: "Amaro Nonino Quintessentia", amount: "2.25 cl" },
-          { name: "Bittersweet orange-red aperitivo", amount: "2.25 cl" },
-          { name: "Lemon juice (freshly squeezed)", amount: "2.25 cl" }
+          { name: "bourbon whiskey", amount: "2.25 cl" },
+          { name: "amaro nonino", amount: "2.25 cl" },
+          { name: "aperitivo", amount: "2.25 cl" },
+          { name: "lemon juice", amount: "2.25 cl" }
       ],
       method: "Shake all ingredients with ice. Strain into chilled glass.",
       glass: "Coupe glass",
@@ -504,13 +490,13 @@ export const cocktails: Cocktail[] = [
       id: "penicillin-std",
       label: "Standard",
       ingredients: [
-          { name: "Dewar\'s 12 Year Old Scotch whisky", amount: "4.5 cl" },
-          { name: "Ginger liqueur", amount: "1.5 cl" },
-          { name: "Islay single malt (peated) Scotch whisky", amount: "1 cl" },
-          { name: "Lemon juice (freshly squeezed)", amount: "2 cl" },
-          { name: "Honey syrup (3 honey to 1 water)", amount: "2 cl" }
+          { name: "scotch whisky", amount: "4.5 cl" },
+          { name: "ginger liqueur", amount: "1.5 cl" },
+          { name: "single malt scotch whisky", amount: "1 cl" },
+          { name: "lemon juice", amount: "2 cl" },
+          { name: "honey syrup", amount: "2 cl" }
       ],
-      method: "Stir all ingredients over ice. Strain into glass over fresh ice.",
+      method: "Shake all ingredients with ice. Strain into glass over fresh ice.",
       glass: "Old-fashioned glass",
       garnish: "Candied ginger",
     },
@@ -526,12 +512,8 @@ export const cocktails: Cocktail[] = [
       id: "gimlet-std",
       label: "Standard",
       ingredients: [
-          { name: "Rutte Dry Gin", amount: "5 cl" },
-          { name: "Lime cordial (sweetened lime juice)", amount: "2 cl" },
-          { name: "Rutte Old Simon Genever", amount: "1 cl" },
-          { name: "Lime juice (freshly squeezed)", amount: "0.5 cl" },
-          { name: "Lemon juice (freshly squeezed)", amount: "0.5 cl" },
-          { name: "Sugar syrup (65.0°brix, 2 sugar to 1 water rich syrup)", amount: "0.5 cl" }
+          { name: "gin", amount: "6 cl" },
+          { name: "lime cordial", amount: "3 cl" }
       ],
       method: "Shake all ingredients with ice. Strain into chilled glass.",
       glass: "Coupe glass",
@@ -549,10 +531,9 @@ export const cocktails: Cocktail[] = [
       id: "bees-knees-std",
       label: "Standard",
       ingredients: [
-          { name: "Rutte Dry Gin", amount: "6 cl" },
-          { name: "Lemon juice (freshly squeezed)", amount: "2.25 cl" },
-          { name: "Honey syrup (3 honey to 1 water)", amount: "1.5 cl" },
-          { name: "Orange juice (freshly squeezed)", amount: "1 cl" }
+          { name: "gin", amount: "6 cl" },
+          { name: "lemon juice", amount: "2.25 cl" },
+          { name: "honey syrup", amount: "1.5 cl" }
       ],
       method: "Shake all ingredients with ice. Strain into chilled glass.",
       glass: "Coupe glass",
@@ -570,13 +551,12 @@ export const cocktails: Cocktail[] = [
       id: "caipirinha-std",
       label: "Standard",
       ingredients: [
-          { name: "Lime (fresh) (chopped)", amount: "1⁄2 fresh" },
-          { name: "Powdered sugar (ground in mortar and pestle)", amount: "3 spoon" },
-          { name: "Chilled water (omit if using wet ice)", amount: "2.25 cl" },
-          { name: "Novo Fogo Silver cachaça (from freezer)", amount: "6 cl" }
+          { name: "lime wedges", amount: "3/4 fresh" },
+          { name: "silver cachaça", amount: "6 cl" },
+          { name: "sugar syrup", amount: "1.5 cl" }
       ],
-      method: "Build ingredients directly in glass over ice. Stir gently.",
-      glass: "Highball (max 10oz/300ml)",
+      method: "Build in the glass. Muddle the limes, add ice, churn with more ice, serve.",
+      glass: "Old-fashioned glass",
       garnish: "Sugar rim",
     },
     alternativeRecipes: [],
@@ -591,10 +571,10 @@ export const cocktails: Cocktail[] = [
       id: "mint-julep-std",
       label: "Standard",
       ingredients: [
-          { name: "Mint leaves", amount: "12 fresh" },
-          { name: "Bourbon whiskey", amount: "7 cl" },
-          { name: "Sugar syrup (65.0°brix, 2 sugar to 1 water rich syrup)", amount: "2 cl" },
-          { name: "Angostura Aromatic Bitters", amount: "2 dash" }
+          { name: "mint leaves", amount: "12 fresh" },
+          { name: "bourbon whiskey", amount: "7 cl" },
+          { name: "sugar syrup", amount: "2 cl" },
+          { name: "angostura bitters", amount: "2 dash" }
       ],
       method: "Muddle mint and sugar gently in shaker. Add remaining ingredients. Shake with ice. Fine strain into glass.",
       glass: "Julep tin",
@@ -612,11 +592,10 @@ export const cocktails: Cocktail[] = [
       id: "clover-club-std",
       label: "Standard",
       ingredients: [
-          { name: "Gin", amount: "6 cl" },
-          { name: "Lemon juice (freshly squeezed)", amount: "1.5 cl" },
-          { name: "Raspberry (framboise) sugar syrup", amount: "1.5 cl" },
-          { name: "Pasteurised egg white", amount: "1.5 cl" },
-          { name: "Raspberries (fresh)", amount: "3 whole" }
+          { name: "gin", amount: "6 cl" },
+          { name: "lemon juice", amount: "3 cl" },
+          { name: "raspberry syrup", amount: "3 cl" },
+          { name: "egg white", amount: "" }
       ],
       method: "Dry shake all ingredients without ice. Shake again with ice. Strain into chilled glass.",
       glass: "Coupe glass",
@@ -634,10 +613,10 @@ export const cocktails: Cocktail[] = [
       id: "bramble-std",
       label: "Standard",
       ingredients: [
-          { name: "Rutte Dry Gin", amount: "4.5 cl" },
-          { name: "Lemon juice (freshly squeezed)", amount: "3 cl" },
-          { name: "Sugar syrup (65.0°brix, 2 sugar to 1 water rich syrup)", amount: "1.25 cl" },
-          { name: "Giffard Crème de Mûre liqueur", amount: "1.25 cl" }
+          { name: "dry gin", amount: "4.5 cl" },
+          { name: "lemon juice", amount: "3 cl" },
+          { name: "sugar syrup", amount: "1.25 cl" },
+          { name: "crème de mûre liqueur", amount: "1.25 cl" }
       ],
       method: "Stir all ingredients over ice. Strain into glass over fresh ice.",
       glass: "Double old-fashioned",
@@ -655,12 +634,11 @@ export const cocktails: Cocktail[] = [
       id: "corpse-reviver-2-std",
       label: "Standard",
       ingredients: [
-          { name: "Rutte Dry Gin", amount: "2.25 cl" },
-          { name: "De Kuyper Triple Sec (40%)", amount: "2.25 cl" },
-          { name: "Lillet Blanc (or other aromatized wine)", amount: "2.25 cl" },
-          { name: "Lemon juice (freshly squeezed)", amount: "2.25 cl" },
-          { name: "Sugar syrup (65.0°brix, 2 sugar to 1 water rich syrup) (optional)", amount: "0.25 cl" },
-          { name: "La Fée Parisienne absinthe", amount: "2 dash" }
+          { name: "london dry gin", amount: "2.25 cl" },
+          { name: "triple sec liqueur", amount: "2.25 cl" },
+          { name: "americano", amount: "2.25 cl" },
+          { name: "lemon juice", amount: "2.25 cl" },
+          { name: "absinthe", amount: "2 dash" }
       ],
       method: "Shake all ingredients with ice. Strain into chilled glass.",
       glass: "Coupe glass",
@@ -678,12 +656,12 @@ export const cocktails: Cocktail[] = [
       id: "vieux-carre-std",
       label: "Standard",
       ingredients: [
-          { name: "Bourbon whiskey", amount: "2.25 cl" },
-          { name: "Rémy Martin 1738 Cognac", amount: "2.25 cl" },
-          { name: "Martini Rosso sweet vermouth", amount: "2.25 cl" },
-          { name: "Bénédictine D.O.M.", amount: "1 cl" },
-          { name: "Peychaud\'s or other Creole-style bitters", amount: "2 dash" },
-          { name: "Angostura Aromatic Bitters", amount: "1 dash" }
+          { name: "bourbon whiskey", amount: "3 cl" },
+          { name: "cognac", amount: "3 cl" },
+          { name: "red vermouth", amount: "3 cl" },
+          { name: "benedictine liqueur", amount: "0.5 cl" },
+          { name: "peychaud\'s aromatic bitters", amount: "3 dash" },
+          { name: "angostura bitters", amount: "3 dash" }
       ],
       method: "Stir all ingredients over ice. Strain into glass.",
       glass: "Old-fashioned glass",
@@ -701,12 +679,12 @@ export const cocktails: Cocktail[] = [
       id: "suffering-bastard-std",
       label: "Standard",
       ingredients: [
-          { name: "Rémy Martin 1738 Cognac", amount: "3 cl" },
-          { name: "Rutte Dry Gin", amount: "3 cl" },
-          { name: "Lime cordial (sweetened lime juice)", amount: "2 cl" },
-          { name: "Lime juice (freshly squeezed)", amount: "1 cl" },
-          { name: "Angostura Aromatic Bitters", amount: "3 dash" },
-          { name: "Thomas Henry Ginger Beer", amount: "10 cl" }
+          { name: "cognac", amount: "3 cl" },
+          { name: "dry gin", amount: "3 cl" },
+          { name: "lime cordial", amount: "2 cl" },
+          { name: "lime juice", amount: "1 cl" },
+          { name: "angostura bitters", amount: "3 dash" },
+          { name: "ginger beer", amount: "10 cl" }
       ],
       method: "Build ingredients directly in glass over ice. Stir gently.",
       glass: "Tiki mug or collins",
@@ -724,10 +702,10 @@ export const cocktails: Cocktail[] = [
       id: "trinidad-sour-std",
       label: "Standard",
       ingredients: [
-          { name: "Angostura Aromatic Bitters", amount: "4.5 cl" },
-          { name: "Straight rye whiskey (100 proof / 50% alc./vol.)", amount: "1.5 cl" },
-          { name: "Giffard Orgeat Syrup", amount: "3 cl" },
-          { name: "Lemon juice (freshly squeezed)", amount: "2.25 cl" }
+          { name: "angostura bitters", amount: "4.5 cl" },
+          { name: "straight rye whiskey", amount: "1.5 cl" },
+          { name: "orgeat syrup", amount: "3 cl" },
+          { name: "lemon juice", amount: "2.25 cl" }
       ],
       method: "Shake all ingredients with ice. Strain into chilled glass.",
       glass: "Coupe glass",
@@ -745,12 +723,12 @@ export const cocktails: Cocktail[] = [
       id: "americano-std",
       label: "Standard",
       ingredients: [
-          { name: "Italian red bitter liqueur", amount: "4.5 cl" },
-          { name: "Martini Rosso sweet vermouth", amount: "4.5 cl" },
-          { name: "Thomas Henry Soda Water", amount: "7.5 cl" }
+          { name: "italian red bitter liqueur", amount: "4 cl" },
+          { name: "red vermouth", amount: "4 cl" },
+          { name: "soda water", amount: "top up" }
       ],
       method: "Shake base ingredients with ice. Strain into glass. Top with soda.",
-      glass: "Collins glass",
+      glass: "Highball glass",
       garnish: "Orange twist",
     },
     alternativeRecipes: [],
@@ -765,10 +743,10 @@ export const cocktails: Cocktail[] = [
       id: "bellini-std",
       label: "Standard",
       ingredients: [
-          { name: "Peach purée", amount: "6 cl" },
-          { name: "Peachtree peach schnapps", amount: "1 cl" },
-          { name: "Lemon juice (freshly squeezed)", amount: "0.75 cl" },
-          { name: "Prosecco sparkling wine", amount: "6 cl" }
+          { name: "peach puree", amount: "6 cl" },
+          { name: "peach schnapps", amount: "1 cl" },
+          { name: "lemon juice", amount: "0.75 cl" },
+          { name: "prosecco sparkling wine", amount: "6 cl" }
       ],
       method: "Shake base ingredients with ice. Strain into glass. Top with soda.",
       glass: "Flute glass",
@@ -786,8 +764,8 @@ export const cocktails: Cocktail[] = [
       id: "black-russian-std",
       label: "Standard",
       ingredients: [
-          { name: "Ketel One Vodka", amount: "6 cl" },
-          { name: "Coffee liqueur", amount: "2.25 cl" }
+          { name: "vodka", amount: "6 cl" },
+          { name: "coffee liqueur", amount: "2.25 cl" }
       ],
       method: "Shake all ingredients vigorously with ice. Fine strain into glass.",
       glass: "Old-fashioned glass",
@@ -805,10 +783,10 @@ export const cocktails: Cocktail[] = [
       id: "blood-and-sand-std",
       label: "Standard",
       ingredients: [
-          { name: "Orange juice (freshly squeezed)", amount: "2.25 cl" },
-          { name: "Antica Formula or other well aged sweet vermouth", amount: "2.25 cl" },
-          { name: "Dewar\'s 12 Year Old \'The Ancestor\' blended Scotch whisky", amount: "3.5 cl" },
-          { name: "Giffard Cherry Brandy Liqueur", amount: "2.25 cl" }
+          { name: "scotch whisky", amount: "2.25 cl" },
+          { name: "brandy liqueur", amount: "2.25 cl" },
+          { name: "red vermouth", amount: "2.25 cl" },
+          { name: "orange juice", amount: "2.25 cl" }
       ],
       method: "Shake all ingredients with ice. Strain into chilled glass.",
       glass: "Coupe glass",
@@ -826,10 +804,10 @@ export const cocktails: Cocktail[] = [
       id: "casino-std",
       label: "Standard",
       ingredients: [
-          { name: "Portobello Old Tom gin", amount: "4.5 cl" },
-          { name: "Luxardo Maraschino liqueur", amount: "2.25 cl" },
-          { name: "Lemon juice (freshly squeezed)", amount: "1.5 cl" },
-          { name: "Orange Bitters by Angostura", amount: "1 dash" }
+          { name: "old tom gin", amount: "4.5 cl" },
+          { name: "maraschino liqueur", amount: "2.25 cl" },
+          { name: "lemon juice", amount: "1.5 cl" },
+          { name: "orange bitters", amount: "1 dash" }
       ],
       method: "Shake all ingredients with ice. Strain into chilled glass.",
       glass: "Nick & Nora glass",
@@ -847,10 +825,10 @@ export const cocktails: Cocktail[] = [
       id: "champagne-cocktail-std",
       label: "Standard",
       ingredients: [
-          { name: "Sugar cube", amount: "1 cube" },
-          { name: "Angostura Aromatic Bitters", amount: "3 dash" },
-          { name: "Rémy Martin 1738 Cognac", amount: "3 cl" },
-          { name: "Brut Champagne", amount: "10 cl" }
+          { name: "sugar syrup", amount: "1.5 cl" },
+          { name: "angostura bitters", amount: "3 dash" },
+          { name: "cognac", amount: "3 cl" },
+          { name: "brut champagne", amount: "10 cl" }
       ],
       method: "Shake all ingredients with ice. Strain into glass.",
       glass: "Flute glass",
@@ -868,11 +846,10 @@ export const cocktails: Cocktail[] = [
       id: "cosmopolitan-std",
       label: "Standard",
       ingredients: [
-          { name: "Ketel One Vodka", amount: "3 cl" },
-          { name: "De Kuyper Triple Sec (40%)", amount: "3 cl" },
-          { name: "Cranberry juice (sweetened)", amount: "4.5 cl" },
-          { name: "Lime juice (freshly squeezed)", amount: "1.5 cl" },
-          { name: "Orange Bitters by Angostura", amount: "1 dash" }
+          { name: "vodka", amount: "6 cl" },
+          { name: "lime juice", amount: "1.5 cl" },
+          { name: "triple sec liqueur", amount: "2 cl" },
+          { name: "cranberry juice", amount: "2 cl" }
       ],
       method: "Shake all ingredients with ice. Strain into chilled glass.",
       glass: "Coupe glass",
@@ -890,10 +867,9 @@ export const cocktails: Cocktail[] = [
       id: "cuba-libre-std",
       label: "Standard",
       ingredients: [
-          { name: "Havana Club 3 Year Old rum", amount: "5 cl" },
-          { name: "Lime juice (freshly squeezed)", amount: "0.5 cl" },
-          { name: "Angostura Aromatic Bitters", amount: "1 dash" },
-          { name: "Cola (e.g. Coca Cola & Pepsi Cola)", amount: "12 cl" }
+          { name: "light rum", amount: "5 cl" },
+          { name: "cola", amount: "12 cl" },
+          { name: "lime juice", amount: "0.75 cl" }
       ],
       method: "Build ingredients directly in glass over ice. Stir gently.",
       glass: "Collins glass",
@@ -911,10 +887,9 @@ export const cocktails: Cocktail[] = [
       id: "derby-std",
       label: "Standard",
       ingredients: [
-          { name: "Havana Club 3 Year Old rum", amount: "4.5 cl" },
-          { name: "Orange juice (freshly squeezed)", amount: "3 cl" },
-          { name: "Lime juice (freshly squeezed)", amount: "1.5 cl" },
-          { name: "Sugar syrup (65.0°brix, 2 sugar to 1 water rich syrup)", amount: "1.5 cl" }
+          { name: "mint leaves", amount: "5 fresh" },
+          { name: "dry gin", amount: "6 cl" },
+          { name: "peach bitters", amount: "2 dash" }
       ],
       method: "Shake all ingredients with ice. Strain into chilled glass.",
       glass: "Coupe glass",
@@ -932,9 +907,9 @@ export const cocktails: Cocktail[] = [
       id: "dirty-martini-std",
       label: "Standard",
       ingredients: [
-          { name: "Rutte Dry Gin", amount: "6.25 cl" },
-          { name: "Martini Extra Dry vermouth", amount: "1.5 cl" },
-          { name: "Olive bitters", amount: "5 dash" }
+          { name: "dry gin", amount: "6.25 cl" },
+          { name: "extra dry vermouth", amount: "1.5 cl" },
+          { name: "olive bitters", amount: "5 dash" }
       ],
       method: "Stir all ingredients over ice. Strain into glass.",
       glass: "Martini glass",
@@ -952,10 +927,10 @@ export const cocktails: Cocktail[] = [
       id: "el-diablo-std",
       label: "Standard",
       ingredients: [
-          { name: "Patrón Reposado tequila", amount: "4.5 cl" },
-          { name: "Giffard Noir de Bourgogne Cassis", amount: "1.5 cl" },
-          { name: "Lime juice (freshly squeezed)", amount: "2.25 cl" },
-          { name: "Thomas Henry Ginger Beer", amount: "6 cl" }
+          { name: "reposado tequila", amount: "4.5 cl" },
+          { name: "cassis liqueur", amount: "1.5 cl" },
+          { name: "lime juice", amount: "2.25 cl" },
+          { name: "ginger beer", amount: "6 cl" }
       ],
       method: "Build ingredients directly in glass over ice. Stir gently.",
       glass: "Collins glass",
@@ -973,8 +948,8 @@ export const cocktails: Cocktail[] = [
       id: "godfather-std",
       label: "Standard",
       ingredients: [
-          { name: "Dewar\'s 12 Year Old Scotch whisky", amount: "6 cl" },
-          { name: "Disaronno amaretto", amount: "2 cl" }
+          { name: "scotch whisky", amount: "6 cl" },
+          { name: "amaretto", amount: "2 cl" }
       ],
       method: "Stir all ingredients over ice. Strain into glass over fresh ice.",
       glass: "Old-fashioned glass",
@@ -992,10 +967,10 @@ export const cocktails: Cocktail[] = [
       id: "golden-dream-std",
       label: "Standard",
       ingredients: [
-          { name: "De Kuyper Triple Sec (40%)", amount: "2.5 cl" },
-          { name: "Galliano L\'Autentico liqueur", amount: "2.5 cl" },
-          { name: "Orange juice (freshly squeezed)", amount: "3.75 cl" },
-          { name: "Single cream / half-and-half", amount: "2.5 cl" }
+          { name: "triple sec", amount: "2.5 cl" },
+          { name: "galliano l\'autentico liqueur", amount: "2.5 cl" },
+          { name: "orange juice", amount: "3.75 cl" },
+          { name: "single cream", amount: "2.5 cl" }
       ],
       method: "Shake all ingredients with ice. Strain into chilled glass.",
       glass: "Coupe glass",
@@ -1013,9 +988,9 @@ export const cocktails: Cocktail[] = [
       id: "grasshopper-std",
       label: "Standard",
       ingredients: [
-          { name: "Giffard Peppermint Pastille crème de menthe", amount: "3 cl" },
-          { name: "Dutch Cacao white crème de cacao", amount: "3 cl" },
-          { name: "Single cream / half-and-half", amount: "3 cl" }
+          { name: "crème", amount: "3 cl" },
+          { name: "white crème de cacao", amount: "3 cl" },
+          { name: "single cream", amount: "3 cl" }
       ],
       method: "Muddle mint and sugar gently in shaker. Add remaining ingredients. Shake with ice. Fine strain into glass.",
       glass: "Coupe glass",
@@ -1033,11 +1008,9 @@ export const cocktails: Cocktail[] = [
       id: "hanky-panky-std",
       label: "Standard",
       ingredients: [
-          { name: "Rutte Dry Gin", amount: "4.5 cl" },
-          { name: "Martini Rosso sweet vermouth", amount: "4.5 cl" },
-          { name: "Fernet liqueur", amount: "0.25 cl" },
-          { name: "Orange juice (freshly squeezed) (optional)", amount: "0.125 cl" },
-          { name: "Difford\'s Saline Solution (or ½ pinch salt) (optional)", amount: "2 drop" }
+          { name: "dry gin", amount: "4.5 cl" },
+          { name: "red vermouth", amount: "4.5 cl" },
+          { name: "fernet liqueur", amount: "0.25 cl" }
       ],
       method: "Shake all ingredients with ice. Strain into chilled glass.",
       glass: "Nick & Nora glass",
@@ -1055,11 +1028,11 @@ export const cocktails: Cocktail[] = [
       id: "harvey-wallbanger-std",
       label: "Standard",
       ingredients: [
-          { name: "Ketel One Vodka", amount: "4.5 cl" },
-          { name: "Orange juice (freshly squeezed)", amount: "6.75 cl" },
-          { name: "Sugar syrup (65.0°brix, 2 sugar to 1 water rich syrup)", amount: "0.5 cl" },
-          { name: "Orange Bitters by Angostura", amount: "2 dash" },
-          { name: "Galliano L\'Autentico liqueur", amount: "1.25 cl" }
+          { name: "vodka", amount: "4.5 cl" },
+          { name: "orange juice", amount: "6.75 cl" },
+          { name: "sugar syrup", amount: "0.5 cl" },
+          { name: "orange bitters", amount: "2 dash" },
+          { name: "galliano l\'autentico liqueur", amount: "1.25 cl" }
       ],
       method: "Build ingredients directly in glass over ice. Stir gently.",
       glass: "Collins glass",
@@ -1077,13 +1050,13 @@ export const cocktails: Cocktail[] = [
       id: "hemingway-daiquiri-std",
       label: "Standard",
       ingredients: [
-          { name: "La Fée Parisienne absinthe", amount: "0.75 cl" },
-          { name: "Sugar syrup (65.0°brix, 2 sugar to 1 water rich syrup)", amount: "1.25 cl" },
-          { name: "Lime juice (freshly squeezed)", amount: "1.25 cl" },
-          { name: "Brut Champagne", amount: "12 cl" }
+          { name: "light rum", amount: "6 cl" },
+          { name: "maraschino liqueur", amount: "1.5 cl" },
+          { name: "lime juice", amount: "2.25 cl" },
+          { name: "grapefruit juice", amount: "1.5 cl" }
       ],
       method: "Shake all ingredients with ice. Strain into chilled glass.",
-      glass: "Flute glass",
+      glass: "Coupe glass",
       garnish: "Lime wheel",
     },
     alternativeRecipes: [],
@@ -1098,9 +1071,9 @@ export const cocktails: Cocktail[] = [
       id: "horses-neck-std",
       label: "Standard",
       ingredients: [
-          { name: "Bourbon whiskey", amount: "4.5 cl" },
-          { name: "Angostura Aromatic Bitters", amount: "2 dash" },
-          { name: "Thomas Henry Ginger Ale", amount: "Top up with" }
+          { name: "bourbon whiskey", amount: "4.5 cl" },
+          { name: "angostura bitters", amount: "5 dash" },
+          { name: "ginger ale", amount: "Top up with" }
       ],
       method: "Build ingredients directly in glass over ice. Stir gently.",
       glass: "Highball (max 10oz/300ml)",
@@ -1118,10 +1091,10 @@ export const cocktails: Cocktail[] = [
       id: "irish-coffee-std",
       label: "Standard",
       ingredients: [
-          { name: "Irish whiskey", amount: "3 cl" },
-          { name: "Demerara / dark Muscovado sugar syrup (2 sugar to 1 water)", amount: "1 cl" },
-          { name: "Filter coffee (hot)", amount: "6 cl" },
-          { name: "Double cream / heavy cream", amount: "3 cl" }
+          { name: "irish whiskey", amount: "3 cl" },
+          { name: "demerara sugar syrup", amount: "1 cl" },
+          { name: "filter coffee", amount: "6 cl" },
+          { name: "heavy cream", amount: "3 cl" }
       ],
       method: "Shake all ingredients vigorously with ice. Fine strain into glass.",
       glass: "Toddy glass",
@@ -1139,10 +1112,10 @@ export const cocktails: Cocktail[] = [
       id: "john-collins-std",
       label: "Standard",
       ingredients: [
-          { name: "Rutte Dry Gin", amount: "6 cl" },
-          { name: "Lemon juice (freshly squeezed)", amount: "2.5 cl" },
-          { name: "Sugar syrup (65.0°brix, 2 sugar to 1 water rich syrup)", amount: "1.5 cl" },
-          { name: "Thomas Henry Soda Water", amount: "5 cl" }
+          { name: "dry gin", amount: "6 cl" },
+          { name: "lemon juice", amount: "2.5 cl" },
+          { name: "sugar syrup", amount: "1.5 cl" },
+          { name: "soda water", amount: "5 cl" }
       ],
       method: "Shake base ingredients with ice. Strain into glass. Top with soda.",
       glass: "Collins glass",
@@ -1160,12 +1133,12 @@ export const cocktails: Cocktail[] = [
       id: "kir-royale-std",
       label: "Standard",
       ingredients: [
-          { name: "Giffard Noir de Bourgogne Cassis", amount: "1.5 cl" },
-          { name: "Brut Champagne", amount: "12 cl" }
+          { name: "cassis liqueur", amount: "1.5 cl" },
+          { name: "brut champagne", amount: "12 cl" }
       ],
       method: "Shake all ingredients with ice. Strain into glass.",
       glass: "Flute glass",
-      garnish: "None",
+      garnish: "",
     },
     alternativeRecipes: [],
   }
@@ -1179,9 +1152,10 @@ export const cocktails: Cocktail[] = [
       id: "lemon-drop-std",
       label: "Standard",
       ingredients: [
-          { name: "Ketel One Vodka", amount: "1.5 cl" },
-          { name: "De Kuyper Triple Sec (40%)", amount: "1.5 cl" },
-          { name: "Lemon juice (freshly squeezed)", amount: "1.5 cl" }
+          { name: "vodka", amount: "6 cl" },
+          { name: "lemon juice", amount: "3 cl" },
+          { name: "sugar syrup", amount: "3 cl" },
+          { name: "triple sec liqueur", amount: "1.5 cl" }
       ],
       method: "Shake all ingredients with ice. Strain into glass.",
       glass: "Shot glass",
@@ -1199,15 +1173,15 @@ export const cocktails: Cocktail[] = [
       id: "long-island-iced-tea-std",
       label: "Standard",
       ingredients: [
-          { name: "Bacardi Carta Blanca light rum", amount: "1.25 cl" },
-          { name: "Rutte Dry Gin", amount: "1.25 cl" },
-          { name: "Ketel One Vodka", amount: "1.25 cl" },
-          { name: "Patrón Silver blanco tequila", amount: "1.25 cl" },
-          { name: "De Kuyper Triple Sec (40%)", amount: "1.25 cl" },
-          { name: "Sugar syrup (65.0°brix, 2 sugar to 1 water rich syrup)", amount: "1.25 cl" },
-          { name: "Lemon juice (freshly squeezed)", amount: "1.25 cl" },
-          { name: "Lime juice (freshly squeezed)", amount: "1.25 cl" },
-          { name: "Cola (e.g. Coca Cola & Pepsi Cola)", amount: "6 cl" }
+          { name: "light rum", amount: "1.25 cl" },
+          { name: "dry gin", amount: "1.25 cl" },
+          { name: "vodka", amount: "1.25 cl" },
+          { name: "blanco tequila", amount: "1.25 cl" },
+          { name: "triple sec", amount: "1.25 cl" },
+          { name: "sugar syrup", amount: "1.25 cl" },
+          { name: "lemon juice", amount: "1.25 cl" },
+          { name: "lime juice", amount: "1.25 cl" },
+          { name: "cola", amount: "6 cl" }
       ],
       method: "Build ingredients directly in glass over ice. Stir gently.",
       glass: "Collins glass",
@@ -1225,11 +1199,10 @@ export const cocktails: Cocktail[] = [
       id: "martinez-std",
       label: "Standard",
       ingredients: [
-          { name: "Rutte Old Simon Genever", amount: "6 cl" },
-          { name: "Martini Rosso sweet vermouth", amount: "3 cl" },
-          { name: "Martini Extra Dry vermouth", amount: "0.75 cl" },
-          { name: "Orange Curaçao liqueur", amount: "0.75 cl" },
-          { name: "Angostura Aromatic Bitters", amount: "1 dash" }
+          { name: "gin", amount: "4.5 cl" },
+          { name: "red vermouth", amount: "4.5 cl" },
+          { name: "orange bitters", amount: "2 dash" },
+          { name: "maraschino liqueur", amount: "0.5 cl" }
       ],
       method: "Shake all ingredients with ice. Strain into chilled glass.",
       glass: "Coupe glass",
@@ -1247,10 +1220,10 @@ export const cocktails: Cocktail[] = [
       id: "mary-pickford-std",
       label: "Standard",
       ingredients: [
-          { name: "Havana Club 3 Year Old rum", amount: "6 cl" },
-          { name: "Pineapple juice (fresh pressed)", amount: "4.5 cl" },
-          { name: "Luxardo Maraschino liqueur", amount: "0.5 cl" },
-          { name: "Giffard Grenadine syrup", amount: "0.5 cl" }
+          { name: "rum", amount: "6 cl" },
+          { name: "pineapple juice", amount: "4.5 cl" },
+          { name: "maraschino liqueur", amount: "0.5 cl" },
+          { name: "grenadine syrup", amount: "0.5 cl" }
       ],
       method: "Shake all ingredients with ice. Strain into chilled glass.",
       glass: "Coupe glass",
@@ -1268,11 +1241,11 @@ export const cocktails: Cocktail[] = [
       id: "monkey-gland-std",
       label: "Standard",
       ingredients: [
-          { name: "Rutte Dry Gin", amount: "6 cl" },
-          { name: "Orange juice (freshly squeezed)", amount: "2 cl" },
-          { name: "Giffard Grenadine syrup", amount: "0.5 cl" },
-          { name: "Sugar syrup (65.0°brix, 2 sugar to 1 water rich syrup)", amount: "0.25 cl" },
-          { name: "La Fée Parisienne absinthe (omit for Cocktails Made Easy)", amount: "3 dash" }
+          { name: "dry gin", amount: "6 cl" },
+          { name: "orange juice", amount: "2 cl" },
+          { name: "grenadine syrup", amount: "0.5 cl" },
+          { name: "sugar syrup", amount: "0.25 cl" },
+          { name: "absinthe", amount: "3 dash" }
       ],
       method: "Shake all ingredients with ice. Strain into chilled glass.",
       glass: "Coupe glass",
@@ -1290,13 +1263,13 @@ export const cocktails: Cocktail[] = [
       id: "morning-glory-fizz-std",
       label: "Standard",
       ingredients: [
-          { name: "Speyside single malt Scotch whisky (from freezer)", amount: "6 cl" },
-          { name: "La Fée Parisienne absinthe", amount: "0.25 cl" },
-          { name: "Lemon juice (freshly squeezed)", amount: "2 cl" },
-          { name: "Lime juice (freshly squeezed)", amount: "1 cl" },
-          { name: "Sugar syrup (65.0°brix, 2 sugar to 1 water rich syrup)", amount: "1.5 cl" },
-          { name: "Pasteurised egg white", amount: "2 cl" },
-          { name: "Thomas Henry Soda Water", amount: "Top up with" }
+          { name: "speyside single malt scotch whisky", amount: "6 cl" },
+          { name: "absinthe", amount: "0.25 cl" },
+          { name: "lemon juice", amount: "2 cl" },
+          { name: "lime juice", amount: "1 cl" },
+          { name: "sugar syrup", amount: "1.5 cl" },
+          { name: "egg white", amount: "2 cl" },
+          { name: "soda water", amount: "Top up with" }
       ],
       method: "Dry shake all ingredients without ice. Shake again with ice. Strain into glass. Top with soda.",
       glass: "Highball (max 10oz/300ml)",
@@ -1314,16 +1287,16 @@ export const cocktails: Cocktail[] = [
       id: "mulled-wine-std",
       label: "Standard",
       ingredients: [
-          { name: "Clove", amount: "5 dried" },
-          { name: "Freshly grated nutmeg", amount: "1 pinch" },
-          { name: "Cinnamon powder", amount: "1 pinch" },
-          { name: "Tawny port", amount: "4.5 cl" },
-          { name: "Shiraz red wine", amount: "4.5 cl" },
-          { name: "Orange (fresh fruit)", amount: "1 wedge" },
-          { name: "Lemon juice (freshly squeezed)", amount: "1.5 cl" },
-          { name: "Honey", amount: "2 spoon" },
-          { name: "Grand Marnier or other cognac orange liqueur", amount: "1.5 cl" },
-          { name: "Boiling water", amount: "Top up with" }
+          { name: "clove", amount: "5 dried" },
+          { name: "grated nutmeg", amount: "1 pinch" },
+          { name: "cinnamon powder", amount: "1 pinch" },
+          { name: "tawny port", amount: "4.5 cl" },
+          { name: "red wine", amount: "4.5 cl" },
+          { name: "orange", amount: "1 wedge" },
+          { name: "lemon juice", amount: "1.5 cl" },
+          { name: "honey", amount: "2 spoon" },
+          { name: "cognac orange liqueur", amount: "1.5 cl" },
+          { name: "boiling water", amount: "Top up with" }
       ],
       method: "Build in warmed glass. Add ingredients in order. Float cream on top.",
       glass: "Toddy glass",
@@ -1341,12 +1314,11 @@ export const cocktails: Cocktail[] = [
       id: "new-york-sour-std",
       label: "Standard",
       ingredients: [
-          { name: "Bourbon whiskey", amount: "6 cl" },
-          { name: "Lemon juice (freshly squeezed)", amount: "3 cl" },
-          { name: "Sugar syrup (65.0°brix, 2 sugar to 1 water rich syrup)", amount: "1.5 cl" },
-          { name: "Angostura Aromatic Bitters", amount: "1 dash" },
-          { name: "Pasteurised egg white (optional)", amount: "1.5 cl" },
-          { name: "Claret red wine", amount: "1.5 cl" }
+          { name: "bourbon whiskey", amount: "6 cl" },
+          { name: "lemon juice", amount: "3 cl" },
+          { name: "sugar syrup", amount: "1.5 cl" },
+          { name: "angostura bitters", amount: "1 dash" },
+          { name: "red wine", amount: "1.5 cl" }
       ],
       method: "Dry shake all ingredients without ice. Shake again with ice. Strain into chilled glass.",
       glass: "Old-fashioned glass",
@@ -1364,12 +1336,12 @@ export const cocktails: Cocktail[] = [
       id: "old-cuban-std",
       label: "Standard",
       ingredients: [
-          { name: "Mint leaves", amount: "6 fresh" },
-          { name: "Havana Club 7yo rum", amount: "4.5 cl" },
-          { name: "Lime juice (freshly squeezed)", amount: "2.25 cl" },
-          { name: "Sugar syrup (65.0°brix, 2 sugar to 1 water rich syrup)", amount: "1.5 cl" },
-          { name: "Angostura Aromatic Bitters", amount: "2 dash" },
-          { name: "Brut Champagne", amount: "2.25 cl" }
+          { name: "mint leaves", amount: "6 fresh" },
+          { name: "rum", amount: "4.5 cl" },
+          { name: "lime juice", amount: "2.25 cl" },
+          { name: "sugar syrup", amount: "1.5 cl" },
+          { name: "angostura bitters", amount: "2 dash" },
+          { name: "brut champagne", amount: "2.25 cl" }
       ],
       method: "Muddle mint and sugar gently in shaker. Add remaining ingredients. Shake with ice. Fine strain into glass.",
       glass: "Coupe glass",
@@ -1387,10 +1359,10 @@ export const cocktails: Cocktail[] = [
       id: "paradise-std",
       label: "Standard",
       ingredients: [
-          { name: "Rutte Dry Gin", amount: "4.5 cl" },
-          { name: "De Kuyper Apricot Brandy liqueur", amount: "2.25 cl" },
-          { name: "Orange juice (freshly squeezed)", amount: "2.25 cl" },
-          { name: "Orange Bitters by Angostura", amount: "2 dash" }
+          { name: "dry gin", amount: "4.5 cl" },
+          { name: "apricot brandy liqueur", amount: "2.25 cl" },
+          { name: "orange juice", amount: "2.25 cl" },
+          { name: "orange bitters", amount: "2 dash" }
       ],
       method: "Shake all ingredients with ice. Strain into chilled glass.",
       glass: "Coupe glass",
@@ -1408,10 +1380,11 @@ export const cocktails: Cocktail[] = [
       id: "pisco-sour-std",
       label: "Standard",
       ingredients: [
-          { name: "Lime juice (freshly squeezed)", amount: "3 cl" },
-          { name: "Powdered sugar (ground in mortar and pestle)", amount: "6 spoon" },
-          { name: "BarSol Mosto Verde Italia Pisco", amount: "6 cl" },
-          { name: "Pasteurised egg white", amount: "1.5 cl" }
+          { name: "sugar syrup", amount: "2 cl" },
+          { name: "lime juice", amount: "2 cl" },
+          { name: "pisco", amount: "5 cl" },
+          { name: "angostura bitters", amount: "3 drop" },
+          { name: "egg white", amount: "1.5 cl" }
       ],
       method: "Dry shake all ingredients without ice. Shake again with ice. Strain into chilled glass.",
       glass: "Goblet glass",
@@ -1429,11 +1402,11 @@ export const cocktails: Cocktail[] = [
       id: "planters-punch-std",
       label: "Standard",
       ingredients: [
-          { name: "Overproof pot still rum", amount: "4.5 cl" },
-          { name: "Lime juice (freshly squeezed)", amount: "3 cl" },
-          { name: "Sugar syrup (65.0°brix, 2 sugar to 1 water rich syrup)", amount: "1.5 cl" },
-          { name: "Chilled water", amount: "6 cl" },
-          { name: "Angostura Aromatic Bitters", amount: "3 dash" }
+          { name: "overproof pot still rum", amount: "4.5 cl" },
+          { name: "lime juice", amount: "3 cl" },
+          { name: "sugar syrup", amount: "1.5 cl" },
+          { name: "chilled water", amount: "6 cl" },
+          { name: "angostura bitters", amount: "3 dash" }
       ],
       method: "Build ingredients directly in glass over ice. Stir gently.",
       glass: "Collins glass",
@@ -1451,15 +1424,14 @@ export const cocktails: Cocktail[] = [
       id: "ramos-gin-fizz-std",
       label: "Standard",
       ingredients: [
-          { name: "Portobello Old Tom gin", amount: "6 cl" },
-          { name: "Lemon juice (freshly squeezed)", amount: "1.5 cl" },
-          { name: "Lime juice (freshly squeezed)", amount: "1.5 cl" },
-          { name: "Sugar syrup (65.0°brix, 2 sugar to 1 water rich syrup)", amount: "2.25 cl" },
-          { name: "Orange flower/blossom water", amount: "0.125 cl" },
-          { name: "Vanilla extract (optional)", amount: "3 drop" },
-          { name: "Pasteurised egg white", amount: "2.25 cl" },
-          { name: "Single cream / half-and-half", amount: "2.25 cl" },
-          { name: "Thomas Henry Soda Water", amount: "Top up with" }
+          { name: "old tom gin", amount: "6 cl" },
+          { name: "lemon juice", amount: "1.5 cl" },
+          { name: "lime juice", amount: "1.5 cl" },
+          { name: "sugar syrup", amount: "2.25 cl" },
+          { name: "orange flower blossom water", amount: "0.125 cl" },
+          { name: "egg white", amount: "2.25 cl" },
+          { name: "single cream", amount: "2.25 cl" },
+          { name: "soda water", amount: "Top up with" }
       ],
       method: "Dry shake all ingredients without ice. Shake again with ice. Strain into glass. Top with soda.",
       glass: "Collins glass",
@@ -1477,9 +1449,9 @@ export const cocktails: Cocktail[] = [
       id: "rob-roy-std",
       label: "Standard",
       ingredients: [
-          { name: "Dewar\'s 12 Year Old Scotch whisky", amount: "5 cl" },
-          { name: "Martini Rosso sweet vermouth", amount: "3 cl" },
-          { name: "Bob\'s Abbotts bitters", amount: "2 dash" }
+          { name: "scotch whisky", amount: "5 cl" },
+          { name: "red vermouth", amount: "3 cl" },
+          { name: "bobs abbotts bitters", amount: "2 dash" }
       ],
       method: "Stir all ingredients over ice. Strain into glass.",
       glass: "Coupe glass",
@@ -1497,9 +1469,9 @@ export const cocktails: Cocktail[] = [
       id: "rose-cocktail-std",
       label: "Standard",
       ingredients: [
-          { name: "Noilly Prat Extra Dry Vermouth", amount: "6 cl" },
-          { name: "Kirschwasser (cherry) eau-de-vie", amount: "3 cl" },
-          { name: "Raspberry (framboise) sugar syrup", amount: "1⁄2 spoon" }
+          { name: "extra dry vermouth", amount: "6 cl" },
+          { name: "kirschwasser eau-de-vie", amount: "3 cl" },
+          { name: "raspberry sugar syrup", amount: "2 cl" }
       ],
       method: "Shake all ingredients with ice. Strain into chilled glass.",
       glass: "Coupe glass",
@@ -1517,8 +1489,8 @@ export const cocktails: Cocktail[] = [
       id: "rusty-nail-std",
       label: "Standard",
       ingredients: [
-          { name: "Dewar\'s 12 Year Old Scotch whisky", amount: "4.5 cl" },
-          { name: "Drambuie liqueur", amount: "1.5 cl" }
+          { name: "scotch whisky", amount: "4.5 cl" },
+          { name: "drambuie liqueur", amount: "1.5 cl" }
       ],
       method: "Stir all ingredients over ice. Strain into glass.",
       glass: "Old-fashioned glass",
@@ -1536,11 +1508,11 @@ export const cocktails: Cocktail[] = [
       id: "scorpion-std",
       label: "Standard",
       ingredients: [
-          { name: "Havana Club 3 Year Old rum", amount: "4.5 cl" },
-          { name: "Rémy Martin 1738 Cognac", amount: "2.25 cl" },
-          { name: "Orange juice (freshly squeezed)", amount: "6 cl" },
-          { name: "Lemon juice (freshly squeezed)", amount: "3 cl" },
-          { name: "Giffard Orgeat Syrup", amount: "1.5 cl" }
+          { name: "rum", amount: "4.5 cl" },
+          { name: "cognac", amount: "2.25 cl" },
+          { name: "orange juice", amount: "6 cl" },
+          { name: "lemon juice", amount: "3 cl" },
+          { name: "orgeat syrup", amount: "1.5 cl" }
       ],
       method: "Build ingredients directly in glass over ice. Stir gently.",
       glass: "Collins glass",
@@ -1558,16 +1530,16 @@ export const cocktails: Cocktail[] = [
       id: "sex-on-the-beach-std",
       label: "Standard",
       ingredients: [
-          { name: "Peachtree peach schnapps", amount: "2 cl" },
-          { name: "Orange juice (freshly squeezed)", amount: "3 cl" },
-          { name: "Pineapple juice (fresh pressed)", amount: "3 cl" },
-          { name: "Ketel One Vodka", amount: "4.5 cl" },
-          { name: "Cranberry juice (sweetened)", amount: "3 cl" },
-          { name: "Giffard Framboise de Ronce (raspberry liqueur)", amount: "1.5 cl" }
+          { name: "peach schnapps", amount: "2 cl" },
+          { name: "orange juice", amount: "3 cl" },
+          { name: "pineapple juice", amount: "3 cl" },
+          { name: "vodka", amount: "4.5 cl" },
+          { name: "cranberry juice", amount: "3 cl" },
+          { name: "raspberry liqueur", amount: "1.5 cl" }
       ],
       method: "Build ingredients directly in glass over ice. Stir gently.",
       glass: "Collins glass",
-      garnish: "Orange twist",
+      garnish: "Orange wedge",
     },
     alternativeRecipes: [],
   }
@@ -1581,16 +1553,16 @@ export const cocktails: Cocktail[] = [
       id: "singapore-sling-std",
       label: "Standard",
       ingredients: [
-          { name: "Portobello Old Tom gin", amount: "6 cl" },
-          { name: "Bénédictine D.O.M.", amount: "1.5 cl" },
-          { name: "Cherry Heering cherry brandy liqueur", amount: "1.5 cl" },
-          { name: "Lemon juice (freshly squeezed)", amount: "3 cl" },
-          { name: "Angostura Aromatic Bitters", amount: "2 dash" },
-          { name: "Orange Bitters by Angostura", amount: "2 dash" },
-          { name: "Thomas Henry Soda Water", amount: "Top up with" }
+          { name: "gin", amount: "6 cl" },
+          { name: "benedictine liqueur", amount: "1.5 cl" },
+          { name: "cherry brandy liqueur", amount: "1.5 cl" },
+          { name: "lemon juice", amount: "3 cl" },
+          { name: "angostura bitters", amount: "2 dash" },
+          { name: "orange bitters", amount: "2 dash" },
+          { name: "soda water", amount: "top up" }
       ],
       method: "Shake base ingredients with ice. Strain into glass. Top with soda.",
-      glass: "Sling glass",
+      glass: "Highball glass",
       garnish: "Lemon twist",
     },
     alternativeRecipes: [],
@@ -1605,8 +1577,8 @@ export const cocktails: Cocktail[] = [
       id: "stinger-std",
       label: "Standard",
       ingredients: [
-          { name: "Rémy Martin 1738 Cognac", amount: "6 cl" },
-          { name: "Giffard Menthe Pastille white crème de menthe", amount: "2.25 cl" }
+          { name: "cognac", amount: "6 cl" },
+          { name: "menthe white crème", amount: "2.25 cl" }
       ],
       method: "Stir all ingredients over ice. Strain into glass over fresh ice.",
       glass: "Old-fashioned glass",
@@ -1624,12 +1596,9 @@ export const cocktails: Cocktail[] = [
       id: "tequila-sunrise-std",
       label: "Standard",
       ingredients: [
-          { name: "Giffard Grenadine syrup", amount: "0.5 cl" },
-          { name: "Giffard Noir de Bourgogne Cassis", amount: "0.5 cl" },
-          { name: "Patrón Reposado tequila", amount: "4.5 cl" },
-          { name: "Orange Curaçao liqueur", amount: "2.25 cl" },
-          { name: "Lime juice (freshly squeezed)", amount: "1.5 cl" },
-          { name: "Orange juice (freshly squeezed)", amount: "7.5 cl" }
+          { name: "reposado tequila", amount: "6 cl" },
+          { name: "orange juice", amount: "12 cl" },
+          { name: "grenadine", amount: "2 Splash" }
       ],
       method: "Build ingredients directly in glass over ice. Stir gently.",
       glass: "Collins glass",
@@ -1647,12 +1616,11 @@ export const cocktails: Cocktail[] = [
       id: "tuxedo-std",
       label: "Standard",
       ingredients: [
-          { name: "Portobello Old Tom gin", amount: "4.5 cl" },
-          { name: "Martini Extra Dry vermouth", amount: "4.5 cl" },
-          { name: "Luxardo Maraschino liqueur", amount: "1 dash" },
-          { name: "La Fée Parisienne absinthe", amount: "1 dash" },
-          { name: "Orange Bitters by Angostura", amount: "2 dash" },
-          { name: "Angostura Aromatic Bitters", amount: "2 dash" }
+          { name: "dry gin", amount: "4.5 cl" },
+          { name: "extra dry vermouth", amount: "4.5 cl" },
+          { name: "maraschino liqueur", amount: "1 dash" },
+          { name: "orange bitters", amount: "2 dash" },
+          { name: "absinthe", amount: "1 dash" }
       ],
       method: "Shake all ingredients with ice. Strain into chilled glass.",
       glass: "Coupe glass",
@@ -1670,10 +1638,9 @@ export const cocktails: Cocktail[] = [
       id: "vesper-std",
       label: "Standard",
       ingredients: [
-          { name: "Rutte Dry Gin", amount: "6 cl" },
-          { name: "Ketel One Vodka", amount: "2 cl" },
-          { name: "Kina aromatised wine", amount: "0.5 cl" },
-          { name: "Lillet Blanc (or other aromatized wine)", amount: "0.5 cl" }
+          { name: "gin", amount: "5 cl" },
+          { name: "vodka", amount: "2 cl" },
+          { name: "lillet", amount: "1.5 cl" }
       ],
       method: "Shake all ingredients with ice. Strain into chilled glass.",
       glass: "Martini glass",
@@ -1691,11 +1658,11 @@ export const cocktails: Cocktail[] = [
       id: "ward-eight-std",
       label: "Standard",
       ingredients: [
-          { name: "Straight rye whiskey (100 proof / 50% alc./vol.)", amount: "6 cl" },
-          { name: "Lemon juice (freshly squeezed)", amount: "2.25 cl" },
-          { name: "Orange juice (freshly squeezed)", amount: "2.25 cl" },
-          { name: "Sugar syrup (65.0°brix, 2 sugar to 1 water rich syrup)", amount: "0.75 cl" },
-          { name: "Giffard Grenadine syrup", amount: "0.5 cl" }
+          { name: "straight rye whiskey", amount: "6 cl" },
+          { name: "lemon juice", amount: "2.25 cl" },
+          { name: "orange juice", amount: "2.25 cl" },
+          { name: "sugar syrup", amount: "0.75 cl" },
+          { name: "grenadine syrup", amount: "0.5 cl" }
       ],
       method: "Shake all ingredients with ice. Strain into chilled glass.",
       glass: "Coupe glass",
@@ -1713,8 +1680,8 @@ export const cocktails: Cocktail[] = [
       id: "whisky-mac-std",
       label: "Standard",
       ingredients: [
-          { name: "Dewar\'s 12 Year Old Scotch whisky", amount: "4.5 cl" },
-          { name: "Stone\'s Original Green Ginger Wine", amount: "3 cl" }
+          { name: "scotch whisky", amount: "4.5 cl" },
+          { name: "green ginger wine", amount: "3 cl" }
       ],
       method: "Stir all ingredients over ice. Strain into glass over fresh ice.",
       glass: "Old-fashioned glass",
@@ -1732,11 +1699,9 @@ export const cocktails: Cocktail[] = [
       id: "white-lady-std",
       label: "Standard",
       ingredients: [
-          { name: "Rutte Dry Gin", amount: "4.5 cl" },
-          { name: "De Kuyper Triple Sec (40%)", amount: "2.25 cl" },
-          { name: "Lemon juice (freshly squeezed)", amount: "2.25 cl" },
-          { name: "Sugar syrup (65.0°brix, 2 sugar to 1 water rich syrup)", amount: "1 cl" },
-          { name: "Pasteurised egg white (optional)", amount: "1.5 cl" }
+          { name: "gin", amount: "6 cl" },
+          { name: "triple sec liqueur", amount: "1.5 cl" },
+          { name: "lemon juice", amount: "3 cl" }
       ],
       method: "Dry shake all ingredients without ice. Shake again with ice. Strain into chilled glass.",
       glass: "Coupe glass",
@@ -1754,9 +1719,9 @@ export const cocktails: Cocktail[] = [
       id: "white-russian-std",
       label: "Standard",
       ingredients: [
-          { name: "Ketel One Vodka", amount: "6 cl" },
-          { name: "Coffee liqueur", amount: "3 cl" },
-          { name: "Single cream / half-and-half", amount: "3 cl" }
+          { name: "vodka", amount: "6 cl" },
+          { name: "coffee liqueur", amount: "3 cl" },
+          { name: "single cream", amount: "3 cl" }
       ],
       method: "Shake all ingredients vigorously with ice. Fine strain into glass.",
       glass: "Old-fashioned glass",
@@ -1774,15 +1739,15 @@ export const cocktails: Cocktail[] = [
       id: "zombie-std",
       label: "Standard",
       ingredients: [
-          { name: "Overproof pot still rum", amount: "3 cl" },
-          { name: "Havana Club 3 Year Old rum", amount: "4.5 cl" },
-          { name: "Overproof aged rum", amount: "2 cl" },
-          { name: "Difford\'s Falernum liqueur", amount: "1.5 cl" },
-          { name: "Pernod anise", amount: "0.125 cl" },
-          { name: "Pineapple juice (fresh pressed)", amount: "3 cl" },
-          { name: "Lime juice (freshly squeezed)", amount: "2 cl" },
-          { name: "Grapefruit juice (pink)", amount: "1 cl" },
-          { name: "Giffard Grenadine syrup", amount: "0.5 cl" }
+          { name: "overproof pot still rum", amount: "3 cl" },
+          { name: "rum", amount: "4.5 cl" },
+          { name: "overproof rum", amount: "2 cl" },
+          { name: "falernum liqueur", amount: "1.5 cl" },
+          { name: "anise", amount: "0.125 cl" },
+          { name: "pineapple juice", amount: "3 cl" },
+          { name: "lime juice", amount: "2 cl" },
+          { name: "grapefruit juice", amount: "1 cl" },
+          { name: "grenadine syrup", amount: "0.5 cl" }
       ],
       method: "Blend all ingredients with crushed ice until smooth. Pour into glass.",
       glass: "Collins glass",
@@ -1800,10 +1765,10 @@ export const cocktails: Cocktail[] = [
       id: "naked-and-famous-std",
       label: "Standard",
       ingredients: [
-          { name: "Del Maguey VIDA mezcal", amount: "2.25 cl" },
-          { name: "Bittersweet orange-red aperitivo", amount: "2.25 cl" },
-          { name: "Yellow Chartreuse liqueur", amount: "2.25 cl" },
-          { name: "Lime juice (freshly squeezed)", amount: "2.25 cl" }
+          { name: "mezcal", amount: "2.25 cl" },
+          { name: "red orange aperitivo", amount: "2.25 cl" },
+          { name: "yellow chartreuse liqueur", amount: "2.25 cl" },
+          { name: "lime juice", amount: "2.25 cl" }
       ],
       method: "Shake all ingredients with ice. Strain into chilled glass.",
       glass: "Coupe glass",
@@ -1821,11 +1786,11 @@ export const cocktails: Cocktail[] = [
       id: "jungle-bird-std",
       label: "Standard",
       ingredients: [
-          { name: "Dark/black/blackstrap rum", amount: "4.5 cl" },
-          { name: "Italian red bitter liqueur", amount: "1.5 cl" },
-          { name: "Pineapple juice (fresh pressed)", amount: "4.5 cl" },
-          { name: "Lime juice (freshly squeezed)", amount: "1.5 cl" },
-          { name: "Sugar syrup (65.0°brix, 2 sugar to 1 water rich syrup)", amount: "1.25 cl" }
+          { name: "dark rum", amount: "4.5 cl" },
+          { name: "italian red bitter liqueur", amount: "1.5 cl" },
+          { name: "pineapple juice", amount: "4.5 cl" },
+          { name: "lime juice", amount: "1.5 cl" },
+          { name: "sugar syrup", amount: "1.25 cl" }
       ],
       method: "Stir all ingredients over ice. Strain into glass over fresh ice.",
       glass: "Old-fashioned glass",
@@ -1843,14 +1808,14 @@ export const cocktails: Cocktail[] = [
       id: "navy-grog-std",
       label: "Standard",
       ingredients: [
-          { name: "Bacardi Carta Blanca light rum", amount: "3 cl" },
-          { name: "Havana Club 7yo rum", amount: "3 cl" },
-          { name: "Navy rum (54.5% alc./vol.)", amount: "3 cl" },
-          { name: "Pimento dram liqueur", amount: "0.75 cl" },
-          { name: "Demerara / dark Muscovado sugar syrup (2 sugar to 1 water)", amount: "0.75 cl" },
-          { name: "Honey syrup (3 honey to 1 water)", amount: "0.75 cl" },
-          { name: "Grapefruit juice (pink)", amount: "2.25 cl" },
-          { name: "Lime juice (freshly squeezed)", amount: "2.25 cl" }
+          { name: "light rum", amount: "3 cl" },
+          { name: "rum", amount: "3 cl" },
+          { name: "rum", amount: "3 cl" },
+          { name: "pimento dram liqueur", amount: "0.75 cl" },
+          { name: "demerara sugar syrup", amount: "0.75 cl" },
+          { name: "honey syrup", amount: "0.75 cl" },
+          { name: "grapefruit juice", amount: "2.25 cl" },
+          { name: "lime juice", amount: "2.25 cl" }
       ],
       method: "Muddle fruit/herbs in shaker. Add remaining ingredients. Shake with ice. Strain into glass.",
       glass: "Double old-fashioned",
@@ -1868,11 +1833,11 @@ export const cocktails: Cocktail[] = [
       id: "saturn-std",
       label: "Standard",
       ingredients: [
-          { name: "Rutte Dry Gin", amount: "4.5 cl" },
-          { name: "Difford\'s Falernum liqueur", amount: "0.75 cl" },
-          { name: "Giffard Orgeat Syrup", amount: "0.75 cl" },
-          { name: "Passion fruit syrup", amount: "0.75 cl" },
-          { name: "Lemon juice (freshly squeezed)", amount: "1.5 cl" }
+          { name: "dry gin", amount: "4.5 cl" },
+          { name: "falernum liqueur", amount: "0.75 cl" },
+          { name: "orgeat syrup", amount: "0.75 cl" },
+          { name: "passion fruit syrup", amount: "0.75 cl" },
+          { name: "lemon juice", amount: "1.5 cl" }
       ],
       method: "Muddle fruit/herbs in shaker. Add remaining ingredients. Shake with ice. Strain into glass.",
       glass: "Sling glass",
@@ -1890,10 +1855,10 @@ export const cocktails: Cocktail[] = [
       id: "chartreuse-swizzle-std",
       label: "Standard",
       ingredients: [
-          { name: "Green Chartreuse liqueur", amount: "4.5 cl" },
-          { name: "Difford\'s Falernum liqueur", amount: "1.5 cl" },
-          { name: "Pineapple juice (fresh pressed)", amount: "4.5 cl" },
-          { name: "Lime juice (freshly squeezed)", amount: "2.25 cl" }
+          { name: "green chartreuse liqueur", amount: "4.5 cl" },
+          { name: "falernum liqueur", amount: "1.5 cl" },
+          { name: "pineapple juice", amount: "4.5 cl" },
+          { name: "lime juice", amount: "2.25 cl" }
       ],
       method: "Build ingredients directly in glass over ice. Stir gently.",
       glass: "Collins glass",
@@ -1911,15 +1876,15 @@ export const cocktails: Cocktail[] = [
       id: "toronto-std",
       label: "Standard",
       ingredients: [
-          { name: "Canadian blended whisky", amount: "5.25 cl" },
-          { name: "Fernet liqueur", amount: "0.75 cl" },
-          { name: "Maple syrup", amount: "0.75 cl" },
-          { name: "Angostura Aromatic Bitters", amount: "1 dash" },
-          { name: "Chilled water (omit if using wet ice)", amount: "1 cl" }
+          { name: "canadian blended whisky", amount: "5.25 cl" },
+          { name: "fernet liqueur", amount: "0.75 cl" },
+          { name: "maple syrup", amount: "0.75 cl" },
+          { name: "angostura bitters", amount: "1 dash" },
+          { name: "chilled water", amount: "1 cl" }
       ],
       method: "Shake all ingredients with ice. Strain into chilled glass.",
       glass: "Coupe glass",
-      garnish: "Orange twist",
+      garnish: "Lemon twist",
     },
     alternativeRecipes: [],
   }
@@ -1933,9 +1898,9 @@ export const cocktails: Cocktail[] = [
       id: "chet-baker-std",
       label: "Standard",
       ingredients: [
-          { name: "Caribbean blended rum aged 6-10 years", amount: "6 cl" },
-          { name: "Rosso/rouge (sweet) vermouth", amount: "1.5 cl" },
-          { name: "Honey syrup (3 honey to 1 water)", amount: "1 spoon" }
+          { name: "caribbean blended rum", amount: "6 cl" },
+          { name: "red vermouth", amount: "1.5 cl" },
+          { name: "honey syrup", amount: "1 spoon" }
       ],
       method: "Stir all ingredients over ice. Strain into glass over fresh ice.",
       glass: "Old-fashioned glass",
@@ -1953,10 +1918,10 @@ export const cocktails: Cocktail[] = [
       id: "final-ward-std",
       label: "Standard",
       ingredients: [
-          { name: "Straight rye whiskey (100 proof / 50% alc./vol.)", amount: "2.25 cl" },
-          { name: "Green Chartreuse liqueur", amount: "2.25 cl" },
-          { name: "Luxardo Maraschino liqueur", amount: "2.25 cl" },
-          { name: "Lemon juice (freshly squeezed)", amount: "2.25 cl" }
+          { name: "straight rye whiskey", amount: "2.25 cl" },
+          { name: "green chartreuse liqueur", amount: "2.25 cl" },
+          { name: "maraschino liqueur", amount: "2.25 cl" },
+          { name: "lemon juice", amount: "2.25 cl" }
       ],
       method: "Shake all ingredients with ice. Strain into chilled glass.",
       glass: "Coupe glass",
@@ -1974,10 +1939,10 @@ export const cocktails: Cocktail[] = [
       id: "southside-std",
       label: "Standard",
       ingredients: [
-          { name: "Mint leaves", amount: "7 fresh" },
-          { name: "Rutte Dry Gin", amount: "6 cl" },
-          { name: "Lime juice (freshly squeezed)", amount: "2.5 cl" },
-          { name: "Sugar syrup (65.0°brix, 2 sugar to 1 water rich syrup)", amount: "1.5 cl" }
+          { name: "mint leaves", amount: "7 fresh" },
+          { name: "dry gin", amount: "6 cl" },
+          { name: "lime juice", amount: "2.5 cl" },
+          { name: "sugar syrup", amount: "1.5 cl" }
       ],
       method: "Muddle mint and sugar gently in shaker. Add remaining ingredients. Shake with ice. Fine strain into glass.",
       glass: "Coupe glass",
@@ -1995,12 +1960,12 @@ export const cocktails: Cocktail[] = [
       id: "elderflower-collins-std",
       label: "Standard",
       ingredients: [
-          { name: "Rutte Dry Gin", amount: "5 cl" },
-          { name: "St-Germain elderflower liqueur", amount: "1.5 cl" },
-          { name: "Luxardo Maraschino liqueur", amount: "0.5 cl" },
-          { name: "Lemon juice (freshly squeezed)", amount: "3 cl" },
-          { name: "Sugar syrup (65.0°brix, 2 sugar to 1 water rich syrup)", amount: "1 cl" },
-          { name: "Thomas Henry Soda Water", amount: "2.5 cl" }
+          { name: "dry gin", amount: "5 cl" },
+          { name: "elderflower liqueur", amount: "1.5 cl" },
+          { name: "maraschino liqueur", amount: "0.5 cl" },
+          { name: "lemon juice", amount: "3 cl" },
+          { name: "sugar syrup", amount: "1 cl" },
+          { name: "soda water", amount: "2.5 cl" }
       ],
       method: "Shake base ingredients with ice. Strain into glass. Top with soda.",
       glass: "Collins glass",
@@ -2018,10 +1983,10 @@ export const cocktails: Cocktail[] = [
       id: "mexican-firing-squad-std",
       label: "Standard",
       ingredients: [
-          { name: "Patrón Reposado tequila", amount: "6 cl" },
-          { name: "Lime juice (freshly squeezed)", amount: "2 cl" },
-          { name: "Giffard Grenadine syrup", amount: "1.25 cl" },
-          { name: "Angostura Aromatic Bitters", amount: "2 dash" }
+          { name: "reposado tequila", amount: "6 cl" },
+          { name: "lime juice", amount: "2 cl" },
+          { name: "grenadine syrup", amount: "1.25 cl" },
+          { name: "angostura bitters", amount: "2 dash" }
       ],
       method: "Build ingredients directly in glass over ice. Stir gently.",
       glass: "Highball (max 10oz/300ml)",
@@ -2039,11 +2004,11 @@ export const cocktails: Cocktail[] = [
       id: "pornstar-martini-std",
       label: "Standard",
       ingredients: [
-          { name: "Vanilla vodka", amount: "4 cl" },
-          { name: "Passion fruit purée", amount: "4 cl" },
-          { name: "Lime juice (freshly squeezed)", amount: "1.5 cl" },
-          { name: "Vanilla syrup", amount: "1.5 cl" },
-          { name: "Prosecco (served alongside)", amount: "6 cl" }
+          { name: "passion fruit juice", amount: "3 cl" },
+          { name: "vanilia vodka", amount: "6 cl" },
+          { name: "vanilla sugar syrup", amount: "1.5 cl" },
+          { name: "lime juice", amount: "1.5 cl" },
+          { name: "brut champagne", amount: "2 cl" }
       ],
       method: "Shake vodka, passion fruit purée, lime juice and syrup with ice. Strain into chilled coupe glass. Serve with prosecco shot on the side.",
       glass: "Coupe glass",
@@ -2061,10 +2026,10 @@ export const cocktails: Cocktail[] = [
       id: "gin-basil-smash-std",
       label: "Standard",
       ingredients: [
-          { name: "Basil leaves", amount: "12 fresh" },
-          { name: "Rutte Dry Gin", amount: "6 cl" },
-          { name: "Lemon juice (freshly squeezed)", amount: "2.25 cl" },
-          { name: "Sugar syrup", amount: "1 cl" }
+          { name: "basil leaves", amount: "12 fresh" },
+          { name: "dry gin", amount: "6 cl" },
+          { name: "lemon juice", amount: "2.25 cl" },
+          { name: "sugar syrup", amount: "1 cl" }
       ],
       method: "Shake all ingredients with ice. Strain into chilled glass.",
       glass: "Old-fashioned glass",
@@ -2082,9 +2047,9 @@ export const cocktails: Cocktail[] = [
       id: "bijou-std",
       label: "Standard",
       ingredients: [
-          { name: "Rutte Dry Gin", amount: "3 cl" },
-          { name: "Green Chartreuse liqueur", amount: "3 cl" },
-          { name: "Martini Rosso sweet vermouth", amount: "3 cl" }
+          { name: "gin", amount: "3 cl" },
+          { name: "green chartreuse liqueur", amount: "3 cl" },
+          { name: "red vermouth", amount: "3 cl" }
       ],
       method: "Stir all ingredients over ice. Strain into glass.",
       glass: "Coupe glass",
@@ -2102,10 +2067,10 @@ export const cocktails: Cocktail[] = [
       id: "lucien-gaudin-std",
       label: "Standard",
       ingredients: [
-          { name: "Rutte Dry Gin", amount: "4 cl" },
-          { name: "De Kuyper Triple Sec (40%)", amount: "2 cl" },
-          { name: "Italian red bitter liqueur", amount: "2 cl" },
-          { name: "Martini Extra Dry vermouth", amount: "2 cl" }
+          { name: "dry gin", amount: "4 cl" },
+          { name: "triple sec", amount: "2 cl" },
+          { name: "italian red bitter liqueur", amount: "2 cl" },
+          { name: "extra dry vermouth", amount: "2 cl" }
       ],
       method: "Stir all ingredients over ice. Strain into glass.",
       glass: "Coupe glass",
@@ -2123,12 +2088,11 @@ export const cocktails: Cocktail[] = [
       id: "scofflaw-std",
       label: "Standard",
       ingredients: [
-          { name: "Bourbon whiskey", amount: "4.5 cl" },
-          { name: "Martini Extra Dry vermouth", amount: "4.5 cl" },
-          { name: "Lemon juice (freshly squeezed)", amount: "1.5 cl" },
-          { name: "Giffard Grenadine syrup", amount: "0.5 cl" },
-          { name: "Sugar syrup", amount: "0.5 cl" },
-          { name: "Angostura Aromatic Bitters", amount: "1 dash" }
+          { name: "rye whiskey", amount: "5 cl" },
+          { name: "dry vermouth", amount: "2.5 cl" },
+          { name: "lemon juice", amount: "1.5 cl" },
+          { name: "grenadine syrup", amount: "1 cl" },
+          { name: "orange bitters", amount: "2 dash" }
       ],
       method: "Shake all ingredients with ice. Strain into chilled glass.",
       glass: "Coupe glass",
@@ -2146,11 +2110,12 @@ export const cocktails: Cocktail[] = [
       id: "champs-elysees-std",
       label: "Standard",
       ingredients: [
-          { name: "Cognac", amount: "5 cl" },
-          { name: "Yellow Chartreuse", amount: "1.5 cl" },
-          { name: "Lemon juice (freshly squeezed)", amount: "1.5 cl" },
-          { name: "Simple syrup", amount: "1 cl" },
-          { name: "Angostura Aromatic Bitters", amount: "1 dash" }
+          { name: "cognac", amount: "4.5 cl" },
+          { name: "green chartreuse liqueur", amount: "1 cl" },
+          { name: "lemon juice", amount: "2 cl" },
+          { name: "sugar syrup", amount: "1.5 cl" },
+          { name: "angostura bitters", amount: "1 dash" },
+          { name: "chilled water", amount: "1 cl" }
       ],
       method: "Shake all ingredients with ice. Strain into chilled coupe glass.",
       glass: "Coupe glass",

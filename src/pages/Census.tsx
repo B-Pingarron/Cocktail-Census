@@ -11,6 +11,7 @@ import ExitLink from "@/components/ExitLink";
 import type { Vote } from "@/types/cocktail";
 import { supabase } from "@/lib/supabase";
 import { SWIPE_FLYOFF_DURATION_MS } from "@/components/CocktailCard";
+import { prefersReducedMotion } from "@/lib/motion";
 // Local census state lives in one module so the landing page can read saved progress
 // without duplicating the storage key.
 import { clearState, loadState, saveState } from "@/lib/censusState";
@@ -130,13 +131,20 @@ const Census = () => {
           });
       }
 
-      // Auto-advance after swipe fly-off animation completes
+      // Auto-advance after the swipe fly-off animation completes. Under reduced motion there
+      // is nothing to wait for: index.css zeroes the animation but not the setTimeout that
+      // names the same duration, so the next card arrives immediately and the `transitioning`
+      // transient is never set. Hub.tsx's `goTo` is the reference shape for this branch.
       if (currentIndex < cocktails.length - 1) {
-        setTransitioning(true);
-        setTimeout(() => {
+        if (prefersReducedMotion()) {
           setCurrentIndex((i) => i + 1);
-          setTransitioning(false);
-        }, SWIPE_FLYOFF_DURATION_MS);
+        } else {
+          setTransitioning(true);
+          setTimeout(() => {
+            setCurrentIndex((i) => i + 1);
+            setTransitioning(false);
+          }, SWIPE_FLYOFF_DURATION_MS);
+        }
       } else {
         setFinished(true);
       }

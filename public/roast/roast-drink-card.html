@@ -1,0 +1,2382 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ROAST · the render — the drink as the compositor draws it</title>
+
+<!--
+════════════════════════════════════════════════════════════════════════════════════════════════
+ ROAST — THE RENDER.  /roast/edit → save → this.
+════════════════════════════════════════════════════════════════════════════════════════════════
+
+ WHAT THIS IS. The RENDER a drink gets once it has been written. It is the paying-off object of the
+ editor: you write a spec, it is saved to your library, and this is the drink as the COMPOSITOR
+ draws it — its glass, its liquid and its garnish, in the compositor's own file, at the compositor's
+ own seat, with the compositor's own placement table. THE ICE LAYER IS PARKED (item 9): the two
+ files exist, but nothing here loads them.
+
+ IT IS A TOOLKIT OVER AN IMAGE, AND IT IS ALL ONE PLATE. The misregister plates, the name pan and the
+ recipe pan are deleted (item 6), and the frame came back in item 7 — but as the PAGE: one frame now
+ holds everything, the small 500×500 art window at the top and the toolkit under it. Nothing on this
+ page floats on the wash any more. The name, the ingredient rows, the
+ method, the die-cut deck readout and the three read-from-the-recipe rows are still gone — a name and
+ an ingredient list belong to the arena's card and a method belongs to the editor, and printing them
+ here is what made this read as a card view rather than as a preview. The recipe's fields are still
+ read, in the caption under the window, which says what you are looking at: the glass, the liquid
+ and the seat. The payload panel that printed the whole config is DELETED — item 11, and that entry
+ also records why.
+
+ WHAT IT IS NOT. It is not `composeCocktail()`. That function builds one SVG document by importing
+ each asset's CHILDREN into a transformed <g>, and it needs a DOM, a Vite glob, and the garnish
+ grammar. This is a layer STACK: the same files, the same presets, the same seats, placed by each
+ artwork's own `viewBox` instead of by DOM surgery. The geometry is exact (see the derivation
+ below); the document is not. It cannot draw a foam THICKNESS (the engine stamps the foam art up to
+ 24 times, which a stack cannot do), and it resolves a garnish by ASSET FILE rather than by the
+ prose→asset grammar in `garnish-map.json`. Both limits are named in the panel at the foot of the
+ page rather than hidden here.
+
+ WHAT THIS PAGE READS, AND WHAT IT CHOOSES. The recipe owns the drink. Its glass, its filling and
+ its garnish arrive already resolved by the editor, and this page offers NO control that could
+ change them — that was the ruling, and it is why glass and garnish are READOUTS here rather than
+ pickers. The page owns exactly two things: the liquid's COLOUR, which is the visitor's, and the
+ GARNISH'S SEAT, which is a placement rather than a choice. So everything the compositor consumes
+ is either read from the recipe or chosen here, and the boundary is named in WORDS rather than
+ asserted: the read-only row says what the editor owns and what this render decides. The payload
+ panel that printed the two groups apart is DELETED — item 11.
+
+ THE ASSETS ARE NOT IN THIS PROJECT. They live in `apps/compositor/svg/`, and the file count is
+ now measured rather than estimated: 14 `glass-*.svg` (plus `highball-outline.svg`), 15 fillings,
+ 2 ices, 30 garnishes — 62 files. They are large and they are NOT single-line: one glass is a
+ ~110-line path stream, so an earlier note in this header that called it "50 kB on one line" was
+ wrong. Either way they are REFERENCED, never inlined, and the page expects one recursive copy.
+
+ TWO DESTINATIONS, because this file ships in two places — and they resolve the same way, from
+ the file's own folder:
+
+     mockup   cp -r apps/compositor/svg  <this project>/assets/compositor/svg
+     census   cp -r apps/compositor/svg  apps/census/public/roast/assets/compositor/svg
+
+ The census one is the BCB destination: the mini compositor packed under `census/roast`, served
+ from `public/roast/roast-drink-card.html`
+ -> `https://b-pingarron.github.io/Cocktail-Census/roast/roast-drink-card.html`.
+ The name carries `roast/` twice because the copy landed under this file's own name; renaming it
+ to `drink-card.html` is a one-line change plus a re-copy, whenever that pass happens.
+ COPY STATUS, AND IT IS THE LAST THING OUT OF DATE: the file that landed in `public/roast/` is the
+ PRE-item-11 version — nine notes, the payload panel and the path list. Those are out of THIS file
+ now, so the public copy is STALE and has to be redone. Redoing it needs no build step and no
+ React port, because vite copies `public/` verbatim and the repo builds with `base: "./"`; the
+ static file sits beside the hash router without touching it.
+ Precedent in the same folder: `datenschutz.html`. And it lands on the SAME ORIGIN, which is the
+ point rather than a side effect: `compositor.workbench.savedColors` is localStorage, and
+ localStorage is origin-scoped, so the palette saved in the app is the palette this page reads.
+
+ VENDORING, DECLARED. `apps/compositor` is its own git repo (github.com/B-Pingarron/compositor),
+ so the second command COPIES art across a repo boundary: the same 62 files then exist in two
+ repos and can drift. The alternatives, both worse tonight: publish the compositor as its own
+ Pages site (cross-origin, so the colour store dies), or add a cross-repo build step to the
+ census workflow (build-order coupling, last minute, on a checkout where no build has run). A
+ single copy is the honest cheap option; keep the source path in the note so a drift is traceable.
+
+ That one command is the whole install: the paths below are the compositor's own
+ (`svg/glasses/glass-*.svg`, `svg/filling/*.svg`, `svg/ice/ice-*.svg`, `svg/garnishes/garnish-*.svg`)
+ so nothing is renamed and no manifest has to be maintained. Until the copy is made the art pan
+ shows a written placeholder naming the exact file it is looking for — a missing asset is a state
+ this page demonstrates, not a broken icon.
+
+────────────────────────────────────────────────────────────────────────────────────────────────
+ THE PLACEMENT, DERIVED — this is the one piece of real arithmetic in the file
+────────────────────────────────────────────────────────────────────────────────────────────────
+
+ The compositor's layer transform is `translate(offset) scale(k)` applied to the artwork's own
+ `viewBox` coordinates, because `applyLayerConfig` imports a sub-layer SVG's CHILDREN rather than
+ the element — its comment says so: "Imports children (not the element itself) to prevent viewBox
+ bleed-through." So a point `p` in viewBox units lands at `k·p + offset` in the 500×500 frame, and
+ the frame is the glass's own `viewBox`, which every glass shares: `0 0 500 500`.
+
+ In CSS the same artwork is drawn by an `<img>` (or, for the liquid, a mask), and a standalone SVG
+ renders itself with its own `preserveAspectRatio`. Every one of these files declares a SQUARE
+ viewport — `glass-old-fashioned.svg` is `width="991.455994px" height="991.455994px"` over a viewBox
+ of `991.456 × 856.556` — so the artwork is letterboxed inside its own viewport by
+ `dy = (991.456 − 856.556)/2 = 67.45`, at scale `s_fit = min(991.456/991.456, 991.456/856.556) = 1`.
+
+ THE FIX IS TO MAKE THE LETTERBOX DISAPPEAR RATHER THAN TO COMPENSATE FOR IT. Give the image a box
+ whose ratio EQUALS the viewBox's — `width = w`, `height = h`, where `w,h` are the viewBox's own
+ dimensions — and `s_fit` becomes 1 with `dx = dy = 0`, so viewBox coordinates ARE box pixels. Then
+ one rule places every layer exactly:
+
+     element.left = offset.x + k · viewBox.minX      element.width  = k · viewBox.w
+     element.top  = offset.y + k · viewBox.minY      element.height = k · viewBox.h
+
+ and the liquid — which needs recolouring, so it is a CSS MASK over a coloured box rather than an
+ image — is the same rule in mask terms:
+
+     mask-size     = k·w  k·h
+     mask-position = (offset.x + k·minX)  (offset.y + k·minY)
+
+ `mask-repeat: no-repeat` and the default `mask-mode: match-source` (alpha for an image) are both
+ required: the mask reads the trace's ALPHA, so the SHAPE is the file's and the COLOUR is the
+ wrapper's — which is exactly why a mask recolours the liquid perfectly and an `<img>` cannot.
+
+ AND THE TRACE'S ALPHA IS ZERO UNTIL ONE STRING IS FIXED IN THE ASSETS — item 10, measured against
+ the files rather than assumed. Every path in `svg/filling/*.svg` is `fill="var(--liquid-color)"`
+ WITH NO FALLBACK, over a root that declares `fill="none"`, and there is no `<style>` and no `:root`
+ in any file in the tree. Outside the compositor's own DOM — which is where the app supplies it at
+ runtime, `glassFill.style.setProperty('--liquid-color', …)` — the declaration is invalid at
+ computed-value time, so `fill` computes to its inherited value and the paths inherit `none`.
+ Nothing paints, the alpha is 0, and a masked element with an empty mask draws nothing.
+ AND NO RULE ON THIS PAGE CAN RESCUE IT: an SVG loaded as a CSS image is its own document and does
+ not inherit custom properties from the host, so `--liquid-color` cannot be defined for it from
+ here. The fix belongs in the 15 files or it does not exist.
+
+────────────────────────────────────────────────────────────────────────────────────────────────
+ CONTRAST — measured arithmetically, never felt. Method, so the numbers can be checked
+────────────────────────────────────────────────────────────────────────────────────────────────
+
+ WCAG 2.x relative luminance: sRGB channel c/255, then `c ≤ 0.03928 ? c/12.92 : ((c+0.055)/1.055)^2.4`;
+ `L = 0.2126·R + 0.7152·G + 0.0722·B`; ratio `= (L_light + 0.05) / (L_dark + 0.05)`.
+ Composited layers are averaged in 8-bit sRGB BEFORE luminance is taken, which is what the project
+ has done everywhere and is stated so a reader can disagree with it deliberately.
+
+ THE CALIBRATION — twelve values this file did not invent, reproduced to the last decimal, so the
+ method is anchored against the project's own record before it produces anything:
+
+   --txt  #f2eeff on --plate #151327 ....... 15.98:1     (L 0.87249 / 0.00772)
+   --dim  #b8aed0 on --plate ...............  8.67:1     (L 0.45019 — the record says 0.45020,
+                                                          a 1e-5 rounding difference)
+   --b    #ffd400 on --plate ............... 12.71:1
+   #000 on --b ............................. 14.67:1
+   --a    #ff3366 on --plate ...............  5.13:1
+   --plate on --ink #050409 ................  1.12:1     (a fill boundary that draws nothing)
+   lime --b #7b5cff on --plate .............  4.17:1     (the named defect, AA large text only)
+   --a vs --ok #BDF524, in lime ............  1.05:1     (the named defect)
+   --a vs --ok, in amber ...................  1.02:1     (the named defect)
+
+ NEW, and they are what decided this page:
+
+   --txt on the art pan's unlit composite rgb(16,14,29) .... 16.73:1
+       The pan is `color-mix(--plate 74%, #000)`, so it is DARKER than the face. Every published
+       figure for the face is therefore a floor here, not a target.
+   --txt on the art pan, sheen-lifted rgb(52,50,63) ........ 11.02:1
+       The pan's own white gradient tops out at 15%, and this is that case. Still AAA.
+   --dim on the sheen-lifted pan ...........................  5.98:1
+       The floor for any secondary text inside the pan. AA with room.
+   --rim rgba(255,255,255,.50) over --plate ................  5.27:1
+       The menu's own value and the menu's own figure, reused rather than re-derived. The card's
+       `.26` is 2.32:1 — under the 3:1 a boundary needs — so this page does not use it.
+   two-tone ring on any swatch, worst case .................  3.95:1
+       A colour chip's ring is around a colour the designer does not choose. White and black are
+       both drawn; the worst case is a mid grey (#808080, L 0.21584), where white gives 3.95:1 and
+       black gives 5.32:1 — so one of the two always clears 3:1. This is the only figure on the
+       page that depends on the visitor's own colour, and it holds for every colour there is.
+   #fff on --plate ......................................... 18.19:1
+       The pressed-patch edge, carried from the editor and the menu.
+   #000 on --plate .........................................  1.15:1
+       Published because it is the reason a black plate inside this card needs a paper ring: it
+       draws nothing on its own.
+
+ NOTHING ON THIS PAGE SITS ON THE WASH. The ground carries no glyph at all.
+
+────────────────────────────────────────────────────────────────────────────────────────────────
+ WHAT THIS FILE DOES NOT DO, WRITTEN HERE SO IT CANNOT BE MISREAD AS AN OVERSIGHT
+────────────────────────────────────────────────────────────────────────────────────────────────
+
+ - FOAM IS ABSENT. The engine stamps the foam art up to 24 times to give the head thickness
+   (`FOAM_STAMP_STEP`, `FOAM_MAX_STAMPS`), and a static stack cannot stamp. Drawing one copy would
+   be a foam that is right in shape and wrong in an obvious way, so the five `svg/foam/*.svg` files
+   are left out and said so here.
+ - `tiki-mug` HAS NO PRESET. It has artwork and a seat, but neither `presets.json.glasses` nor
+   `presets.json.fillings` places it, and this page will not guess a scale and an offset. A recipe
+   naming it gets the written placeholder rather than a drink drawn at an invented scale. It is the
+   one glass in the folder the preset table does not carry.
+ - THE SEAT IS `__default__`. The engine prefers a per-garnish seat (`garnishOffsets[prose]`) and
+   falls back to `__default__`; this page has the fallback for all fifteen glasses and none of the
+   per-garnish overrides, so every garnish lands on the default seat and the visitor moves it with
+   the two sliders. That is the same lookup, missing only its first branch.
+ - THE JOIN KEY IS AN ID, AND THE EDITOR OWNS THE JOIN. `garnish-map.json` joins a recipe's prose
+   ("Orange zest twist") to an asset id. This page receives the ID and never parses the prose: a
+   page that guessed the grammar would look like it worked and draw nothing — the failure
+   `compositor.ts` documents at length. The ids in `RECIPE` below are what that mapping resolves the
+   Old Fashioned's own strings to, and they are the only ones this file asserts.
+ - NO FRESH COLOUR WAS INVENTED. The palette is the family's, verbatim. The liquid's colour lives
+   in `state.color` and nowhere else — it is the visitor's, it is the one colour on the page that
+   is not a token, and it is the only value here the design system does not own.
+
+ THE SOURCE OF EVERY TABLE BELOW, so a reader can re-derive them:
+   viewBox ......... `apps/compositor/svg/{glasses,filling,ice,garnishes}/*.svg`, read from the
+                     files' own root `<svg>` tags.
+   glass + fill .... `apps/compositor/src/data/presets.json` → `glasses`, `fillings`.
+   seat ............ `apps/compositor/svg/positions.json` → `glasses[*].garnishOffsets.__default__`.
+   spec strings .... `apps/census/src/data/roastSpecs.ts`.
+   saved colours ... `apps/compositor/src/lib/savedColors.ts` — the SAME localStorage key, and the
+                     same normalisation rule, so slots saved in the compositor appear here without
+                     a migration. It reads across an origin, not across `file://` and `localhost`.
+
+ CHANGE LOG — 2026-10-11
+   1  Built. The frame and the three pans are the arena's, carried verbatim; the four back shadows,
+      the halftone-on-face / dither-on-pan split and the black name plate are unchanged. (The
+      misregister plates and the die-cut readout this item originally carried are REVERSED — see
+      item 5.)
+   2  The art pan is a 500×500 canvas holding four layers, and it REPLACES the arena's drawn glass
+      silhouettes. One texture per element still holds: the canvas carries none, the pan carries
+      the dither, the ground carries the halftone, and no element carries two.
+   3  The colour control reads and writes the compositor's OWN saved-colour store rather than a new
+      one. `MAX_SAVED_COLORS` and `normalizeSavedColor` are ported, so a `#abc` saves as `#aabbcc`
+      here exactly as it does there.
+   4  The office chair: the card is a PRINT surface, so it carries halftone and dither and NO CRT
+      film. The film belongs to the two screen surfaces (the menu and the editor) — that is the
+      split the editor turn drew and this room does not reopen.
+   5  ONE SURFACE, AND THE CONTROLS THE RECIPE OWNS ARE READOUTS. Three changes, and they are one
+      decision. (a) The misregister plates are DELETED: two offset planes behind a 360px card read
+      as a second and third card rather than as ink, which is the reading it was sent back for, so
+      the glow moved onto the face's own shadow where it belongs on a single plane. The accent
+      budget is unchanged — that glow was always `--b`. (b) The glass, ice and garnish SELECTS are
+      deleted, together with their option population and their change handlers; those three fields
+      are set in the recipe editor and this page only reads them. What replaces them is one pan
+      holding exactly the three fields the compositor consumes — glass, filling, garnish — each
+      marked as read from the recipe, and one locked row in the toolkit — renamed `.ownline` in item
+      16 — that states WHO OWNS THEM and links to the editor. The values are printed ONCE, on the
+      card; the rug only states the
+      boundary, because two elements for one fact is the redundancy this project has rejected three
+      times. (c) The ingredient rows, the method and the die-cut `01` are DELETED with them: an
+      ingredient list and a method are the EDITOR's content and the ARENA card's content, and
+      printing them here is exactly what made this read as a card view rather than as a preview.
+      The remaining controls are the visitor's two — the liquid colour and the garnish's seat — plus
+      the four view toggles, which are preview state and never reach the payload.
+      WHAT THIS COSTS, STATED: the payload's shape changed with (b). It no longer presents the
+      recipe's fields as if this page had chosen them; it prints `from the recipe` and `chosen here`
+      as two groups, and the seat is a `PositionOffset` object rather than a trailing comment.
+      WHAT WAS NOT TOUCHED: the placement derivation, every table read out of the compositor, the
+      saved-colour store and its normalisation, the four seats and their sliders, the drag, the
+      reduced-motion pair, the four view toggles, the asset paths and the `cp -r` install.
+      AND ONE BUG WAS FOUND WHILE MAKING THE CHANGE — not by testing, by reading the load path:
+      `el.savecolor` was NEVER ASSIGNED in the element map while
+      `el.savecolor.addEventListener(...)` read it during the same IIFE. That throws at load,
+      before `render()`, so the page painted its static markup and nothing else: no layers, no
+      payload, no path list, no colour chips, no seat inputs. Fixed, with the comment left where
+      the omission was so the next reader sees the shape of the mistake.
+      ALSO CORRECTED, because the change touched the token block: `--fs-display-sm` was deleted
+      (its only consumer was `.readout`), and `--turn` / `--ease` are now marked as RECORDED rather
+      than consumed — this page does not flip, and law 11 says the authored value is not mine to
+      re-derive, so it stays on file even though nothing reads it.
+   6  THE CARD IS DELETED, so there is no card. The page is a TOOLKIT over an IMAGE, which is what it
+      was asked to be. GONE: `.cardwrap` and its hand-placed `-1deg` tilt; `.face`, with its 5px black
+      edge, its three shadows and its `--b` glow; the halftone field the face carried; the name pan
+      with its eyebrow and its three-print display name; and the recipe pan with its three
+      read-from-the-recipe rows.
+      WHY: a name plate belongs to the arena's card, an ingredient list and a method belong to the
+      editor, and the three recipe rows said what the caption under the stage and the payload at the
+      foot already say. What is left is the artwork and the two controls the visitor actually owns —
+      the liquid's colour and the garnish's seat.
+      WHAT IT BOUGHT, IN ARITHMETIC: `.pan-art` keeps its own rule and takes over the width and the
+      centring the frame held, so the art stage gets back the 28px the frame was costing it — 5px of
+      edge plus 9px of padding, each side. At a 420px page: 314 → 342px wide. At a 360px viewport:
+      290 → 318px. The stage is BIGGER than it was, which is the point of dropping a frame around a
+      preview.
+      REVERSED BY ITEM 7, AND BY THE AUTHOR: the stage is deliberately SMALLER now — 197px / 216px —
+      because the ask was "the image preview can be small" and a frame came back around the whole page.
+      Read item 6's width figures as the record of a build that no longer exists.
+      THE TILT WENT WITH THE FRAME, on purpose: this page's one real job is judging where a garnish
+      sits, and a rotated canvas argues with the ruler you are judging it by. The `--b` glow went with
+      it too, and that is a decision rather than an oversight: a lit edge around the artwork would
+      read as the frame this page no longer has. The budget is unchanged — see the corrected colour
+      note at the foot of the page for what actually reads `--b` now.
+      ITEM 7 KEPT EVERY GLYPH OF THE NO-TILT CALL and added a harder reason to it: see `.plate` in the
+      stylesheet. The frame is back; its rotation is not.
+      DELETED WITH THEM, because a declaration with no reader is the dead declaration this file does
+      not keep: the rules `.face`, `.face::before`, `.face > *`, `.pan-name`, `.kick`, `.plate-txt`,
+      `.card-name`, `.pan-recipe`, `.rrow`, `.rrow .k`, `.rrow .v` and `.rrow .from`; the tokens
+      `--fs-name` (only `.card-name` read it, including its `36px` entry in the 420px query),
+      `--edge` (only `.face` read it — the family's value lives in `apps/census/src/roast.css` and in
+      the other mockups) and `--gut` (only `.face`'s `gap` read it); and the element-map entries
+      `rglass`, `rfilling` and `rgarnish`, with their three writes in `paintText`. `.kick` had
+      exactly four consumers and all four are gone, which is why it is deleted rather than orphaned.
+      ALSO CORRECTED, and it is a false claim the deletion exposed rather than made: the colour
+      budget note at the foot of the page listed "the focus ring" among `--b`'s jobs and called the
+      render's neon glow "the face's shadow". The ring is `#fff` on `#000` and never was `--b`, and
+      the face is gone. The sentence now names the five things that actually read `--b` — the section
+      heads' third print, the solid save-slot button, the slider thumbs, the drop shadow under the
+      heads, and the hover borders — and says plainly that the glow went with the frame.
+      And the three comment sites the deletions left behind say so where they stand: the frame's
+      block, the pan-1 header and the pan-3 header are relabelled as records rather than trimmed.
+      ONE ADDITION, declared: `<h1 class="sr">The render</h1>`. The deleted name plate carried the
+      document's ONLY heading, and losing a page's outline silently is not a design decision — so the
+      page keeps a name in the accessibility tree and nothing appears on screen. One line deletes it.
+      WHAT WAS NOT TOUCHED: the placement derivation and every table read out of the compositor, the
+      four seats and their sliders, the drag, the saved-colour store and its normalisation, the four
+      view toggles, the reduced-motion pair, the payload, the notes, the asset paths and the `cp -r`
+      install — and every published contrast figure, because the art pan's own composite is
+      unchanged, so the header's arithmetic still describes this build.
+   7  ONE PLATE HOLDS EVERYTHING, AND THE PAGE IS THE PLATE. Before this the page was three objects
+      floating on the wash — a bare preview, a bordered tray and three more bordered blocks below it —
+      and the reading was "plates and nameplates and textboxes", not one screen. One frame now holds
+      the window, the toolkit, the payload and the notes.
+      THE FRAME IS THE FAMILY'S, VERBATIM: `--edge` 5px `#000`, `5px 5px 0 #000`, `--plate` fill and
+      the `.055` dither at a 5px cell. `--edge` RETURNS with it — item 6 deleted the token because
+      only `.face` read it; `.plate` reads it now, and `apps/census/src/roast.css` was synced from
+      3px to 5px in the same pass.
+      ONE ADDITION: a 1px inset `--rim` hairline, reusing the 5.27:1 already published above. The
+      ground is a FIXED gradient running bright → ink, so at the foot of the viewport `#000` on
+      `--ink` is 1.03:1 and the frame's own edge stops drawing there. The hairline is the review
+      room's answer to that same problem: on ink, the hairline IS the edge.
+      ONE OMISSION — THE TILT. The family's frame carries a hand-placed `-0.6deg`; this one must not.
+      `fitCanvas()` reads `getBoundingClientRect()`, and under a rotation that rect is the BOUNDING
+      BOX: `S(|cos .6°| + |sin .6°|)` = `S · 1.0104`, so a tilted frame would feed a `--cs` 1.04% too
+      large into the fit AND into the drag's own `box.width / 500`. A correctness reason, and it
+      agrees with item 6's: a rotated frame rotates the ruler the seat is judged against.
+      THE PREVIEW IS SMALL NOW, at the author's word. `.preview` was `max-width:360px` and took the
+      frame's place; it is `min(232px,70%)` inside the plate — 211px at a 360px viewport, 232px at
+      420px — so the stage measures 193px / 214px and `--cs` lands at 0.387 / 0.428. Nothing had to
+      be changed for that: `fitCanvas()` reads the stage's real rect, so the canvas rescales itself.
+      THE CAPTION MOVED OUT OF THE ART. `#artmouth` was an absolutely positioned band across the
+      stage's foot with a black gradient under it; on a 193px stage that band ate a tenth of the
+      artwork. It is `.baycap` under the window now, `--dim` on `--plate` (8.67:1), wrapping freely.
+      THE ID IS UNCHANGED, so `paintText` writes it exactly where it did.
+      WHAT WENT WITH THE WRAPPER: `.tray`'s plate chrome and each `.note`'s plate chrome. Both drew
+      NOTHING, and both figures are already published above — a `--plate` fill on a `--plate` plate is
+      1.00:1, and `#000` on `--plate` is 1.15:1. They were a third and fourth edge weight on one
+      surface; the tray and the notes are now blocks inside the frame, divided by the same `.44`/`.50`
+      hairlines every section already used. The exit chip moved OUT of `.page` — it leaves the room
+      rather than belonging to it — and `.page` itself became the frame, so no markup between the
+      window and the notes moved a line.
+      EVERY FIGURE IN THIS HEADER STILL STANDS. The one composite that changed is what sits BEHIND
+      the pan: the wash used to be there, the plate is now. It cannot matter, because the pan's fill
+      is `color-mix(--plate 74%, #000)` and a mix of two opaque colours is opaque, so `--artpan`
+      rgb(16,14,29) and its 16.73 / 11.02 / 5.98 rows describe the same pixels they did before. The
+      frame's own new figures are the 5.27:1 inset hairline above and the 1.03:1 edge it exists to
+      answer, both already published.
+      AND ONE CONSEQUENCE, DECLARED RATHER THAN HIDDEN: `.pan::after`, the pan's sheen overlay, has
+      never been visible — it sits at `z-index:-1`, behind the pan's own opaque `background`. Wrapping
+      the page in a frame does not change that. Not fixed here, because it is not what this pass is
+      for and fixing it would change the pan's composite, which is the one thing every figure in this
+      header is calibrated against.
+      WHAT WAS NOT TOUCHED: the placement derivation and every table read out of the compositor, the
+      saved-colour store and its normalisation, the four seats and their sliders, the drag, the three
+      surviving view toggles, the payload and its two groups, the reduced-motion pair, the asset paths
+      and the `cp -r` install.
+   8  ICE LEAVES THE LAYERS ROW, at the author's word. `.layers` held four checkboxes over the
+      render's four layers; the ice one is deleted, so three remain — fill, garnish and glass — and
+      ice draws unconditionally.  ** SUPERSEDED BY ITEM 9: the layer is not loaded or drawn at all
+      now. **
+      NOTHING BROKE, AND THAT IS CHECKED RATHER THAN ASSUMED. The toggle handler is generic —
+      `document.querySelectorAll('[data-toggle]')` writes `state.on[box.dataset.toggle]` — so the
+      three surviving boxes behave exactly as they did. `state.on.ice` keeps the `true` its initial
+      state gives it, and that flag was NOT dead at the time. ** SUPERSEDED BY ITEM 9, IN TWO CLAUSES
+      ONLY ** — the layer is no longer loaded or drawn at all, and `state.on.ice` is read by nothing
+      while it is parked, which item 9 declares rather than pretends. Everything else in this entry
+      stands: the deleted toggle, the two-column grid, and the three surviving boxes. No rule and no
+      script line changed.
+      `.layers` KEEPS ITS TWO COLUMNS, and that is the point rather than laziness. Three items in a
+      2-column grid is still two 44px rows, so this row's height is IDENTICAL to the four-item
+      version — nothing on the page moved. A 3-column grid would not survive the narrow canvas: at
+      320px the cell's text room is ~47px against ~55px for the word `garnish`, which is a clip. One
+      value (`repeat(3,1fr)`) if you want one row and can accept the 320px case.
+      THE NOTE UNDER THE ROW WAS CORRECTED with it. It read "the recipe still owns all four", which
+      stays true — four layers, three toggles — but it no longer explained why ice is the one layer
+      with no control, so it now says so instead of leaving an omission to read as an oversight.
+      WHAT WAS NOT TOUCHED: the four layers themselves, the render order, `ICE_OFFSET` and the glass
+      seats, the drag, the payload, the notes, the asset paths and every published figure.
+   9  ICE IS PARKED — NOT LOADED, NOT DRAWN, at the author's word: the assets are not right yet.
+      "we dont need it for now, we dont have the right assets/drawings/textures." So no `src` is ever
+      assigned to the ice layer, nothing is fetched, and the element carries `is-missing` — which is
+      `display:none`, the same outcome a file the browser cannot find produces. It is switched by ONE
+      constant, `ICE_ENABLED`, read by `renderIce()` and by the load painter — `paintLoad()` since
+      item 11 renamed it.
+      IT IS A SWITCH AND NOT A DELETION, deliberately. `VB.ice`, `ICE_OFFSET`, `state.ice`,
+      `state.on.ice`, `path.ice()` and the `<img>` element are all left in place, so `ICE_ENABLED =
+      true` is the whole revert — no markup, no table, no path helper to restore. That follows the
+      rule item 8 set for the layer itself: the machinery belongs to the recipe, and this page's job
+      is to read it, not to lose it.
+      FOUR PLACES THE PARKING WAS VISIBLE, so an omission never reads as an oversight: the path list
+      printed `parked · ice` rather than `off · ice`; the payload's `from the recipe` group carried
+      one note line beside `ice: cubes`, because that field is still the recipe's even while this
+      render does not draw it; the traynote under the layers row says why there is no ice toggle;
+      and the panel at the foot of the page named the reason.
+      ** TWO OF THOSE FOUR ARE DELETED — item 11 removed the path list and the payload panel, so the
+      parking is visible in ONE place now: the traynote. That is declared rather than patched over,
+      because the redundancy was the point of this entry. The carrier that remains is the one
+      addressed to the visitor; the toolkit's head count is the other signal, since
+      `layers · N placed` can never reach four while `ICE_ENABLED` is false. **
+      WHAT WAS NOT TOUCHED: the layout, the placement arithmetic, the colour store, the seat, the
+      drag, every published figure, and every other layer.
+   10  THE FILLING FILES CANNOT PAINT AS FILES — a correction to a claim this file made, not a change
+       to the page. The masking note said the trace "is a solid silhouette, so its ALPHA is the shape
+       and its fill colour is irrelevant". The first half is false outside the compositor. Measured in
+       the files, not assumed: every path in the 15 `svg/filling/*.svg` is
+       `fill="var(--liquid-color)"` WITH NO FALLBACK, each root declares `fill="none"`, and there is
+       no `<style>` and no `:root` anywhere in the tree (checked across all 67 files). The property
+       is supplied by the app at runtime, in the live DOM
+       (`glassFill.style.setProperty('--liquid-color', …)`); loaded as an image — `<img>` or
+       `mask-image` — it is undefined, the declaration is invalid at computed-value time, `fill`
+       computes to its inherited value, and the paths inherit `none`. No paint, alpha 0, empty mask.
+       AND NO RULE ON THIS PAGE COULD HAVE RESCUED IT: an SVG loaded as a CSS image is its own
+       document and does not inherit custom properties from the host, so `--liquid-color` cannot be
+       defined for it from here. The fix lives in the files or it does not exist.
+       THE FIX IS ONE STRING, AND THE REPO ALREADY KNOWS IT. `svg/foam/*.svg` carry the same pattern
+       WITH a fallback — `fill="var(--foam-color, #FFFFFF)"` — and paint standalone; the fillings do
+       not. `scripts/fix-vtracer-svgs.mjs:24` declares `var(--liquid-color, #D4934A)` as its allowed
+       filling fill, but its `SVG_DIRS` patterns still expect `filling-*.svg` / `glass-*.svg` while
+       these files are `old-fashioned.svg`, `collins.svg`…, so re-running it today matches zero files
+       and changes nothing. Neutral inside the compositor, where the property is always defined;
+       decisive outside it, where nothing else supplies it.
+       WHAT CHANGED HERE: the masking note, the asset note and the unverified note. The page, the
+       placement arithmetic, every table read out of the compositor, the payload and every published
+       figure are untouched.  ** THE NOTES NAMED IN THIS SENTENCE ARE DELETED — item 11. **
+   12 THE LIQUID HAD NO BOX AND THE SEAT WAS IN THE WRONG SPACE. The author reported "i see the
+      glass, god, but no filling, no garnish i changed color nothing happened." TWO INDEPENDENT
+      DEFECTS; the first explains two of the three symptoms on its own.
+      (a) NO BOX. `.layer` declares `position:absolute;left:0;top:0` and NOTHING ELSE, and
+      `placeMask()` writes only the MASK's geometry — `--fw`/`--fh`/`--fx`/`--fy`. So the liquid
+      element had no width and no height, and an absolutely positioned empty box shrink-to-fits to
+      0x0. A 0x0 element paints nothing whatever its mask says, and `state.color` was setting the
+      background of a box zero pixels wide: that is why the colour control did nothing. `inset:0`
+      resolves against `#canvas`, which IS the 500-unit frame, so the mask's own coordinates — all
+      measured from this box's top-left — keep the meaning they were derived with.
+      THE MASK CANNOT FAIL SILENTLY, which is what makes this the whole story for the liquid: an
+      unresolvable `mask-image` is treated as NO mask, and an unmasked 500x500 box of drink colour
+      is a very visible rectangle rather than an absence. The author saw absence.
+      (b) ** SUPERSEDED BY ITEM 13 — the reading below is wrong, and item 13 names why. **
+      (b) THE SEAT IS IN THE GLASS'S OWN SPACE AND WAS READ AS CANVAS SPACE. `SEAT` comes from
+      `positions.json -> garnishOffsets.__default__`, which sits in that file beside
+      `layerDefaults.glass` and only agrees with it once composed: the seat's `y` is -50..-130
+      while the glass's `y` is +80..+295, and the seat's `scale` is ~0.7..1 against the glass's
+      0.2..0.8. Read raw, `translate(0,-70)` puts `orange-twist`'s artwork (viewBox y
+      -122.92..44.42) entirely ABOVE the frame; the stage clips it and nothing is drawn.
+      (c) THE SEAT WAS COUNTED TWICE. `state.seat` seeded `{x:0, y:-70, rot:0}`, which IS
+      `SEAT['old-fashioned']`, while `renderGarnish()` added `seatBase` on top of it — putting the
+      garnish at -140. The help text ("added to the glass's own seat"), the reset button
+      (`{x:0,y:0,rot:0}`), the static readout ("0, −70 · 0°") and the `#gy` slider's own `value`
+      all describe ONE model: the seat is `SEAT[glass]` and `state.seat` is the visitor's DELTA.
+      The seed and the slider's `value` are corrected to it; nothing else about it moved.
+      THE DRAG CONVERTS THROUGH THE SAME SPACE or it is a third unit in one control: one screen
+      pixel is now worth `gk` times fewer local units than canvas units.
+      `SEAT` ALSO GAINS the `__default__` that both readers already fall back to and the table did
+      not carry — `undefined[3]` would have thrown before `render()` for any glass outside the
+      fifteen. A guard, not a repair: no glass in this deck is outside them.
+      NOT VERIFIED — no renderer on this box. (a) is certain from the box model. (b) is derived
+      from the two tables' own magnitudes and from where each of the fifteen rims sits, and the
+      three sliders exist precisely because the seat is a placement rather than a proof.
+   11 STRIPPED FOR SHIPPING — THE STUDY SCAFFOLDING, at the author's word: "Strip the study
+      scaffolding from the drink card so it can ship." Two blocks went — the notes section (nine
+      `.note` paragraphs under the head "What is not here · read before wiring") and the payload
+      panel (`#code`, which printed the `CocktailConfig` object) — together with the `#pathlist`
+      that lived inside the notes, TWELVE CSS rules and two element-map entries.
+      THE TEST APPLIED, so the cut is a rule rather than a mood: an element STAYS if it is
+      addressed to the person USING the page and GOES if it is addressed to the person WIRING it.
+      The notes failed on their own head, and `note-assets` instructed the reader to run
+      `cp -r apps/compositor/svg assets/compositor/svg` — an instruction a visitor cannot act on.
+      The payload failed because NOTHING CONSUMES THE OBJECT: no save, no submit, and no route
+      reads a `CocktailConfig` back, so it was a readout of a value nobody receives. `.code`'s own
+      rule claimed "It is the point of the page: the card shows you the object it would hand over."
+      That is a BENCH judgement, and this entry reverses it deliberately rather than quietly. What
+      the notes carried is not lost — it is in this header, which is the long version of the same
+      material; the notes were the short version, written for a reader who would not scroll up.
+      WHAT SURVIVED, checked one name at a time so nothing load-bearing left with them:
+        · `paintPaths()` IS KEPT AND RENAMED `paintLoad()`. It did two jobs and only one was the
+          path list: it writes the toolkit's status line (`layers · N placed`, with the mask's own
+          `assumed` clause) and it drives the placeholder in the pan. The path-list half is gone,
+          the load-state half is intact, and the rename is because a function named after a thing
+          it no longer does is the same lie as a rule with no element. `off`, `parked` and `none`
+          now contribute nothing to the count instead of each printing a sentence; `parked` stays
+          DISTINCT from `off` in that function's reasoning — it is simply no longer rendered there.
+        · the placeholder `#absent` / `#absentpath` is untouched. It is the state the page OPENS in
+          until the assets are copied, and it is the one place a visitor is told something they can
+          act on: which exact file the glass wants.
+        · every measurement the deleted notes carried is still in this header, item by item.
+        · `RECIPE.filling` LOSES ITS ONLY READER, and that is declared rather than tidied away. It
+          was read once, by `paintCode()`. It stays because the literal is the DRINK's identity —
+          four fields handed over by the editor's prose→id join — not an argument to a function,
+          and this page's load painter derives the filling's FILE from the glass via `FILL_FILE`.
+          Deleting one of the four would also make the recipe read as if it had no filling.
+      `#toolmeta` IS UNTOUCHED AS A TARGET; only the rows feeding its count changed.
+      THE TRAINOTE UNDER THE LAYERS ROW IS RE-WRITTEN, and it had to be. It pointed at the deleted
+      panel ("the panel below says why") and it said the toggles "never reach the payload", naming
+      an object no longer on the page. It now says they change nothing about the drink.
+      THE EXIT IS REPOINTED, and it is the one change here that is not a deletion. BOTH links to the
+      editor — `back to the editor` above the frame, and `open the recipe editor` in the read-only
+      row — went from the sibling mockup `roast-edit.html` to the APP ROUTE `../#/roast/edit`.
+      Shipped, this file lives at `<site>/roast/roast-drink-card.html` in `apps/census/public/`,
+      where NO sibling `roast-edit.html` exists: the old href was a 404, and a page whose only exit
+      404s is not shippable. The repo's own rule is followed rather than re-derived —
+      `public/datenschutz.html` records that `vite.config.ts` sets `base:"./"` and the site is
+      served from a subpath on GitHub Pages, so it is `href="./"` or nothing. `../#/roast/edit` is
+      relative, lands on the SPA's root, and the census app's hash router takes over from there (the
+      same router the author's own deck URL uses).
+      THE COST IS NAMED: inside the Open Design project folder those two links no longer hop to the
+      sibling mockup, because there is no app root above that folder. One href reverts each.
+      THE REVERT IS LISTED BECAUSE IT IS NOT ONE LINE: two markup sections, `paintCode()`, four call
+      sites (plus the `render()` call), the path-list half of the load painter, the `#code` and
+      `#pathlist` element-map entries, and TWELVE CSS rules.
+      WHAT WAS NOT TOUCHED: the placement derivation and every table read out of the compositor, the
+      pan and its four layer elements, the colour store and its normalisation, the seat and its
+      three sliders, the drag, the three view toggles, the reduced-motion pair, `ICE_ENABLED` and
+      the whole parked-ice machinery, and every published contrast figure — none of which this pass
+      read or recomputed.
+    13  THE SEAT IS ABSOLUTE, AND THE PAGE MOUNTED IT ON THE GLASS. A correction to item 12(b),
+        which read a seat as an offset inside the glass's own space. It is not one. In the engine —
+        `apps/compositor/src/lib/compositor.ts`, the `garnish` case — the seat is written as
+        `seat.setAttribute('transform', transformOf(resolved.position))` on a group appended to the
+        composition ROOT, and `transformOf` is `translate(x, y) rotate(r) scale(s)`. So a seat is a
+        point in the SAME frame the glass's own layer transform lives in, at its OWN scale: the
+        glass's `k` has nothing to do with where a garnish sits.
+        WHAT THIS PAGE DID INSTEAD, and it is the whole report: `gx + gk * seat.x`, against a `SEAT`
+        table read from the stale `apps/compositor/svg/positions.json` — whose `__default__` is
+        `{x:0, y:-70}` for every glass and whose frame is `0 0 500 500`. Mounted on the glass's
+        scale, the Old Fashioned's contact point composed to `x=87`, which is that glass's own LEFT
+        edge, so half the artwork hung off the outside of the glass. And because the visitor's delta
+        was multiplied by the same `gk` (0.34), the entire reachable range was `87..155` — inside
+        the left third of the frame. Both halves of the author's report, one cause:
+        "maximum right only leaves on the first third (left to right) of the box".
+        THE TABLE NOW COMES FROM `apps/compositor/src/data/positions.json` — the file the engine
+        actually loads — and carries each glass's real seat: Old Fashioned `371, 196`, coupe
+        `302, 194`, collins `346, 88`, martini `308, 224`, shot `335, 311`. Values are rounded to
+        integers; the file carries three decimals and the preview is drawn at ~150px, where a
+        thousandth of a unit is not a representable distance (under 1 unit = under 0.3px).
+        THE EVIDENCE THAT IT IS ABSOLUTE — not the same numbers re-read: the authored seat `y` for
+        the Old Fashioned is `196.45` and that glass's own top edge is `y=187`. Nine units. Perched
+        on the rim. The relation holds across the deck: coupe +14, martini +28, shot +30.
+        THE DELTA FOLLOWS THE SEAT: added unmultiplied, and the drag divides by the canvas' own
+        scale alone.
+        ** SUPERSEDED BY ITEM 17 — the reading below is wrong, and item 17 names why. **
+        `k` still keeps `gk * seatBase[3]` — deliberately. The engine's seat scale is `1` for all
+        fifteen because the PARTS inside a seat carry the arrangement's own scale, and reproducing
+        one bare asset at the frame's native size would draw it ~3x the size the app draws it.
+        Size kept, placement corrected: the size is what the author has already seen.
+        SLIDER RANGES WIDEN WITH THE SPACE: `#gx` -300..300 and `#gy` -150..250, which spans the
+        glass in both directions instead of the left third.
+        THE CROP, DECLARED RATHER THAN HIDDEN. The engine's frame is 630x1050 at origin (-57,-258);
+        this page's window is 500x500, so it shows the middle of the frame and crops the rest. The
+        glass and every seat sit inside it — the Old Fashioned spans (87,187)-(424,478) — but a
+        garnish tall enough to overhang is cut at the window's edge: a straw's ink runs 428 units
+        below its contact point. Extending the window to the frame is one value in the canvas'
+        mapping plus a portrait stage; NOT taken here, because the author approved this crop and
+        this page is a preview rather than the printer.
+        NOT VERIFIED — no renderer on this box. The composition, the table, the ranges and the
+        clamps are read from the app's own source; where the garnish lands is the author's eye.
+    14  THE RECIPE FINALLY ARRIVES — THE PAGE READS ITS IDS FROM THE URL, at the author's word: "the
+        mini compositor needs to be tied to the editor so the glass and other elements loaded match
+        the ones in the recipe."
+        UNTIL NOW THERE WAS NO INBOUND PARAMETER AT ALL. `location.search` was not read anywhere in
+        this file, so `RECIPE` was the ONLY source of the drink and every door onto this page showed
+        the Old Fashioned. That is not a default — a default is a parameter with a fallback, and
+        there was no parameter. It is now `?glass=`, `?garnish=`, `?ice=`, `?color=`, and `RECIPE`
+        is what they fall back to.
+        THIS IS THE CONTRACT THE FILE ALREADY DECLARED and never implemented. `RECIPE`'s own comment
+        reads "The editor resolves the recipe's own prose to asset ids ... and hands them over; this
+        page receives IDS and parses nothing." That sentence was written as the intended shape; item
+        14 is the half that was missing, and it is honoured literally — NOTHING IS PARSED. Every
+        value is checked against a table this page already carries (`GLASS_PRESET`, `VB.garnish`,
+        `VB.ice`, `normalizeSavedColor`) and an unknown one is IGNORED rather than coerced, so a
+        hand-written URL cannot put the composition into a state the tables cannot describe.
+        THE TWO ID SPACES ARE NOT THE SAME, and that is the wiring's real content rather than a
+        detail. `glass_asset_map` (census) allows fifteen asset ids; this page's `GLASS_PRESET`
+        carries fourteen. Two are spelled apart or absent:
+          · the app's `highball` is this page's `highball-outline` -> `GLASS_FROM_ASSET`;
+          · the app's `tiki-mug` HAS NO PRESET HERE. The artwork exists and `SEAT` seats it, but
+            neither `presets.json.glasses` nor `presets.json.fillings` places it, and this file
+            already recorded the consequence: offering it "drew a drink at a scale nobody
+            measured". So it is ABSENT from the map on purpose, and a tiki-mug recipe opens on the
+            default drink instead of at an invented scale.
+        AND IT EXPOSED A LATENT 404. `path.glass` built `glass-` + id + `.svg` for every id, while
+        the preset key for that glass is `highball-outline` and its FILE is `highball-outline.svg`.
+        `path.glass('highball-outline')` resolved to `glass-highball-outline.svg`, which does not
+        exist. It could never fire before this entry, because no door onto this page could reach a
+        highball; the first highball recipe would have drawn an invisible glass with no error. It is
+        a table now (`GLASS_BASENAME`), named where the filename is built.
+        THE COLOUR IS ACCEPTED AND IS STILL THE VISITOR'S. It arrives only as a STARTING POINT,
+        normalised by the same `normalizeSavedColor` the control uses, and the two chips and the
+        painter treat it exactly as they treat a colour the visitor typed — it can be changed and
+        saved like any other. The recipe does not own a colour and this page does not pretend it
+        does.
+        `ice` IS ACCEPTED AND IS INERT: `ICE_ENABLED` is false (item 9), so `state.ice` is read by a
+        renderer that returns before assigning a `src`. The parameter is wired anyway, because the
+        receiver should be able to take every field the contract names; the day the ice assets land,
+        the sender changes and this end does not.
+        FALLBACK IS PER FIELD, NOT ALL-OR-NOTHING. A resolvable glass with an unresolvable garnish
+        draws that glass with the default garnish rather than discarding the drink — the glass is
+        the dominant layer and the author's sentence names it first.
+        WHAT WAS NOT TOUCHED: the four layers and their order, every placement table, the seat and
+        its three sliders, the drag, the colour store, the chip painter, the pan and its textures,
+        the parked-ice machinery, `ICE_ENABLED`, and every published contrast figure — none of which
+        this entry reads or recomputes.
+        NOT VERIFIED — no renderer on this box. The two id spaces, the missing preset and the
+        filename are read out of `add-rung2-glass-asset-map.sql`, `VB`, `GLASS_PRESET` and
+        `path.glass`; that a deep link actually paints the named drink is the author's eye.
+    15  THE ARTWORK COULD LOAD AND THEN GO MISSING — the load path, at the author's word:
+        "illustration loaded properly for a second, then it vanished and gave in for an ugly
+        fallback placeholder."
+        THREE DEFECTS IN ONE NINE-LINE FUNCTION, and each is provable by reading it rather than by
+        watching it — which is the only kind of proof available here, since this box has no renderer.
+        (a) A SUCCESSFUL LOAD NEVER REPAINTED. `onload` deleted `missing[key]` and nothing else, and
+            `paintLoad()` — the ONLY writer of `el.absent.hidden` — was called from `onerror` alone.
+            The placeholder, once raised by any transient failure, could never come down: the
+            artwork returned underneath and the "no artwork yet" panel stayed on top of it, for
+            good. That is the STUCK half of the report, and a state with no exit is the defect
+            whatever raised it. `onload` now removes `is-missing`, clears the key and repaints.
+        (b) AN UNCHANGED `src` WAS RE-ASSIGNED ON EVERY `render()`. Setting `src` is not a no-op: it
+            starts a new load, and a load that is ABORTED or revalidated fires `error`. That is how
+            a layer that had already loaded goes missing on the next render — and `render()` runs on
+            every view-toggle change, which is exactly what a visitor does to look at a layer. The
+            box already holding this exact file is now left alone; only the bookkeeping runs, and it
+            still repaints, so the settled path cannot strand the placeholder either.
+        (c) `!node.naturalWidth` IS NOT A FAILURE TEST, and it is deleted. `error` is the only
+            authority on a failed load. An SVG that declares a `viewBox` and no intrinsic
+            `width`/`height` reports `naturalWidth === 0` on a SUCCESSFUL load, so that line marked
+            loaded artwork as missing — the "for a second" half of the report. Nothing is lost by
+            removing it: a cached failure still arrives as `error` on the next task, and (a) clears
+            it when the file is really there.
+        AND ONE EARLY RETURN WAS MADE HONEST WITH IT, in `renderGlass()`: a glass whose `VB`/`preset`
+        entry is missing hid the layer but left `missing.glass` untouched, so the pan went empty
+        with NO explanation. It now raises the same placeholder as a 404 and names the file it
+        wanted — an absence a visitor can report, rather than an absence they have to guess at.
+        A MISSING FILE STILL CANNOT PAINT A BROKEN ICON: `is-missing` is `display:none` and `error`
+        is what sets it. WHAT THE FILE WILL NOT PRETEND: the toolbar counts an IN-FLIGHT layer as
+        placed, because `missing[key]` is falsy while a fetch is out. A strict count needs a third
+        state — `loaded` / `pending` / `failed` — and this pass declares the overclaim instead of
+        inventing one.
+        THE PLACEHOLDER NAMES THE FILE, and that is worth keeping in view: if it is on screen, the
+        path printed under "no artwork yet" is the exact URL the browser failed to resolve, so the
+        cause is one line of reading rather than a hypothesis.
+        WHAT WAS NOT TOUCHED: the four layers and their order, every placement table, the seat and
+        its three sliders, the drag, the colour store, the chip painter, the URL receiver and its
+        tables, the pan and its textures, `ICE_ENABLED`, and every published contrast figure.
+        NOT VERIFIED — no renderer on this box. (a) and (b) are certain from the source; (c) is a
+        property of SVG intrinsic sizing, not of this page. Which of the three the author actually
+        hit is therefore still open, and the file is hardened against all three rather than against
+        the one I would have had to guess.
+    16  THE TOOLKIT IS THREE TABS INSTEAD OF ONE SCROLL, at the author's word: "instead of a long
+        scrolling path, a simple tab design under the glass: colour, garnish, layer order, so its
+        all in the same view instead of all scrolled down."
+        THE FOUR ROWS WERE BUILT FOR A COLUMN AND READ AS A SCROLL ON A PHONE. Stacked, the colour
+        row, the seat's three sliders and the layer toggles put the toggles below the fold every
+        time, and the SEAT — the one control a visitor actually drags — was the third thing down.
+        There is now ONE bar of three tabs and ONE panel at a time. NOTHING WAS REMOVED: all four
+        rows' contents are the same elements with the same ids, and the only thing that changes is
+        which one is `hidden`.
+        IT IS A REAL TABS WIDGET, NOT THREE BUTTONS THAT SHOW AND HIDE. `role="tablist"` over three
+        `role="tab"` buttons and three `role="tabpanel"` blocks, with the whole pattern: the six
+        `aria-*` ends (`selected`, `controls`, `labelledby`), a ROVING TABINDEX — the selected tab
+        is the only one in the page's tab order, so the bar costs ONE stop instead of three — and
+        ArrowLeft/ArrowRight/Home/End, all four `preventDefault`ed because the arrows are also the
+        document's scroll keys and Home/End jump the page. THE PANELS CARRY NO `tabindex`: each one
+        holds focusable controls, and a panel that also took focus would add a fourth stop in the
+        bar's own row that does nothing.
+        CLICK SELECTS WITHOUT MOVING FOCUS, deliberately. The pattern splits here and the choice
+        turns on cost: the panel is cheap to draw, so a pointer user's focus stays where they put
+        it. The ARROWS are the half that must move focus, because the keyboard has no other way to
+        reach the two tabs it did not click.
+        THREE CHANNELS SAY WHICH TAB IS ON, AND ONLY ONE IS COLOUR — the same argument the roster's
+        primary/secondary pair already makes, and the reason this is a FILL rather than a tint.
+        (1) WEIGHT: the selected tab is filled and the others are outline, which survives a
+        colour-blind read. (2) A GLYPH: a filled 8px square, the `.lay input::after` idiom, and it
+        RESERVES ITS SPACE ON EVERY TAB via `transform:scale(0)` so selecting one cannot reflow the
+        bar. (3) COLOUR: `--b` behind `#000`.
+        NO NEW RATIO. `#000 on --b` is 14.67:1 and is already in the calibration list above;
+        unselected is `--dim on --plate` 8.67:1; hover moves it to `--txt` 15.98:1 with a `--b`
+        border, so the boundary RISES — and THE SELECTED TAB DECLARES NO HOVER AT ALL, because
+        there is nothing above "selected" to raise it to and a hover that dimmed its own fill would
+        be the forbidden direction.
+        THE FOCUS RING IS RESTATED LAST AND AT EQUAL WEIGHT, and it is not defensive. `:where(…)
+        :focus-visible` is (0,1,0); `.tab[aria-selected="true"]` is (0,2,0) and would therefore WIN
+        the box-shadow shorthand, leaving a selected tab with the white outline and no black halo.
+        That is the same specificity trap this project has now lost twice — the strip's handle
+        patch and the arena's demoted back button — so `.tab:focus-visible` is written after the
+        selected rule, at the same weight, and source order decides.
+        `[hidden]{display:none !important}` CARRIES THE PANELS AND NOTHING IS RESTATED: `.row`'s own
+        `display:flex` is only (0,1,0). That is the trap this file has hit three times
+        (`.note-line`, `.pr-more`, `.toggle`).
+        THE RECIPE ROW IS NOT A FOURTH TAB; IT IS THE BAR'S FOOTNOTE. It is a statement about
+        ownership plus a link, and a tab is a control — a sentence behind a tab is something to go
+        and find. It is COMPACTED to one sentence, renamed `.locked` → `.ownline`, moved under the
+        panel where it is readable in all three tabs, and `<code>garnish-map.json</code>` is gone
+        with its rule: it named an implementation detail at a visitor, which is the same defect
+        item 11 removed from the notes.
+        `#recipeval` IS DELETED WITH THE ROWHEAD IT FILLED, in the same pass as its `el` map entry
+        and its `paintText()` write — the file's own rule, and the exact shape of the `savecolor`
+        crash in item 5: an element map that names an element the document does not have throws
+        before `render()` ever runs. The readout said "3 fields read" beside a sentence that named
+        all three of them.
+        AND IT ADDS ONE CONSUMER TO `--b`: the selected tab's fill. Item 6's budget sentence named
+        five readers of `--b` and describes a note at the foot of the page that ITEM 11 DELETED with
+        the notes section — so the count is six now, and the sentence it counted for is gone rather
+        than wrong.
+        WHAT WAS NOT TOUCHED: the pan, the canvas and its fit, the four layers and their order,
+        every placement table, the seat's three sliders and their widened ranges, the drag, the
+        colour store and its chip painter, the URL receiver and its tables, the layer toggles and
+        their `data-toggle` handler, `ICE_ENABLED` and the parked-ice machinery, the manual motion
+        control and the reduced-motion pair, and every published contrast figure.
+        NOT VERIFIED — no renderer on this box. The ARIA wiring and the specificity restatement are
+        read from the source; whether three 44px tabs hold `colour / garnish / layers` on ONE line
+        at 360px is arithmetic over an estimated advance width (≈74px of label space against ≈50px
+        for the longest label, `garnish`), not a sighting.
+
+    ────────────────────────────────────────────────────────────────────────────────────────────
+    17 · THE FILL'S OFFSETS WERE STALE, AND THE GARNISH WAS DRAWN AT THE GLASS'S SCALE.
+    The author: "the fill doesnt load on the right position ... the garnish is way to small
+    (adding a size slider is not a bad idea)".
+
+    THE FILL. `FILL_PRESET`'s offsets did not come from the file the engine reads. They came from an
+    older revision of it, and the comment above the table even asserted the pattern they had been
+    derived by — "the glass's own value x 1.1 with (+10, +30)". That pattern holds for this glass's
+    SCALE (0.34 x 1.1 = 0.374) and for its `y` (187 + 30 = 217) and NOT for its `x`: the engine's
+    `layerDefaults.fill.offset.x` for the Old Fashioned is 58, and this page was drawing at 97.
+    A 39-unit shift to the right in a 500-unit frame — the liquid sat off its own glass.
+
+    EVERY OFFSET IN BOTH TABLES IS NOW READ FROM `apps/compositor/src/data/positions.json` ->
+    `glasses[*].layerDefaults`, which is the file `composeSvg` actually loads and the same file the
+    SEAT table already came from (item 13). That removes a second coordinate source from this page
+    rather than re-tuning one number: SIX of the fourteen glass presets were stale as well (collins
+    0.26/116/13 -> 0.23/145/75, plus flute, hurricane, pint, wine and highball-outline), so any
+    drink other than the Old Fashioned was drawn at the wrong SIZE and in the wrong place.
+    The "x 1.1 with (+10, +30)" claim is DELETED, not corrected: it was a coincidence over one
+    glass, and a derivation nobody can re-run is worse than a table that names its source.
+
+    THE GARNISH. `renderGarnish()` read `GLASS_PRESET[glass][0] * seatBase[3]` — the GLASS's scale,
+    0.34 on this glass — and item 12's comment justified it with a reading that is backwards:
+    "reproducing one bare asset at the frame's native size would draw it ~3x what the app draws."
+    Native size IS what the app draws. The seat group is `translate(seat) scale(seatScale)` with
+    `seatScale = 1` for all fifteen, and a bare asset part carries IDENTITY (`garnish.ts`'s
+    `collect()` -> `assetNode(leaf.asset, inherited, ops)` with `inherited = IDENTITY`), so the
+    artwork's viewBox units ARE canvas units. Two independent confirmations: `combos.json`'s part
+    scales cluster at 0.88..1.17, and that file's own note measures a mint sprig at "~135-154 wide
+    x 430-485 tall in viewBox units". The 0.34 was a 3x reduction nothing in the engine performs.
+    `k` is now `seatBase[3] * state.garnishScale`.
+
+    THE SIZE SLIDER — the author's own suggestion, and the honest form of this fix. A range from
+    0.25x to 1.60x in 0.01 steps, `#gs`, fourth in the garnish panel beside across / down / turn. It
+    multiplies the SEAT's scale and "back to the seat" resets it with the rest of the offset. The
+    default is 1.00x — the engine's own value — and the old 0.34 is reachable by dragging, which is
+    what a slider is for. It is a PLACEMENT like the three sliders beside it: nothing here changes
+    which garnish the recipe chose.
+    `state.garnishScale` is written into the seat rowhead (`371, 196 · 0° · 1.00x`) and into `#gs`'s
+    own `aria-valuetext`. It is NOT added to the caption under the stage: that line already wraps in
+    a narrow column, and a readout belongs beside the control that moves it.
+
+    WHAT WAS NOT TOUCHED: the seat table and its rounded integers (item 13, still correct — every
+    seat in `positions.json` reproduces), the three sliders' ranges and the drag's clamps, the
+    rotation's contact-point origin, the colour store, the tabs, the layer toggles, `ICE_ENABLED`
+    and the parked-ice machinery, and every published contrast figure — none of them is a colour.
+    `tiki-mug` IS STILL ABSENT FROM `GLASS_PRESET` and the reason has changed: item 14 said the
+    presets did not place it, and `positions.json` now does (glass 0.81/49/125, fill 0.34/63/181).
+    It stays out because adding it would change which drinks this page can draw — a scope decision
+    and not a data gap, and one line when a recipe needs it. `GLASS_FROM_ASSET` says so now.
+
+    NOT VERIFIED — no renderer on this box. The two tables are read from the engine's own file and
+    the scale derivation is read from `garnish.ts` and `combos.json`; where the twist actually lands
+    at 1.00x is your eye, and that is exactly why the slider exists.
+
+    ────────────────────────────────────────────────────────────────────────────────────────────
+    18 · THE GARNISH'S PLACE IN THE STACK IS THE VISITOR'S. The author: "some folks might want
+    garnish on top of the drink, some behind, cna we do something about that on the layers tab?"
+
+    ** SUPERSEDED IN PART BY ITEM 19 — the mechanism analysis below is still the record and still
+    correct, and THE NAMES AND THE TARGETS ARE NOT. Item 18 read "behind" as *behind the drink*
+    and built a two-state pair around the FILL. The author's correction: "i meant to have the
+    garnish at the front or behind the glass". Item 19 re-points the pair at the GLASS, so
+    `under`→`behind` (before `.glass`, which is what the markup already shipped) and a new `front`
+    appends after `.glass`. `--veil` and its rule are deleted with the behind-the-drink state they
+    existed for, and the reasoning in the paragraphs below is kept rather than erased: that pass is
+    the record of the drink-axis pair, not a mistake. **
+
+    IT IS A REAL COMPOSITION PARAMETER AND NOT A PREVIEW STATE, which is the one thing about this
+    control worth stating before the mechanism. `compositor.ts` takes the order as
+    `ComposeOptions.layerOrder` — "the layer render order (bottom -> top). Defaults to
+    `DEFAULT_LAYER_ORDER`" — and that constant is `['canvas','fill','foam','ice','garnish','glass']`.
+    The artist's garnish therefore sits ABOVE the fill and BELOW the glass, and "under the drink" is
+    ONE reorder: the garnish before the fill instead of after the ice. Nothing else moves, and the
+    glass still draws over both, which is why its outline survives either way.
+    This matters because the panel this control joins is the page's only PREVIEW surface: the three
+    toggles beside it hide a layer so you can look under it, and there is no "hide" option in the
+    engine at all. The head above the toggles read `bottom -> top · view only` and now reads
+    `view only`, which is exactly true of the checkboxes under it and false of this pair.
+
+    THE MECHANISM IS TWO `insertBefore` CALLS AND IT ADDS NO `z-index`. Every layer is
+    `position:absolute` at `left:0;top:0` with `z-index:auto`, and there is no `isolation` and no
+    `mix-blend-mode` anywhere near `#canvas`, so positioned descendants paint in tree order — DOM
+    order IS paint order. A `z-index` would have been the WORSE repair: a second source of order, so
+    a later reader could change the property while the DOM still said otherwise and the two would
+    disagree silently in whichever direction the cascade happened to fall.
+    `order` WAS REJECTED AS WELL, and that rejection is worth keeping because the failure looks like
+    success: `order` only affects the layout of flex and grid ITEMS, and these boxes are absolutely
+    positioned at the canvas origin, so a flex reorder would paint EXACTLY as before.
+    THE TARGETS ARE ELEMENTS, NOT INDICES. `under` is `.garnish` before `.fill`; `over` is `.garnish`
+    before `.glass`. An index would have encoded "the ice layer is second" into the function, and the
+    ice layer is PARKED rather than deleted (item 9) — so the day those assets land, a positional
+    version of this would move the wrong node while still looking correct.
+    MOVING THE NODE DOES NOT RELOAD THE IMAGE: same element, same `src`. Item 15's pass was about
+    RE-ASSIGNING `src`; this touches no `src` at all. And the handler calls `renderGarnishOrder()`
+    rather than `render()`, deliberately, because nothing about the four painters changes when the
+    order does — re-running them would re-assert two `src` values and two mask URLs for no gain.
+
+    ** SUPERSEDED BY ITEM 19 — this paragraph describes the behind-the-drink state and its `--veil` token, both deleted; read it as the record rather than as this build. ** `under` IS NOT A HIDE, AND THE TWO STATES ARE NOT SYMMETRIC. The fill's mask is the drink's own
+    SILHOUETTE, so a garnish beneath it is covered wherever the liquid is and STILL DRAWS ABOVE THE
+    LIQUID LINE — which is what sitting in a drink looks like, and the reason a rim garnish stays
+    readable either way. What makes the covered part READ rather than vanish is one declaration,
+    `#canvas.veil .layer.fill{opacity:var(--veil)}`, and THE VALUE IS THE ENGINE'S RATHER THAN MINE:
+    `compositor.ts` draws a submerged garnish at `SUBMERGED_OPACITY = 0.3`, so a liquid at `1 - 0.3`
+    leaves it at exactly that. `--veil:.7` is declared in `:root` beside the other tokens so the two
+    figures cannot drift apart.
+    THE COST, STATED RATHER THAN HIDDEN: the veil is on the WHOLE fill and not only the part over
+    the garnish, so the drink itself reads slightly deeper while `under` is on — the dark pan shows
+    through it. Nothing is washed out on this page, because the pan behind the drink is `--plate`
+    and `--ink`. If it does read as "faded" rather than "through the drink", `--veil` is the single
+    value to move, and that is the honest place for the judgement.
+    THE ALTERNATIVE PATH IS THE ENGINE'S OTHER WATERLINE AND IT NEEDS DATA THIS PAGE DOES NOT CARRY.
+    `compositor.ts` can mask a garnish below a per-glass `surfaceY` instead of reordering it, and its
+    own note argues for that shape ("an opaque fill would hide the submerged garnish entirely rather
+    than submerge it"). But `positions.json` has NO `surfaceY` for any of the fifteen glasses, and
+    item 14's rule stands: an id no table describes is not invented here. The reorder needs no data,
+    so it is what this page can honestly do; the masked version is a later pass with a real table.
+
+    THE CONTROL IS TWO NATIVE RADIOS THAT ADD NO CSS. They are `.lay` labels like the three toggles
+    above, so they inherit the 44px target, the 20px square, the `.lay:hover` border lift and the
+    `--txt` label on the selected one — `.lay input::after` is written over `input` rather than over
+    a checkbox TYPE, so a radio takes the same lit square with no rule restated. Sharing one `name`
+    makes the pair exclusive for free and gives ArrowLeft/ArrowRight with no script.
+    ONE RULE WAS ADDED: `.ridehead` (six pixels), because the `.tray` gap of 10px is generous for a
+    paragraph and mean between a head and the grid it labels.
+    THREE CHANNELS SAY WHICH IS ON AND ONLY ONE IS COLOUR — the lit square, the label lifting to
+    `--txt`, and the head's own readout (`over the drink` / `under the drink`), which is the one that
+    survives a glance. Law 5 read as a mechanism rather than as a closing note.
+    THE `checked` GUARD IN THE HANDLER IS LOAD-BEARING: a radio group fires `change` on the LOSING
+    input too, so without it, choosing `under` would run the handler twice and the second run —
+    reading the radio that just went false — would write `over` back over the choice.
+
+    SEVERAL EARLIER ENTRIES LIST "the four layers and their order" AMONG WHAT THEY DID NOT TOUCH
+    (items 8, 11, 13 and 16). ALL FOUR ARE STILL TRUE AS HISTORY AND NONE OF THEM IS AN INVARIANT
+    NOW: an order the visitor can change did not exist when any of them were written. The canvas
+    comment in the markup says the same thing where the stack is described.
+
+    WHAT WAS NOT TOUCHED: the four layers' geometry, `src` and masks, every placement table, the
+    seat's four sliders and their ranges, the drag, the colour store and its chips, the tabs, the
+    three toggles and their `data-toggle` handler, `ICE_ENABLED` and the parked-ice machinery, the
+    URL receiver, the pan and its fit, and EVERY PUBLISHED CONTRAST FIGURE — none of them is a colour,
+    and `--veil` is an opacity rather than a pair, so the calibration list is unchanged.
+
+    NOT VERIFIED — no renderer on this box. Paint order is read from the CSS (`position:absolute`,
+    `z-index:auto`, no `isolation`) and the mechanism from `compositor.ts`; whether a covered garnish
+    reads as "seen through the drink" at 0.7 rather than as "faded out" is your eye. The one thing
+    that could not be checked by reading is the veil's effect on a colour the visitor picks — a very
+    dark liquid over the dark pan will show less through it than the sampled amber does.
+
+    ────────────────────────────────────────────────────────────────────────────────────────────
+    19 · THE PAIR IS ABOUT THE GLASS, NOT THE DRINK. The author, seeing item 18: "thats cool, but i
+    meant to have the garnish at the front or behind the glass".
+
+    WHAT WAS WRONG WAS MY READING, NOT THE CONTROL. Item 18 built `over`/`under` against the FILL —
+    behind the drink. The axis the author has in mind is the GLASS: whether the garnish passes in
+    front of it or sits behind it. So the two targets change and the mechanism does not.
+
+    THE TWO STATES ARE NOW `behind` AND `front`, AND `behind` IS WHAT THE PAGE ALREADY SHIPS.
+    `behind` is `.garnish` BEFORE `.glass` — which is both `DEFAULT_LAYER_ORDER`'s own slot
+    (`,…,'ice','garnish','glass'`) and the order the markup is written in, so with scripting off the
+    file still composes exactly what the engine says it should and `state.garnishLayer`'s seed
+    matches the `checked` radio. `front` is one `appendChild`, which moves the existing element
+    after `.glass`; `appendChild` on a node already in the tree MOVES it rather than copying it.
+
+    DOM ORDER IS STILL PAINT ORDER and the reasoning is item 18's, unchanged: every layer is
+    `position:absolute` at `left:0;top:0` with `z-index:auto`, and there is no `isolation` and no
+    `mix-blend-mode` anywhere near `#canvas`. A `z-index` is still refused, because it would be a
+    second source of order that a later reader can change while the DOM says otherwise; `order` is
+    still refused, because it only reorders flex and grid ITEMS and these boxes are absolutely
+    positioned. The targets are still ELEMENTS and not indices, which matters more here than it did
+    in item 18: `appendChild` needs no index at all, and `insertBefore(…, el.glass)` is anchored to
+    the layer it is about.
+
+    MOVING A NODE DOES NOT RELOAD ITS IMAGE — item 15's lesson, and this function still touches no
+    `src`. The handler still calls `renderGarnishOrder()` rather than `render()`.
+
+    WHAT THE VISITOR SEES. The glass draws as a black silhouette carrying the white outline
+    treatment, so it is a LINE, not a filled body. The two states therefore differ exactly where the
+    garnish and the glass edge cross: `front` paints the garnish over that edge and its outline,
+    which reads as the garnish being on the outside of the glass; `behind` lets the glass edge and
+    its outline draw over the garnish, which reads as tucked behind it. Away from the crossing the
+    two are identical, which is the honest description of a control this small.
+
+    DELETED WITH THE STATE IT SERVED, AND RECORDED RATHER THAN ERASED: `--veil:.7`, the rule
+    `#canvas.veil .layer.fill{opacity:var(--veil)}`, and the `classList.toggle('veil', …)` call.
+    Nothing sets `.veil` any more, so both had no reader and this file does not keep a rule with no
+    element. The fill's own rule above them is untouched.
+
+    WHAT WAS NOT TOUCHED: the four layers' geometry, `src` and masks, every placement table, the
+    seat's four sliders and their ranges, the size multiplier, the drag, the colour store and its
+    chips, the tabs, the three `data-toggle` checkboxes and their handler, `ICE_ENABLED` and the
+    parked-ice machinery, the URL receiver, the pan and its fit, and EVERY PUBLISHED CONTRAST FIGURE
+    — this is a tree-order change and no pair of colours moved, and the deleted `--veil` was an
+    opacity rather than a pair, so the calibration list is unchanged.
+
+    NOT VERIFIED — no renderer on this box. Whether `front` reads as "stuck on the outside of the
+    glass" and `behind` as "tucked behind it" is your eye; reading can only establish the tree order,
+    which it does. The `.ridehead` row also gained `flex-wrap`, because `in front of the glass` is
+    four characters longer than the readout item 18 published and the head is a `space-between` flex
+    row — the guard is the same one the review room's `.sechead` carries, and wrapping can never
+    overlap.
+-->
+
+<style>
+/* ══ TOKENS — the family's, verbatim. One alias is added and named. ═══════════════════════ */
+:root{
+  --a:#ff3366; --ok:#BDF524; --b:#ffd400; --c:#ff8a1e; --d:#ff4fa3;
+  --plate:#151327; --txt:#f2eeff; --dim:#b8aed0; --ink:#050409;
+  --rail:#2a2140;
+  --fs-micro:9.5px; --fs-label:10.5px; --fs-small:12px; --fs-body:14px; --fs-action:15px;
+  --fs-display-xs:24px;                 /* `--fs-name` is DELETED with the card — item 6: */
+  /* `.card-name` was the only rule that read it, and its `36px` entry in the 420px query went with
+     it. That part still holds. */
+  --edge:5px;                           /* AND `--edge` IS BACK — item 7. Item 6 deleted it because
+     only `.face` read it and this page drew no frame; `.plate` reads it now, so it returns at the
+     family's own value. `apps/census/src/roast.css` was synced from 3px to 5px in the same pass. */
+  --pan-r:14px;
+  --rim:rgba(255,255,255,.50);          /* 5.27:1 on --plate. NOT the card's .26 (2.32:1). */
+  --hair:rgba(255,255,255,.44);         /* 4.36:1 on --plate, 4.90:1 on --ink */
+  /* `--veil` STOOD HERE AND IS DELETED WITH THE STATE IT SERVED — item 19. It was the liquid's
+     opacity while the garnish rode UNDER THE DRINK, valued from the engine's `SUBMERGED_OPACITY`
+     (item 18). Item 19 re-points this control at the GLASS, so there is no longer a state in which
+     the liquid covers the garnish — `.layer.fill` is always below the garnish now — and both the
+     token and `#canvas.veil .layer.fill` were left with no reader. A rule with no element is the
+     dead declaration this file does not keep, so both went, and item 18's derivation is kept there
+     as the record of the drink-axis pair rather than as a claim this build makes. */
+  --pan-pad:8px;                       /* `--gut` was only `.face`'s `gap` — item 6. */
+  /* The arena card's AUTHORED turn, and law 11 says a chosen timing is not mine to touch. This
+     page does not flip, so these two are RECORDED rather than consumed: deleting them would lose
+     the authored value, and inventing a second one here would be the law 11 defect itself. */
+  --turn:.62s; --ease:cubic-bezier(.22,.61,.36,1);
+  --font-display:Impact,Haettenschweiler,"Franklin Gothic Heavy","Arial Narrow Bold",sans-serif;
+  --font-body:ui-sans-serif,system-ui,"Segoe UI",sans-serif;
+  --font-mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --artpan:rgb(16,14,29);              /* color-mix(--plate 74%,#000), flattened for publication */
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  font:var(--fs-body)/1.5 var(--font-body); color:var(--txt); background:var(--ink);
+  min-height:100vh; overflow-x:hidden;
+}
+img{max-width:100%;display:block}
+:where(a,button,input,select,summary,[tabindex]):focus-visible{
+  outline:2px solid #fff; outline-offset:2px;
+  box-shadow:0 0 0 4px #000;               /* the two-tone ring: one side always clears 3:1 */
+}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+[hidden]{display:none !important}
+
+/* ══ THE GROUND — the sunset's dark half, the arena's own floor, ending on ink. ONE texture. ══ */
+.ground{position:fixed;inset:0;z-index:-2;pointer-events:none;
+  background:linear-gradient(168deg,#ff3366 0%,#b8aed0 26%,#7b5cff 58%,#2a2140 82%,var(--ink) 100%)}
+.ground-hf{position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.48;
+  background-image:radial-gradient(rgba(16,6,32,.34) 1px,transparent 1.5px);
+  background-size:12px 12px;
+  -webkit-mask-image:linear-gradient(180deg,#000 0 9%,transparent 20% 74%,#000 92% 100%);
+          mask-image:linear-gradient(180deg,#000 0 9%,transparent 20% 74%,#000 92% 100%)}
+
+/* THE PAGE IS THE PLATE — item 7. `.plate`, further down, carries the frame; this rule keeps the
+   width, the centring and the room the frame needs. `overflow-x:clip` does NOT clip the element's
+   own box-shadow, only its children's overflow, so the frame's hard offset still draws. */
+.page{position:relative;padding:13px 12px calc(15px + env(safe-area-inset-bottom,0px));
+  max-width:420px;margin:0 auto;overflow-x:clip}
+
+/* ══ THE EXIT — above the card, the app's own position (ExitLink). A plate, not a bare link:
+   the wash is ground for the page and carries no glyph. ══════════════════════════════════ */
+/* the exit left `.page` in item 7: it leaves the room rather than belonging to it, so it sits above
+   the frame and needs the width and the centring the page used to give it. */
+.exit{display:flex;justify-content:center;max-width:420px;margin:0 auto 10px}
+.exit a{display:inline-flex;align-items:center;min-height:44px;padding:0 12px;
+  background:var(--plate);border:2px solid #000;box-shadow:3px 3px 0 #000;
+  color:var(--dim);text-decoration:none;font-family:var(--font-mono);font-size:var(--fs-label);
+  letter-spacing:.1em;text-transform:uppercase}
+.exit a:hover{color:var(--txt);border-color:var(--b)}
+.exit a:hover{box-shadow:4px 4px 0 #000;transform:translate(-1px,-1px)}
+
+/* ══ NO CARD. Item 6 deleted the frame itself — its 5px edge, its three shadows, the face they hung
+   on and the halftone field it carried. THE LINES BELOW ARE THE RECORD of the frame that stood
+   here, kept rather than trimmed, and `.preview` under them is all that replaced it. ONE SURFACE.
+   The misregister plates are deleted from this file, and the glow went with them
+   — onto the face's own shadow, which is where it belongs on a single plane. Two offset planes
+   behind a 360px card read as a second and third card rather than as ink, and that is the reading
+   this was sent back for. Everything else about the frame is the arena's, verbatim. The accent
+   budget does not change: that glow was always `--b`. ═══════════════════════════════════════ */
+/* ══ ONE PLATE — ITEM 7, AND IT REVERSES THE PARAGRAPH ABOVE. The page is the frame again, and it
+   holds EVERYTHING: the window, the toolkit, the payload and the notes. Before this, the page was
+   three objects floating on the wash — a bare preview, a bordered tray and three more bordered
+   blocks — and the reading was "plates and nameplates and textboxes" rather than one screen.
+   THE FRAME IS THE FAMILY'S, VERBATIM: `--edge` 5px `#000`, `5px 5px 0 #000`, `--plate` fill and the
+   `.055` dither at a 5px cell. `--edge` returns with it; see the token block.
+   ONE ADDITION: a 1px inset `--rim` hairline (5.27:1 on the plate). The ground is a FIXED gradient
+   running bright → ink, so at the foot of the viewport `#000` on `--ink` is 1.03:1 and the frame's
+   own edge stops drawing there. The hairline is the review room's answer to that same problem: on
+   ink, the hairline IS the edge.
+   ONE OMISSION — THE TILT. The family's frame carries a hand-placed `-0.6deg`; this one must not.
+   `fitCanvas()` reads `getBoundingClientRect()`, and under a rotation that rect is the BOUNDING BOX:
+   `S(|cos .6°| + |sin .6°|)` = `S · 1.0104`, so a tilted frame would feed a `--cs` 1.04% too large
+   into the fit AND into the drag's own `box.width / 500`. This one is a correctness reason rather
+   than a taste one, and it agrees with the older one: a rotated frame rotates the ruler the seat is
+   judged against. ══════════════════════════════════════════════════════════════════════════ */
+.plate{border:var(--edge) solid #000;
+  box-shadow:inset 0 0 0 1px var(--rim),5px 5px 0 #000;
+  background-color:var(--plate);
+  background-image:radial-gradient(rgba(255,255,255,.055) 1px,transparent 1px);
+  background-size:5px 5px}
+
+/* ── the window. The preview is SMALL on purpose — "the image preview can be small, that's no
+   problem" — so the stage is capped and centred inside the plate instead of taking its width, and
+   the room that frees is what lets the window and the toolkit share one object.
+   THE FIGURES AT BOTH CANVASES, off the box model rather than a feeling — a 360px viewport: page
+   content 336, plate interior 336 − 10 (edge) − 24 (padding) = 302, pan `min(232, .7·302)` = 211,
+   stage 211 − 2 (border) − 16 (pan padding) = 193, so `--cs` = 0.387. A 420px page: interior 362,
+   pan 232, stage 214, `--cs` 0.428. Nothing had to change for that: `fitCanvas()` reads the stage's
+   real rect, so the canvas rescales itself and no ratio is asserted in CSS that could disagree. */
+.bay{display:flex;flex-direction:column;align-items:center;gap:6px}
+.preview{width:min(232px,70%);margin:0;max-width:none}
+
+/* THE CAPTION MOVED OUT OF THE ART. `#artmouth` was an absolutely positioned band across the stage's
+   foot with a black gradient under it; on a 193px stage that band ate a tenth of the artwork. It is
+   a line under the window now, and it still carries the whole readout — the glass, the liquid and
+   the seat. `--dim` on `--plate`: 8.67:1, and it wraps freely instead of being clipped by a band. */
+.baycap{font-family:var(--font-mono);font-size:var(--fs-micro);letter-spacing:.06em;
+  color:var(--dim);text-transform:uppercase;text-align:center;line-height:1.5;
+  overflow-wrap:anywhere;max-width:100%}
+
+/* the pans: softer, liquid edges against the frame's hard square, dither inside */
+.pan{position:relative;border-radius:var(--pan-r);border:1px solid var(--rim);
+  background:
+    radial-gradient(rgba(0,0,0,.22) 1px,transparent 1.4px),
+    linear-gradient(158deg,rgba(255,255,255,.15),rgba(255,255,255,.02) 44%,rgba(255,255,255,.08)),
+    color-mix(in srgb,var(--plate) 88%,transparent);
+  background-size:10px 10px,100% 100%;
+  -webkit-backdrop-filter:blur(10px) saturate(125%);
+          backdrop-filter:blur(10px) saturate(125%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.34),inset 0 -1px 0 rgba(255,255,255,.10),
+             0 5px 16px rgba(0,0,0,.42)}
+.pan::after{content:"";position:absolute;inset:1px;border-radius:calc(var(--pan-r) - 1px);
+  pointer-events:none;z-index:-1;
+  background:linear-gradient(118deg,rgba(255,255,255,.20) 0 12%,transparent 34% 74%,rgba(255,255,255,.10) 100%)}
+
+/* ── DELETED · item 6 — what stood under this header was pan 1, the name: ─────────────────────────────────────────────────────────────────── */
+/* ALL OF IT IS DELETED — item 6: `.pan-name`, `.kick`, `.plate-txt` and `.card-name`, and the token
+   `--fs-name` that only `.card-name` read, including its `36px` entry in the 420px query. `.kick`
+   had exactly four consumers — the name's eyebrow and the three read-from-the-recipe rows — and all
+   four are deleted, which is why it is not left orphaned. There is no rule here now and no element
+   on the page to hold one: a rule with no element is the dead declaration this file does not keep.
+   (`.nameline` and `.readout` were deleted on an earlier pass for the same reason — the die-cut
+   readout was the arena's deck position, and a preview of one drink has no position in a deck.) */
+
+/* ── the render · THE ONLY PAN LEFT. The tube is scoped here and nowhere else: neon is a signal,
+   never the environment (law 4). ───────────────────────────────────────────────────────── */
+.pan-art{padding:var(--pan-pad);background:
+    radial-gradient(rgba(0,0,0,.20) 1px,transparent 1.4px),
+    linear-gradient(158deg,rgba(255,255,255,.12),rgba(255,255,255,.02) 50%,rgba(255,255,255,.06)),
+    color-mix(in srgb,var(--plate) 74%,#000);
+  background-size:10px 10px,100% 100%}
+.artstage{position:relative;width:100%;aspect-ratio:1;overflow:hidden;
+  border:1px solid var(--hair);background:transparent}
+/* THE 500-UNIT FRAME, LANDED ON THE PAN. `left/top` carry the centring in LAYOUT units and
+   `transform` carries only the scale, about the canvas' own centre — so the mapping is
+   `p → cs·p` measured from the pan's middle, with no percentage-translate for a scale to
+   disagree with. The alternative (`translate(-50%,-50%) scale(cs)` about a top-left origin)
+   centres correctly at cs=1 and drifts by `(1−cs)·250px` at every other scale. */
+#canvas{position:absolute;left:calc(50% - 250px);top:calc(50% - 250px);
+  width:500px;height:500px;transform-origin:50% 50%;transform:scale(var(--cs,1))}
+.layer{position:absolute;left:0;top:0;transform-origin:0 0;pointer-events:none}
+/* THE LIQUID NEEDS A BOX BEFORE IT NEEDS A MASK — item 12(a). `.layer` declares
+   `position:absolute;left:0;top:0` and nothing else, and `placeMask()` writes only the MASK's
+   geometry (`--fw`/`--fh`/`--fx`/`--fy`). With no width and no height the element shrink-to-fits to
+   0x0, and a 0x0 box paints nothing whatever its mask says — so the liquid was invisible and
+   `state.color` was setting the background of a box zero pixels wide.
+   `inset:0` resolves against `#canvas`, which IS the 500-unit frame, so the mask's own coordinates
+   — every one of them measured from this box's top-left — keep the meaning they were derived with.
+   A mask cannot fail silently: an unresolvable `mask-image` is treated as NO mask, and an unmasked
+   500x500 box of drink colour is a very visible rectangle. Absence therefore proved the box. */
+.layer.fill{inset:0;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;
+  -webkit-mask-size:var(--fw) var(--fh);mask-size:var(--fw) var(--fh);
+  -webkit-mask-position:var(--fx) var(--fy);mask-position:var(--fx) var(--fy);
+  background:var(--liquid-color,#c96a1e)}
+/* `#canvas.veil .layer.fill{opacity:var(--veil)}` STOOD HERE AND IS DELETED — item 19, together
+   with the `--veil` token above it and the behind-the-drink state it existed for. Nothing sets
+   `.veil` on `#canvas` any more and nothing reads `--veil`, so the rule had no subject. The fill's
+   own rule above is untouched, and item 18 keeps the derivation for whoever re-opens that axis. */
+/* THE GLASS IS A BLACK SILHOUETTE: the file's root is `stroke="black" fill="none"` and its paths
+   carry `fill="#000000"`. On a pan this dark it draws nothing, which is the same defect the black
+   plate had on the name patch — so it takes the same answer, an outline, and the arena's own
+   8-shadow value verbatim. The garnish art is a colour trace, so it gets none. */
+.layer.glass{filter:drop-shadow(2px 0 0 #f2eeff) drop-shadow(-2px 0 0 #f2eeff)
+  drop-shadow(0 2px 0 #f2eeff) drop-shadow(0 -2px 0 #f2eeff)
+  drop-shadow(1px 1px 0 #f2eeff) drop-shadow(-1px 1px 0 #f2eeff)
+  drop-shadow(1px -1px 0 #f2eeff) drop-shadow(-1px -1px 0 #f2eeff)}
+.layer.is-missing{display:none}
+/* the relocate handle is the garnish itself, and only while the toolkit says so */
+.pan-art.movable .layer.garnish{pointer-events:auto;cursor:grab;touch-action:none}
+.pan-art.movable .layer.garnish:active{cursor:grabbing}
+.tube{position:absolute;inset:3px;z-index:6;pointer-events:none;
+  border:3px solid var(--a);border-radius:calc(var(--pan-r) - 3px);
+  box-shadow:0 0 12px var(--a),0 0 30px var(--a),
+             inset 0 0 16px color-mix(in srgb,var(--a) 40%,transparent);
+  animation:tube 4.5s ease-in-out 1 both}
+@keyframes tube{0%,100%{opacity:1}42%{opacity:.72}58%{opacity:.94}}
+/* `.artmouth` was the stage's foot band. IT IS DELETED — item 7 moved the caption out of the art
+   and it is `.baycap` now, beside the window rule above. A rule with no element is the dead
+   declaration this file does not keep. */
+/* THE MISSING-ASSET STATE. It is the state this page opens in, so it is drawn, not apologised for. */
+.absent{position:absolute;inset:0;z-index:5;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:6px;padding:12px;text-align:center;
+  background-image:repeating-linear-gradient(45deg,rgba(255,255,255,.055) 0 5px,transparent 5px 10px)}
+.absent .big{font-family:var(--font-display);font-style:italic;font-size:var(--fs-display-xs);
+  color:var(--dim);transform:rotate(-.6deg)}
+.absent .pth{font-family:var(--font-mono);font-size:var(--fs-micro);color:var(--txt);
+  word-break:break-all;background:#000;padding:3px 5px;max-width:100%}
+/* `.absent .hint` was deleted along with the copy-command line it styled (T4): a rule with no
+   element is the dead declaration this file does not keep. */
+
+/* ── pan 3 · WHAT THE COMPOSITOR CONSUMES, read from the recipe: the glass, the filling and the
+   garnish. Three rows and NOTHING ELSE — the ingredient list and the method are the editor's
+   content and the arena card's content, and printing them here is what made this read as a second
+   card view rather than as a preview. The two fields the recipe owns carry a mark, and it is a
+   word as well as a glyph, because a colour-only state is the thing law 5 forbids. NO plate
+   inside a plate: the pan is the ground already. ────────────────────────────────────────── */
+/* ALL OF IT IS DELETED — item 6: `.pan-recipe`, `.rrow`, `.rrow .k`, `.rrow .v` and `.rrow .from`.
+   The pan printed the glass, the filling and the garnish so the page could say where each came
+   from; the caption under the stage names the glass and the liquid, and the payload at the foot
+   printed all four fields as the machine object — so the three rows were a third copy of facts the
+   page already carried. No rule stands here now. ** THE PAYLOAD PANEL IS DELETED TOO — item 11 —
+   so the caption under the stage is the only reader of those fields left on the page. ** */
+
+/* ══ THE TOOLKIT — the visitor's two controls (the colour and the seat), the boundary, and the
+   three view toggles. Ice used to have a fourth and it is deleted (item 8) — ice is recipe-owned
+   like the glass and the garnish, so nothing here removes it. ══ */
+/* `.bay` carries no border of its own: every `.sec` opens with one, so the first section's top edge
+   is the line under the window and the plate never draws two hairlines 6px apart. */
+.sec{margin-top:12px;padding-top:12px;border-top:1px solid var(--rim)}
+.sechead{display:flex;align-items:baseline;justify-content:space-between;gap:8px;flex-wrap:wrap;
+  margin-bottom:6px;padding-bottom:4px;border-bottom:1px solid var(--hair)}
+.sechead .lbl{font-family:var(--font-display);font-style:italic;font-size:var(--fs-display-xs);
+  color:#fff;transform:skewX(-9deg) rotate(-.6deg);
+  text-shadow:.075em .075em 0 #000,.15em .15em 0 var(--b)}
+/* `flex-wrap` + `margin-left:auto` ARE NEW IN ITEM 7, and they are a collision guard rather than a
+   look. The plate's interior at 360px is 302px where the old full-width sections had 336, and these
+   heads are a 24px display word with a 3.6px offset shadow beside a mono readout. Measured, the
+   worst pair is "What is not here" + "read before wiring" at ≈284px of the 302 — an 18px margin that
+   the skew and the shadow eat into. Wrapping can never overlap; the alternative is a size change. */
+.sechead .meta{font-family:var(--font-mono);font-size:var(--fs-micro);color:var(--dim);
+  letter-spacing:.1em;text-transform:uppercase;text-align:right;margin-left:auto}
+/* NO PLATE ON THE TRAY — item 7. The tray lives inside the page's one plate now, and a plate on a
+   plate is the redundancy this project has rejected three times. Its old chrome also drew NOTHING,
+   and both figures are published in this header: a `--plate` fill on a `--plate` plate is 1.00:1
+   and `#000` on `--plate` is 1.15:1. It was a third edge weight on one surface. */
+.tray{display:flex;flex-direction:column;gap:10px}
+.row{display:flex;flex-direction:column;gap:5px}
+.rowhead{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.rowhead .lbl{font-family:var(--font-mono);font-size:var(--fs-label);letter-spacing:.08em;
+  text-transform:uppercase;color:var(--dim)}
+.rowhead .val{font-family:var(--font-mono);font-size:var(--fs-micro);color:var(--txt)}
+/* ── THE TAB BAR — item 16. The toolkit's four stacked rows became one bar and one panel, at the
+   author's word: "a simple tab design under the glass: colour, garnish, layer order, so its all in
+   the same view instead of all scrolled down."
+
+   THE SELECTED STATE IS CARRIED THREE WAYS AND ONLY ONE OF THEM IS COLOUR — the same argument the
+   roster's primary/secondary pair already makes. (1) WEIGHT: the selected tab is FILLED and the
+   others are OUTLINE, a fill-present/fill-absent difference that survives a colour-blind read.
+   (2) A GLYPH: a filled 8px square — the `.lay input::after` idiom — and it RESERVES ITS SPACE ON
+   EVERY TAB via `transform:scale(0)`, so selecting a tab cannot reflow the bar by one pixel.
+   (3) COLOUR: `--b` behind `#000`, which is the 14.67:1 already in this header's calibration list.
+
+   NO NEW RATIO. Unselected is `--dim on --plate` 8.67:1; hover moves it to `--txt` 15.98:1 with a
+   `--b` border, so the boundary rises; the SELECTED TAB DECLARES NO HOVER AT ALL, because there is
+   nothing above "selected" to raise it to and a hover that dimmed its own fill would be the
+   forbidden direction.
+
+   THE FOCUS RING IS RESTATED LAST AND AT EQUAL WEIGHT, and it is not defensive. `:where(…)
+   :focus-visible` is (0,1,0); `.tab[aria-selected="true"]` is (0,2,0) and would therefore WIN the
+   box-shadow shorthand, leaving a selected tab with the white outline and no black halo — the same
+   specificity trap this project has now lost twice (the strip's handle patch, the arena's demoted
+   back button). Written after the selected rule, equal weight, source order decides.
+
+   `[hidden]{display:none !important}` CARRIES THE PANELS and nothing is restated here: `.row`'s own
+   `display:flex` is only (0,1,0). That is the trap this file has hit three times (`.note-line`,
+   `.pr-more`, `.toggle`). */
+.tabs{display:flex;gap:6px}
+.tab{appearance:none;-webkit-appearance:none;flex:1 1 0;min-width:0;min-height:44px;padding:0 6px;
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  background:transparent;color:var(--dim);border:2px solid var(--rim);border-radius:0;
+  font-family:var(--font-mono);font-size:var(--fs-label);letter-spacing:.08em;
+  text-transform:uppercase;cursor:pointer;box-shadow:none}
+.tab::before{content:"";width:8px;height:8px;flex:0 0 auto;background:#000;transform:scale(0)}
+.tab:hover{color:var(--txt);border-color:var(--b)}
+.tab[aria-selected="true"]{background:var(--b);color:#000;border-color:#000;
+  box-shadow:3px 3px 0 #000}
+.tab[aria-selected="true"]::before{transform:scale(1)}
+.tab:focus-visible{outline:2px solid #fff;outline-offset:2px;box-shadow:0 0 0 4px #000}
+
+/* ── THE RECIPE LINE — the bar's footnote, NOT a fourth tab. It states WHO OWNS the glass, the ice
+   and the garnish and links to where they are chosen; a tab is a control, and putting a sentence
+   behind one makes it something to go and find. It sits UNDER the panel so it is readable in all
+   three tabs, and it deliberately does NOT reprint their values — the caption under the stage does
+   that, and two elements for one fact is the redundancy this project has rejected three times.
+   RENAMED FROM `.locked` AND COMPACTED — the two paragraphs became one, and `<code>garnish-map.json</code>
+   is gone with its rule: it named an implementation detail at a visitor, which is the same defect
+   item 11 removed from the notes. The chip is unchanged, 44px target and all. ─────────────── */
+.ownline{display:flex;flex-direction:column;gap:7px;padding:9px 10px;background:#0b0813;
+  border:1px dashed var(--rim)}
+.ownline p{font-size:var(--fs-label);line-height:1.5;color:var(--dim)}
+.ownline b{color:var(--txt);font-weight:600}
+.ownline a{display:inline-flex;align-items:center;min-height:44px;align-self:flex-start;padding:0 12px;
+  background:var(--plate);border:2px solid var(--rim);box-shadow:3px 3px 0 #000;color:var(--txt);
+  text-decoration:none;font-family:var(--font-mono);font-size:var(--fs-label);letter-spacing:.08em;
+  text-transform:uppercase}
+.ownline a:hover{border-color:var(--b);box-shadow:4px 4px 0 #000;transform:translate(-1px,-1px)}
+.ownline a:active{box-shadow:1px 1px 0 #000;transform:translate(2px,2px)}
+.ctl{appearance:none;-webkit-appearance:none;min-height:44px;width:100%;padding:0 10px;
+  background:#0b0813;color:var(--txt);border:1px solid var(--hair);border-radius:0;
+  font-family:var(--font-mono);font-size:var(--fs-small)}
+.ctl:hover{border-color:var(--txt)}
+select.ctl{background-image:linear-gradient(45deg,transparent 50%,var(--dim) 50%),
+  linear-gradient(135deg,var(--dim) 50%,transparent 50%);
+  background-position:calc(100% - 16px) 21px,calc(100% - 11px) 21px;
+  background-size:5px 5px,5px 5px;background-repeat:no-repeat;padding-right:32px}
+input[type="range"].ctl{min-height:44px;padding:0;background:transparent;border:0;
+  -webkit-appearance:none;appearance:none}
+input[type="range"].ctl::-webkit-slider-runnable-track{height:4px;background:var(--rail);
+  border:1px solid var(--hair)}
+input[type="range"].ctl::-moz-range-track{height:4px;background:var(--rail);border:1px solid var(--hair)}
+input[type="range"].ctl::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;
+  margin-top:-10px;background:var(--b);border:2px solid #000;border-radius:0;
+  box-shadow:2px 2px 0 #000}
+input[type="range"].ctl::-moz-range-thumb{width:22px;height:22px;background:var(--b);
+  border:2px solid #000;border-radius:0;box-shadow:2px 2px 0 #000}
+.btn{appearance:none;min-height:44px;padding:0 12px;background:transparent;color:var(--txt);
+  border:2px solid var(--rim);box-shadow:3px 3px 0 #000;font-family:var(--font-mono);
+  font-size:var(--fs-label);letter-spacing:.08em;text-transform:uppercase;cursor:pointer}
+.btn:hover{border-color:var(--b);box-shadow:4px 4px 0 #000;transform:translate(-1px,-1px)}
+.btn:active{box-shadow:1px 1px 0 #000;transform:translate(2px,2px)}
+.btn--solid{background:var(--b);color:#000;border-color:#000}
+.btn--solid:hover{background:#ffe25c;border-color:#000}
+.btns{display:flex;gap:8px;flex-wrap:wrap}
+.btns .btn{flex:1 1 auto}
+
+/* the colour row */
+.colorline{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.swatch{width:44px;height:44px;padding:0;border:2px solid #000;background:transparent;
+  box-shadow:0 0 0 2px #fff;cursor:pointer;flex:0 0 auto;border-radius:0}
+.swatchwrap{position:relative;flex:0 0 auto}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chipwrap{position:relative}
+.chip{width:44px;height:44px;border:2px solid #000;box-shadow:0 0 0 2px #fff;cursor:pointer;
+  padding:0;border-radius:0;background:transparent}
+.chip[aria-pressed="true"]{box-shadow:0 0 0 2px #fff,0 0 0 5px var(--txt)}
+.chipdel{position:absolute;top:-7px;right:-7px;width:22px;height:22px;min-height:22px;padding:0;
+  line-height:1;background:#000;color:#fff;border:1px solid var(--rim);cursor:pointer;
+  font-family:var(--font-mono);font-size:11px}
+.chipdel:hover{border-color:var(--b);color:var(--b)}
+.noslots,.traynote{font-family:var(--font-mono);font-size:var(--fs-micro);color:var(--dim);
+  border:1px dashed var(--rim);padding:8px 10px}
+
+/* layer toggles — a real checkbox each, 44px, and the checked state carries a SYMBOL as well as
+   colour, because a colour-only state is the thing law 5 forbids. */
+.layers{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}
+.lay{display:flex;align-items:center;gap:8px;min-height:44px;padding:0 8px;
+  border:1px solid var(--hair);cursor:pointer;background:#0b0813}
+.lay:hover{border-color:var(--txt)}
+.lay input{appearance:none;-webkit-appearance:none;width:20px;height:20px;flex:0 0 auto;
+  border:2px solid var(--rim);background:transparent;cursor:pointer;display:grid;place-content:center}
+.lay input::after{content:"";width:10px;height:10px;background:var(--ok);transform:scale(0)}
+.lay input:checked::after{transform:scale(1)}
+.lay input:checked{border-color:var(--ok)}
+.lay span{font-family:var(--font-mono);font-size:var(--fs-label);letter-spacing:.06em;
+  text-transform:uppercase;color:var(--dim)}
+.lay input:checked ~ span{color:var(--txt)}
+/* THE PLACEMENT'S OWN HEAD — item 18. Six pixels, because the `.tray` gap of 10 is generous for a
+   paragraph and mean-looking between a head and the grid it labels. One rule, one element.
+   ITEM 19 ADDED `flex-wrap`, and that is a guard rather than a look: `in front of the glass` is the
+   longest readout on the page and the head is a `justify-content:space-between` flex row, so a
+   hairline advance-width difference could push the two spans into each other. Wrapping can never
+   overlap, and it is the same guard the review room's `.sechead` carries. */
+.ridehead{margin-top:6px;flex-wrap:wrap}
+
+/* THE PAYLOAD'S `.code` RULES AND THE NOTES' `.note`/`.pathlist` RULES STOOD HERE — item 11
+   deleted both blocks' markup and both blocks' CSS in the same pass, because this file's rule is
+   that a rule with no element is a dead declaration. TWELVE rules went: `.code` and its two span
+   colours, `.notes`, `.note` with its four element/modifier rules (`.note b`, `.note code`,
+   `:first-child`, `:last-child`), and `.pathlist` with its `.ok` and `.no`.
+   `.noslots,.traynote{…}` ABOVE IS UNTOUCHED. It is a different rule, it is still on the page, and
+   those two are now the only mono captions left inside the frame. `--hair` also survives this
+   deletion — `.lay` still reads it. */
+
+/* ══ REDUCED MOTION IS A BRANCH, NOT AN AFTERTHOUGHT. The tube's pulse is the page's only
+   animation, and BOTH paths carry the SAME two rules. ═══════════════════════════════════ */
+@media (prefers-reduced-motion:reduce){
+  .tube{animation:none;opacity:1}
+  html.rm-smooth *{scroll-behavior:auto !important}
+}
+html[data-motion="still"] .tube{animation:none;opacity:1}
+html[data-motion="still"].rm-smooth *{scroll-behavior:auto !important}
+
+@media (min-width:420px){
+  :root{--fs-body:15px;--fs-small:13px;--fs-label:11px;--fs-micro:10px;
+        --fs-action:17px;--fs-display-xs:26px}
+}
+</style>
+</head>
+<body>
+
+<div class="ground" aria-hidden="true"></div>
+<div class="ground-hf" aria-hidden="true"></div>
+
+<!-- the exit sits ABOVE the frame — the app's own position for it (`ExitLink`) — and outside the
+     plate, because it leaves the room rather than belonging to it. -->
+<p class="exit"><a href="../#/roast/edit">back to the editor</a></p>
+
+<!-- ══ ONE PLATE — ITEM 7. The PAGE is the frame now, and it holds everything: the window and the
+     toolkit. (Item 11 deleted the payload panel and the notes section that stood inside it, so the
+     plate ends after the toolkit and the last thing on it is the layers row.)
+     The `<h1 class="sr">` below keeps the document's outline —
+     the deleted name plate carried the page's only heading — and nothing appears on screen for it.
+     ═════════════════════════════════════════════════════════════════════════════════════════ -->
+<div class="page plate" data-od-id="plate">
+
+  <h1 class="sr">The render</h1>
+
+  <!-- ── THE WINDOW. The artwork, small and centred, with the readout under it. ───────────── -->
+  <div class="bay" data-od-id="window">
+    <div class="pan pan-art preview" id="artpan" data-od-id="pan-art">
+      <div class="artstage">
+        <!-- THE CANVAS. 500×500, the frame every glass declares in `positions.json`, scaled to
+             the pan by one custom property. Layers bottom→top, the engine's own order:
+             canvas (the pan itself) · fill · [foam — absent, see the header] · ice · garnish · glass.
+
+             THE GARNISH'S PLACE IN THAT ORDER IS THE VISITOR'S, AND IT IS SET AGAINST THE GLASS —
+             item 18, re-pointed at the glass by item 19. It is the one thing in this stack that is
+             not a preview state. `renderGarnishOrder()` moves THIS element either before `.glass`
+             (`behind`, nothing else changes) or to the END of the canvas (`in front`, one
+             `appendChild`), because every layer here is `position:absolute` at `left:0;top:0` with
+             `z-index:auto` and positioned descendants paint in tree order. The markup order below
+             is therefore the ENGINE'S DEFAULT, not an invariant — and it is also what the page
+             OPENS on, since `behind` is the seeded state: `.garnish` is written between `.ice` and
+             `.glass` so the file with scripting off composes exactly what `DEFAULT_LAYER_ORDER`
+             says it should.
+
+             THE ICE ELEMENT STAYS AND STILL NEVER LOADS — item 9. Parked for want of approved
+             assets, so `renderIce()` returns before assigning a `src` and the element sits on
+             `is-missing` (`display:none`). Kept in the stack rather than deleted so that
+             `ICE_ENABLED = true` restores the layer with no markup to put back. -->
+        <div id="canvas">
+          <div class="layer fill"  data-layer="fill"   aria-hidden="true"></div>
+          <img class="layer ice"   data-layer="ice"    alt="" decoding="async">
+          <img class="layer garnish" data-layer="garnish" alt="" decoding="async">
+          <img class="layer glass" data-layer="glass"  alt="" decoding="async">
+        </div>
+        <!-- THE PLACEHOLDER IS A VISITOR-FACING STATE, NOT A BENCH NOTE (T4, 2026-10-12). It used
+             to carry a third line telling the reader to run a copy command and pointing at "the
+             panel below" — both were study scaffolding, and one of them addressed the visitor as if
+             they were the author. Removed. What is left is the fact a visitor can act on: the
+             artwork did not load. The path stays, because on a shipped page it names the exact file
+             to check, which is the difference between "broken" and "one 404". -->
+        <p class="absent" id="absent" hidden> <span class="big">no artwork yet</span>
+          <span class="pth" id="absentpath">assets/compositor/svg/…</span></p>
+        <span class="tube" aria-hidden="true"></span>
+      </div>
+    </div>
+    <!-- THE CAPTION MOVED OUT OF THE ART — item 7. It was an absolutely positioned band across the
+         stage's foot with a black gradient under it; on a 193px stage that band ate a tenth of the
+         artwork. It is a line under the window now, and it carries the whole readout: the glass,
+         the liquid and the seat. The id is unchanged, so `paintText` writes it where it always did. -->
+    <p class="baycap" id="artmouth">glass · old fashioned</p>
+  </div>
+
+  <!-- THE NAME PAN AND THE RECIPE PAN STOOD HERE, and item 6 deleted both. The name is on the
+       arena's card; a version-of line and an ingredient list are the editor's; and the three rows
+       the recipe pan printed said what the caption above already says. The payload below, which this
+       sentence also named, is DELETED — item 11. -->
+
+  <!-- ══ THE TOOLKIT — the visitor's two controls (the colour and the seat), the boundary, and the
+       three view toggles. Ice lost its toggle in item 8 — and item 9 parked the layer itself, so
+       that toggle would now have nothing to act on. Both are consistent with the row below: the
+       glass, the ice and the garnish are NOT choices here, the recipe owns them.
+       Inside the plate since item 7, and the tray it holds carries no plate of its own. ═════════ -->
+  <section class="sec" data-od-id="tools">
+    <div class="sechead"><span class="lbl">The toolkit</span>
+      <span class="meta" id="toolmeta">layers · 0 placed</span></div>
+
+    <div class="tray" data-od-id="tray">
+
+      <!-- ── THE TAB BAR — item 16. One bar, one panel at a time, so the layer toggles are one tap
+           away instead of one scroll away. It is a REAL tabs widget: `role="tablist"` over three
+           `role="tab"` buttons, `aria-selected`/`aria-controls`/`aria-labelledby` on all six ends,
+           and a ROVING TABINDEX — the selected tab is the only one in the page's tab order, so
+           tabbing moves past the whole bar in one stop instead of three. The controller is in the
+           script, beside the rest of the control wiring.
+
+           THE PANELS CARRY NO `tabindex`, deliberately. Every one of them holds focusable controls
+           and a panel that also took focus would add a fourth stop in the bar's own row that does
+           nothing. The one tab in the order IS the panel's own first control, one Tab away. -->
+      <div class="tabs" role="tablist" aria-label="The toolkit">
+        <button class="tab" type="button" role="tab" id="tab-colour" aria-controls="pn-colour"
+                aria-selected="true">colour</button>
+        <button class="tab" type="button" role="tab" id="tab-garnish" aria-controls="pn-garnish"
+                aria-selected="false" tabindex="-1">garnish</button>
+        <button class="tab" type="button" role="tab" id="tab-layers" aria-controls="pn-layers"
+                aria-selected="false" tabindex="-1">layers</button>
+      </div>
+
+      <!-- ── panel 1 · THE LIQUID. Every rowhead below STAYS, and each one carries something its
+           tab label cannot: the tab says "colour", this says WHOSE colour and its live hex. The
+           seat panel does the same with coordinates, and the layers panel with the ORDER — which
+           is the one thing the word "layers" cannot say for itself. -->
+      <div class="row" role="tabpanel" id="pn-colour" aria-labelledby="tab-colour"
+           data-od-id="row-liquid">
+        <div class="rowhead"><span class="lbl">the liquid</span>
+          <span class="val" id="liquidval">#c96a1e</span></div>
+        <div class="colorline">
+          <span class="swatchwrap">
+            <input class="swatch" type="color" id="pick" value="#c96a1e"
+                   aria-label="Pick the liquid colour">
+          </span>
+          <label class="sr" for="hex">Liquid colour, hex</label>
+          <input class="ctl" id="hex" type="text" inputmode="text" spellcheck="false"
+                 autocomplete="off" value="#c96a1e" style="flex:1 1 96px;min-width:96px">
+          <button class="btn" id="savecolor" type="button">save slot</button>
+        </div>
+        <div class="chips" id="chips"></div>
+        <p class="noslots" id="noslots">No saved colours yet. A slot is a working preference —
+          it lives in this browser, is shared by no recipe, and is never written to the book.</p>
+      </div>
+
+      <!-- THE RECIPE ROW STOOD HERE AND MOVED — item 16. It is `.ownline`, the tab bar's footnote,
+           at the foot of the tray below the three panels: a tab is a control, and a sentence behind
+           a tab is something to go and find. `#recipeval` went with the rowhead it lived in, and
+           the element, its entry in the `el` map and its write in `paintText()` all went in the
+           same pass — the file's own rule, and the exact shape of the `savecolor` crash. -->
+
+      <!-- ── the garnish's seat. The ONE placement control on the page, and it is a placement and
+             never a choice: the garnish itself belongs to the recipe. ───────────────────── -->
+      <div class="row" role="tabpanel" id="pn-garnish" aria-labelledby="tab-garnish" hidden
+           data-od-id="row-seat">
+        <div class="rowhead"><span class="lbl">the garnish's seat</span>
+          <span class="val" id="seatval">371, 196 · 0°</span></div>
+
+        <label class="lbl" for="gx" style="font-family:var(--font-mono);font-size:var(--fs-micro);color:var(--dim)">across</label>
+        <input class="ctl" type="range" id="gx" min="-300" max="300" step="1" value="0"
+               aria-describedby="seat-help">
+        <label class="lbl" for="gy" style="font-family:var(--font-mono);font-size:var(--fs-micro);color:var(--dim)">down</label>
+        <input class="ctl" type="range" id="gy" min="-150" max="250" step="1" value="0">
+        <label class="lbl" for="gr" style="font-family:var(--font-mono);font-size:var(--fs-micro);color:var(--dim)">turn</label>
+        <input class="ctl" type="range" id="gr" min="-180" max="180" step="1" value="0">
+        <!-- ITEM 17 — the size slider, at the author's own suggestion. It multiplies the SEAT's
+             scale, not the glass's, and it is a placement like the three above it: the recipe still
+             owns which garnish this is. The default is the engine's own 1.00x. -->
+        <label class="lbl" for="gs" style="font-family:var(--font-mono);font-size:var(--fs-micro);color:var(--dim)">size</label>
+        <input class="ctl" type="range" id="gs" min="25" max="160" step="1" value="100">
+
+        <p id="seat-help" style="font-family:var(--font-mono);font-size:var(--fs-micro);color:var(--dim);line-height:1.5">
+          Drag the garnish on the pan, or use the four sliders. The three offsets are the
+          compositor's own <code>PositionOffset</code>, added to that seat in the frame's own units;
+          size multiplies the seat's own scale and starts at the engine's 1.00x. Dragging is the
+          fast path and the sliders are the one a keyboard can reach. The pan is a crop of the
+          compositor's frame, so a garnish tall enough to overhang it is cut at the pan's edge.</p>
+
+        <div class="btns">
+          <button class="btn" id="resetseat" type="button">back to the seat</button>
+          <button class="btn" id="movable" type="button" aria-pressed="true">drag: on</button>
+        </div>
+      </div>
+
+      <!-- ── the layers ─────────────────────────────────────────────────────────────────── -->
+      <div class="row" role="tabpanel" id="pn-layers" aria-labelledby="tab-layers" hidden
+           data-od-id="row-layers">
+        <div class="rowhead"><span class="lbl">the layers</span>
+          <span class="val">view only</span></div>
+        <div class="layers">
+          <label class="lay"><input type="checkbox" data-toggle="fill" checked>
+            <span>fill</span></label>
+          <!-- ICE'S TOGGLE STOOD HERE AND IS DELETED — item 8, at the author's word. The render's
+               ice layer is unchanged and still draws; it simply has no control that removes it,
+               which is the same standing the glass and the garnish already have in the toolkit
+               above: the recipe owns them and this page only reads them. One label puts it back. -->
+          <label class="lay"><input type="checkbox" data-toggle="garnish" checked>
+            <span>garnish</span></label>
+          <label class="lay"><input type="checkbox" data-toggle="glass" checked>
+            <span>glass</span></label>
+        </div>
+
+        <!-- ── WHERE THE GARNISH RIDES, AGAINST THE GLASS — item 19, at the author's correction:
+             "i meant to have the garnish at the front or behind the glass". TWO NATIVE RADIOS
+             SHARING A `name`, so the pair is exclusive for free and ArrowLeft/ArrowRight move
+             between them with no script. `role="radiogroup"` names the group from the head beside
+             it; each label is the group's `aria-labelledby` target, which is why the `.lbl` carries
+             an id at all.
+             `behind` IS FIRST AND `checked`, AND THAT IS NOT A PREFERENCE — it is the order the
+             markup below is written in, which is `DEFAULT_LAYER_ORDER`'s own slot for the garnish
+             (between `ice` and `glass`). The page therefore opens composing exactly what the engine
+             says it should, and the radio, the readout and `state.garnishLayer`'s seed all agree at
+             load with no script having run. `in front` is the change.
+             THE RADIOS REUSE `.lay` ENTIRELY AND ADD NO CSS: `.lay input::after` is written over
+             `input` rather than over a checkbox type, so a radio takes the same 20px square, the
+             same `--ok` fill on `:checked` and the same `--txt` label lift. Three channels carry the
+             state and only one of them is colour — the lit square, the label, and the readout in the
+             head, which is the one that reads at a glance.
+             IT IS NOT A TOGGLE, AND NOT A THIRD TOGGLE. The three above hide a layer so you can look
+             under it; this one is part of the drink. The panel's note says so in visitor words, and
+             the head's own readout said `bottom → top · view only` until item 18, which was true of
+             the checkboxes and is false of this pair. -->
+        <div class="rowhead ridehead">
+          <span class="lbl" id="garnlab">the garnish rides</span>
+          <span class="val" id="garnval">behind the glass</span></div>
+        <div class="layers" role="radiogroup" aria-labelledby="garnlab">
+          <label class="lay"><input type="radio" name="garnlayer" id="garnbehind" value="behind" checked>
+            <span>behind</span></label>
+          <label class="lay"><input type="radio" name="garnlayer" id="garnfront" value="front">
+            <span>in front</span></label>
+        </div>
+
+        <p class="traynote">These hide a layer so you can look at what is under it. Preview state
+          only — they change nothing about the drink, and the recipe still owns all four layers, ice
+          included. Ice has no toggle because the layer is parked: it is not loaded or drawn at all
+          for now, so there is nothing here it could be taken out of. It is also why the count in
+          this section's head can never reach four.
+          WHERE THE GARNISH RIDES IS NOT A PREVIEW, and the two halves of this panel are not the
+          same kind of control — item 18. Hiding is you looking under a layer; the order is part of
+          the drink. <em>Behind</em> lets the glass's own edge draw over the garnish, so a slice on
+          the rim reads as tucked behind the glass; <em>in front</em> puts the garnish over that
+          edge, so it reads as sitting on the outside of it. Away from where the two cross they are
+          the same picture.</p>
+      </div>
+
+      <!-- ── THE BAR'S FOOTNOTE — item 16. It states WHO OWNS the three fields this page does not
+           choose and links to where they ARE chosen. It is NOT a fourth tab, and it sits here,
+           under the panel, so it is readable whichever tab is on. The values themselves are
+           printed once, in the caption under the stage — repeating them here would be two elements
+           holding one fact, which this project has rejected three times. -->
+      <div class="ownline" data-od-id="row-recipe">
+        <p><b>The glass, the ice and the garnish are set in the recipe editor</b>, not here — this
+          render only reads them. What this page decides is the liquid's colour, where the garnish
+          sits, how big it is, and whether it rides over the drink or under it.</p>
+        <a href="../#/roast/edit">open the recipe editor</a>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ══ THE PAYLOAD PANEL STOOD HERE, AND THE NOTES SECTION AFTER IT — item 11 deleted both. ══
+       Both were addressed to the person WIRING the page, not the person using it: the notes' own
+       head read "read before wiring" and `note-assets` told the reader to run a shell command; the
+       payload printed the `CocktailConfig` object, which nothing consumes. The full argument, what
+       survived and the exact revert are in item 11 of the header. The two readouts that stayed are
+       the toolkit's status line (`layers · N placed`) and the placeholder in the pan. ═══════════ -->
+
+
+
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ═════════════════════════════════════════════════════════════════════════════════════════════
+   1 · THE TABLES. Every number below was read out of the files named beside it. Nothing is
+   estimated, and nothing is defaulted except where the engine itself defaults.
+   ═════════════════════════════════════════════════════════════════════════════════════════════ */
+
+/* viewBox, per asset: [minX, minY, w, h]. From each file's own root <svg>. */
+const VB = {
+  glass:{
+    collins:[0,0,1002.705872,1842.008789], coupe:[-0.000008,0.000023,1059.725708,1055.655518],
+    flute:[0.000014,0.000011,522.061829,1513.006958], goblet:[0.000016,-0.000003,831.074158,1370.215088],
+    hurricane:[0.000012,-0.000007,910.060669,1568.642334], martini:[0.000006,0.000013,1197.485596,1213.546143],
+    'nic-and-nora':[-0.000024,-0.000024,662.245300,1086.828125],
+    'old-fashioned':[0.000012,0,991.455994,856.555725], pint:[-0.000005,0.000003,1203.995361,1477.092773],
+    shot:[0.000007,0.000041,956.773743,656.926025], snifter:[-0.000012,-0.000014,390.309082,870.790894],
+    wine:[0,0,844.381836,1501.279785], toddy:[0,0,1055.071533,906.846863],
+    'highball-outline':[0.000008,-0.000007,696.737915,1440.458984], 'tiki-mug':[0,0,512,512]
+  },
+  filling:{
+    collins:[0.000002,0.000003,1479.065063,1671.658081], coupe:[0,0,1208.072388,498.752441],
+    flute:[-0.000013,0.000017,602.942017,658.498413], goblet:[0.000016,0.000007,902.635620,722.405823],
+    hurricane:[0.000010,-0.000020,971.470276,1128.678345], martini:[0.000001,-0.000001,1190.620117,476.553040],
+    'nic-and-nora':[-0.000012,0.000003,631.379395,533.454346],
+    'old-fashioned':[-0.000011,0.000049,1021.847595,710.242126], pint:[0.000023,-0.000010,914.463440,1260.307007],
+    shot:[0.000005,0.000054,685.362488,417.938660], snifter:[-0.000008,0.000031,476.980194,330.795532],
+    wine:[-0.000004,-0.000002,838.469177,608.095276], toddy:[0.000007,-0.000059,949.264648,824.267761],
+    highball:[0.000021,-0.000027,892.649475,1303.823730], 'tiki-mug':[0,0.000014,1140.450806,879.309631]
+  },
+  ice:{ cubes:[0,0,500,500], crushed:[0,0,500,500] },
+  garnish:{
+    basil:[-77.22,-108.12,124.33,171.09], 'candied-ginger':[-54.4,-88.5,118.02,144.38],
+    celerystick:[-106.39,-78.7,179.48,416.18], cherry:[-65.85,-107.97,109.5,150.2],
+    'cinnamon-stick':[-120.81,-112.47,174.93,370.64], cinnamon:[-154.04,-158.55,275.47,305.03],
+    'coffee-beans':[-101.52,-97.83,168.04,185.12], cucumber:[-119.61,-148.95,235.62,310.74],
+    'grapefruit-wedge':[-154.46,-164.36,283.13,273.09], 'lemon-twist':[-118.35,-81.67,189.38,143.1],
+    'lemon-wedge':[-109.7,-135.91,240.96,214.15], 'lime-twist':[-79.66,-67.62,151.06,116.65],
+    'lime-wedge':[-88.1,-101.19,171.28,169.61], mint1:[-133.22,-105.61,258.22,524.95],
+    mint2:[-101.89,-82.66,175,469.56], mint3:[-120.9,-92.04,194.11,517.04],
+    mint4:[-110.42,-95.4,185.54,503.49], nutmeg:[-293.76,-61.47,349.36,166.6],
+    olive:[-65.59,-94.43,112.3,145.03], 'orange-twist':[-134.69,-122.92,224.53,167.34],
+    'orange-wedge':[-141.94,-148.26,271.37,254.47], pineapple:[-164.65,-206.99,339.04,372.23],
+    raspberry:[-76,-85.91,149.04,164.99], raspberry1:[-97.92,-101.22,189.94,200.34],
+    raspberry2:[-85.35,-84.05,170.8,178.78], saltrim:[-343.11,-91.04,395.4,150.13],
+    stirrer:[-83.24,-242.15,238.4,392.82], straw:[-81.27,-119.15,129.21,547.51],
+    'sugar-rim':[-347.77,-78.19,429.4,160.67], umbrella:[-204.5,-214.16,406.45,490.19]
+  }
+};
+
+/* `apps/compositor/src/data/positions.json` → `glasses[*].layerDefaults.glass` and `.fill`:
+   [scale, offsetX, offsetY]. THIS IS THE FILE `composeSvg` LOADS — `applyLayerConfig(glassSvg,
+   layerConfigs.glass, …)` and `applyLayerConfig(fillSvg, layerConfigs.fill, …)` with
+   `layerConfigs = glassPos.layerDefaults` — and it is the same file the SEAT table below comes from,
+   which is what leaves this page with ONE coordinate source instead of two.
+
+   ITEM 17 CORRECTED BOTH TABLES. The offsets used to come from an older revision of this file, and
+   six of the fourteen glass presets were stale as well. The old comment here asserted the pattern
+   the fills had been derived by — "the glass's own value × 1.1 with (+10, +30)" — and that pattern
+   is a coincidence over one glass: it holds for the Old Fashioned's scale and its `y` and not for
+   its `x`, where the engine says 58 and this page was drawing 97. The claim is deleted rather than
+   corrected, because a derivation nobody can re-run is worse than a table that names its source.
+   `highball-outline` takes the engine's `highball` values, per `GLASS_FROM_ASSET` below. */
+const GLASS_PRESET = {
+  collins:[0.23,145,75], coupe:[0.30,59,180], flute:[0.27,173,69], goblet:[0.31,128,66],
+  hurricane:[0.28,115,53], martini:[0.24,92,196], 'nic-and-nora':[0.29,157,178],
+  'old-fashioned':[0.34,87,187], pint:[0.31,119,40], shot:[0.28,105,281], snifter:[0.47,164,87],
+  toddy:[0.37,91,144], wine:[0.31,132,33], 'highball-outline':[0.29,142,80]
+};
+const FILL_PRESET = {
+  collins:[0.23,100,103], coupe:[0.33,12,172], flute:[0.352,131,91], goblet:[0.341,109,96],
+  hurricane:[0.33,100,50], martini:[0.264,85,191], 'nic-and-nora':[0.319,149,208],
+  'old-fashioned':[0.374,58,217], pint:[0.36,91,46], shot:[0.308,113,311], snifter:[0.517,135,200],
+  toddy:[0.407,32,174], wine:[0.34,123,81], 'highball-outline':[0.30,103,107]
+};
+
+/* `apps/compositor/src/data/positions.json` → `glasses[*].garnishOffsets.__default__`:
+   [x, y, rotation, scale], in the COMPOSITION'S OWN FRAME — see item 13. NOT the same file as
+   `apps/compositor/svg/positions.json`, which item 12 read and which carries a `0 0 500 500` frame
+   and its own small seats; the engine loads this one.
+   ROUNDED TO INTEGERS: the file carries three decimals (`370.649363`) and the frame is drawn at
+   ~150px, where a thousandth of a unit is under 0.3px. Rotation is 0 and scale is 1 for all
+   fifteen in the source, so they are asserted rather than carried as fields someone could move. */
+const SEAT = {
+  coupe:[302,194,0,1], collins:[346,88,0,1], 'old-fashioned':[371,196,0,1], highball:[287,119,0,1],
+  flute:[284,78,0,1], goblet:[325,93,0,1], hurricane:[294,97,0,1], martini:[308,224,0,1],
+  'nic-and-nora':[330,219,0,1], pint:[318,101,0,1], shot:[335,311,0,1], snifter:[331,118,0,1],
+  'tiki-mug':[325,122,0,1], toddy:[314,174,0,1], wine:[335,102,0,1],
+  /* `highball-outline` is `GLASS_PRESET`'s fifteenth id and it is the highball's own artwork, so it
+     takes the highball's seat. `__default__` stays a guard: both readers fall back to it, and
+     without one a glass outside these sixteen would read `undefined[3]` and throw before
+     `render()` — the item 5 class of bug. Item 13. */
+  'highball-outline':[287,119,0,1], __default__:[371,196,0,1]
+};
+
+/* Which filling file belongs to which glass. `resolveFillKey` prefers `filling/<glass>.svg` and
+   falls back to the legacy `glasses/<glass>-fill`; only the modern layer exists for these, so the
+   map is the glass's name with one exception the folder makes. */
+const FILL_FILE = {
+  collins:'collins', coupe:'coupe', flute:'flute', goblet:'goblet', hurricane:'hurricane',
+  martini:'martini', 'nic-and-nora':'nic-and-nora', 'old-fashioned':'old-fashioned',
+  pint:'pint', shot:'shot', snifter:'snifter', wine:'wine', toddy:'toddy',
+  'highball-outline':'highball'
+};
+
+const ROOT = 'assets/compositor/svg';
+
+/* `highball-outline` IS THE ONE FILE NOT SPELLED `glass-<id>.svg` — item 14. It is a TABLE and not
+   a special case inside the path builder because the exception belongs with the filename, and
+   because the editor's own `GLASS_FILE` carries the mirror of it for the same reason: one drawing
+   is spelled differently, and a `glass-${id}.svg` template 404s on exactly that one, silently. */
+const GLASS_BASENAME = { 'highball-outline':'highball-outline' };
+const path = {
+  glass:  id => ROOT + '/glasses/' + (GLASS_BASENAME[id] || ('glass-' + id)) + '.svg',
+  filling:id => ROOT + '/filling/' + id + '.svg',
+  ice:    id => ROOT + '/ice/ice-' + id + '.svg',
+  garnish:id => ROOT + '/garnishes/garnish-' + id + '.svg'
+};
+
+/* `savedColors.ts`, ported: the SAME storage key and the SAME normalisation, so a slot saved in
+   the compositor appears here and a `#abc` here saves as `#aabbcc` there. */
+const STORAGE_KEY = 'compositor.workbench.savedColors';
+const MAX_SAVED_COLORS = 12;
+const HEX_COLOR = /^(?:[0-9a-f]{3}|[0-9a-f]{6})$/i;
+function normalizeSavedColor(value){
+  if(typeof value !== 'string') return null;
+  const digits = value.trim().replace(/^#/,'').toLowerCase();
+  if(!HEX_COLOR.test(digits)) return null;
+  return '#' + (digits.length === 3 ? digits.replace(/./g, d => d + d) : digits);
+}
+function readSavedColors(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    const list = raw ? JSON.parse(raw) : [];
+    if(!Array.isArray(list)) return [];
+    const out = [];
+    for(const entry of list){
+      const color = normalizeSavedColor(typeof entry === 'string' ? entry : entry && entry.color);
+      if(color) out.push({ color });
+      if(out.length >= MAX_SAVED_COLORS) break;
+    }
+    return out;
+  }catch(_){ return []; }               /* a broken preference must never break the page */
+}
+function writeSavedColors(list){
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(list.slice(0, MAX_SAVED_COLORS))); }
+  catch(_){ /* private mode, a full store, or a locked-down origin: the page still works */ }
+}
+
+/* ═════════════════════════════════════════════════════════════════════════════════════════════
+   2 · THE STATE. One object. Its RECIPE part is read and never written; the colour and the seat
+   are the visitor's. The panel at the foot prints the two groups apart.
+   ═════════════════════════════════════════════════════════════════════════════════════════════ */
+
+/* THE RECIPE — READ, NEVER CHOSEN HERE. The editor resolves the recipe's own prose to asset ids
+   and hands them over IN THE URL (`?glass=` and `?garnish=`, item 14); this page receives IDS and
+   parses nothing. The four values below are the DEFAULT — what that mapping produces for the Old
+   Fashioned of `apps/census/src/data/roastSpecs.ts`, glass "old fashioned" and garnish "orange
+   twist" — and they are what every field falls back to when the URL names nothing it recognises.
+
+   THERE IS NO CONTROL THAT CHANGES THEM, and that is the ruling rather than an omission: the
+   glass, the ice and the garnish belong to the recipe editor. A render that let you swap them
+   would be a second editor with worse data. */
+const RECIPE = {
+  glass:'old-fashioned',
+  filling:'old-fashioned',
+  ice:'cubes',
+  garnish:'orange-twist'
+};
+
+const state = {
+  /* FROM THE RECIPE. `glass` stays on the state because every table below is indexed by it;
+     nothing in this file writes to it. */
+  glass:RECIPE.glass,
+  ice:RECIPE.ice,
+  garnish:RECIPE.garnish,
+  /* CHOSEN HERE — the only two fields this render decides. */
+  color:'#c96a1e',                       /* SAMPLE. Not from the book — see the header. */
+  /* THE VISITOR'S DELTA, NOT THE SEAT — item 12(c). `SEAT[glass]` IS the seat; this is what the
+     visitor adds to it, so it seeds at zero. It seeded `y:-70`, which is `SEAT['old-fashioned']`
+     itself, while `renderGarnish()` added `seatBase` on top anyway — the seat counted twice, at
+     -140. The help text below the sliders ("added to the glass's own seat"), the reset button
+     (`{x:0,y:0,rot:0}`), the static readout (`0, −70 · 0°`) and the `#gy` slider's own `value` all
+     describe this one model; the seed and the slider now match it. */
+  seat:{ x:0, y:0, rot:0 },
+  /* THE VISITOR'S SIZE MULTIPLIER ON THE SEAT — item 17. `renderGarnish()`'s `k` is
+     `seatBase[3] * state.garnishScale`, and the seat's own scale is 1 for all fifteen glasses, so
+     1.00 IS the engine's value and not a default this page invented. The line used to be the
+     GLASS's scale (0.34 here) — a 3x reduction nothing in the engine performs, which is why the
+     garnish read as "way too small". 0.34 is still reachable on the slider. */
+  garnishScale:1,
+  /* PREVIEW STATE. Never written anywhere: hiding a layer is how you look at what is under it. */
+  on:{ fill:true, ice:true, garnish:true, glass:true },
+  /* WHERE THE GARNISH RIDES AGAINST THE GLASS — item 19. `'behind'` is the engine's
+     `DEFAULT_LAYER_ORDER` (`…,'ice','garnish','glass'`): the garnish after `ice` and before
+     `glass`, so the glass edge and its outline draw over it. It is also the order the markup ships
+     in, which is why this seed and the `checked` radio and the readout all say the same thing at
+     load. `'front'` appends after `.glass`, so nothing draws over the garnish.
+     ITEM 18'S `'over'`/`'under'` PAIR WAS BUILT AROUND THE FILL — behind the drink — and item 19
+     re-pointed it at the GLASS at the author's correction. So `'behind'` KEEPS item 18's `'over'`
+     target (`.glass`) under a name that says what it is, and the behind-the-drink state is gone with
+     `--veil`.
+     THIS ONE IS NOT PREVIEW STATE, unlike `on` above: `compositor.ts` takes the order as
+     `ComposeOptions.layerOrder`, so the value travels with the drink rather than describing how it
+     is being looked at. */
+  garnishLayer:'behind',
+  movable:true
+};
+
+/* ═════════════════════════════════════════════════════════════════════════════════════════════
+   2b · THE RECIPE ARRIVES IN THE URL — item 14.
+   ═════════════════════════════════════════════════════════════════════════════════════════════ */
+
+/* THE APP'S ASSET ID IS NOT ALWAYS THIS PAGE'S PRESET KEY. Fifteen asset ids are allowed by
+   `glass_asset_map`; fourteen of them are keys of `GLASS_PRESET`. The app's `highball` is this
+   page's `highball-outline`, and the app's `tiki-mug` is deliberately ABSENT — a SCOPE decision
+   since item 17, not a data gap. Item 14's reason ("it has artwork and a seat and no preset") no
+   longer holds: `positions.json` now places it (glass 0.81/49/125, fill 0.34/63/181). It stays out
+   because adding it would change which drinks this page can draw, and it is one line when a recipe
+   needs it. An unmapped id therefore falls back to the recipe default instead of guessing. */
+const GLASS_FROM_ASSET = {
+  'old-fashioned':'old-fashioned', shot:'shot', coupe:'coupe', martini:'martini', flute:'flute',
+  goblet:'goblet', wine:'wine', snifter:'snifter', 'nic-and-nora':'nic-and-nora',
+  collins:'collins', highball:'highball-outline', hurricane:'hurricane', pint:'pint', toddy:'toddy'
+};
+
+/* Reads the four ids the editor hands over. EACH ONE IS CHECKED AGAINST A TABLE THIS PAGE ALREADY
+   CARRIES, and an unknown value is IGNORED — never coerced, never asserted — so the composition can
+   only ever be described by tables that exist. Fallback is PER FIELD: a resolvable glass with an
+   unresolvable garnish draws that glass with the default garnish rather than discarding the drink. */
+function readRecipeFromUrl(){
+  const q = new URLSearchParams(location.search);
+
+  /* GLASS. Either spelling is accepted — this page's preset key, or the app's asset id. */
+  const asked = q.get('glass');
+  const glass = !asked ? null
+    : (GLASS_PRESET[asked] ? asked : (GLASS_FROM_ASSET[asked] || null));
+  if(glass) state.glass = glass;
+
+  /* GARNISH. `VB.garnish` is the same thirty names `path.garnish` builds from, so a name that
+     resolves here is a file that exists. */
+  const garnish = q.get('garnish');
+  if(garnish && VB.garnish[garnish]) state.garnish = garnish;
+
+  /* ICE — accepted and INERT while `ICE_ENABLED` is false: item 9 parks the layer before any `src`
+     is assigned. Wired anyway so the receiver needs no change the day the assets land. */
+  const ice = q.get('ice');
+  if(ice && VB.ice[ice]) state.ice = ice;
+
+  /* THE COLOUR IS THE VISITOR'S, and it arrives only as a starting point. Normalised through the
+     same function the control uses, so the chips and the painter cannot tell it apart from a colour
+     the visitor typed — and saving it works like any other. */
+  const color = normalizeSavedColor(q.get('color'));
+  if(color) state.color = color;
+}
+readRecipeFromUrl();
+
+const $ = id => document.getElementById(id);
+const el = {
+  canvas:$('canvas'), fill:null, ice:null, garnish:null, glass:null,
+  absent:$('absent'), absentpath:$('absentpath'), artmouth:$('artmouth'),
+  /* `rglass` / `rfilling` / `rgarnish` are DELETED with the recipe pan — item 6 — and `recipeval`
+     with the recipe row's own head — item 16. The markup and this map move together, because an
+     element map that names an element the document does not have is exactly how `savecolor` threw
+     before `render()` ever ran (item 5) — which is also why the write in `paintText()` went in the
+     same pass as this entry rather than after it. */
+  toolmeta:$('toolmeta'),
+  chips:$('chips'), noslots:$('noslots'), liquidval:$('liquidval'),
+  /* `savecolor` WAS MISSING FROM THIS OBJECT while `el.savecolor.addEventListener` below read it,
+     which threw a TypeError at load and took `render()` with it — the page painted its static
+     markup and nothing else. Found and fixed in the changelog item 5 pass. */
+  savecolor:$('savecolor'),
+  hex:$('hex'), pick:$('pick'),
+  gx:$('gx'), gy:$('gy'), gr:$('gr'), gs:$('gs'), seatval:$('seatval'),
+  resetseat:$('resetseat'), movable:$('movable'), artpan:$('artpan'),
+  /* ITEM 19's readout — the one channel of the placement pair that survives a colour-blind read at
+     a glance. The two radios write `state.garnishLayer`; this element only prints it. The markup's
+     default text matches the seeded value, so no empty state exists between load and the first
+     `paintText()`. */
+  garnval:$('garnval')
+};
+el.fill = document.querySelector('.layer.fill');
+el.ice = document.querySelector('.layer.ice');
+el.garnish = document.querySelector('.layer.garnish');
+el.glass = document.querySelector('.layer.glass');
+
+/* ═════════════════════════════════════════════════════════════════════════════════════════════
+   3 · PLACEMENT. The derivation is at the top of the file. One shape, used by every layer.
+   ═════════════════════════════════════════════════════════════════════════════════════════════ */
+
+/* Put an <img> at `minX·k + ox`. The box's ratio IS the viewBox's, so the file's own letterbox
+   never happens and viewBox coordinates are box pixels. */
+function placeImage(node, vb, k, ox, oy){
+  if(!vb) return;
+  const [minX, minY, w, h] = vb;
+  node.style.width  = (k * w) + 'px';
+  node.style.height = (k * h) + 'px';
+  node.style.left   = (ox + k * minX) + 'px';
+  node.style.top    = (oy + k * minY) + 'px';
+}
+/* The same rule in mask terms, for the one layer that must be recoloured. */
+function placeMask(node, vb, k, ox, oy){
+  const [minX, minY, w, h] = vb;
+  node.style.setProperty('--fw', (k * w) + 'px');
+  node.style.setProperty('--fh', (k * h) + 'px');
+  node.style.setProperty('--fx', (ox + k * minX) + 'px');
+  node.style.setProperty('--fy', (oy + k * minY) + 'px');
+}
+
+/* ═════════════════════════════════════════════════════════════════════════════════════════════
+   4 · RENDER
+   ═════════════════════════════════════════════════════════════════════════════════════════════ */
+
+const missing = {};          /* layer key → the path the browser could not resolve */
+
+/* ICE IS PARKED — item 9, at the author's word: "we dont need it for now, we dont have the right
+   assets/drawings/textures." While this is false, `renderIce()` returns before assigning a `src`, so
+   nothing is fetched and the layer keeps `is-missing` (`display:none`) — the same outcome a file the
+   browser cannot find produces. The path list prints `parked · ice` rather than `off · ice`, so the
+   row cannot read as a layer the visitor forgot to switch on.
+   ONE LINE IS THE WHOLE REVERT: the tables (`VB.ice`, `ICE_OFFSET`), `state.ice`, `state.on.ice`,
+   `path.ice()` and the `<img>` in the markup all stay. `state.on.ice` is read by NOTHING while this
+   is false — declared rather than deleted, because deleting it would make the revert a second edit. */
+const ICE_ENABLED = false;
+
+/* A LAYER IS PRESENT ONLY IF ITS FILE LOADED, and `is-missing` (`display:none`) is what a failure
+   looks like — `error` is the only authority on that, and it sets the class. THREE DEFECTS USED TO
+   LIVE HERE, and together they are the author's report: "illustration loaded properly for a second,
+   then it vanished and gave in for an ugly fallback placeholder."
+   (a) A SUCCESSFUL LOAD NEVER REPAINTED. `onload` deleted `missing[key]` and nothing else, while
+       `paintLoad()` — the only writer of `el.absent.hidden` — was called from `onerror` alone. So
+       the placeholder, once raised by ANY transient failure, could never come back down: the
+       artwork returned and the "no artwork yet" panel stayed on top of it. A state with no exit is
+       the defect, whatever raised it, and this one explains the STUCK half of the report.
+   (b) AN UNCHANGED `src` WAS RE-ASSIGNED ON EVERY `render()`. Assignment is not a no-op — it starts
+       a new load, and a load that is aborted or revalidated fires `error`. That is how a layer that
+       HAD loaded goes missing on the next render, and `render()` runs on every view toggle. The box
+       already holding this exact file is left alone now; only the bookkeeping runs.
+   (c) `!node.naturalWidth` IS NOT A FAILURE TEST. An SVG that declares a `viewBox` and no intrinsic
+       `width`/`height` reports `naturalWidth === 0` on a SUCCESSFUL load, so that line marked loaded
+       artwork as missing — the other half of "for a second". It is gone, and nothing is lost: a
+       cached failure still arrives as `error` on the next task, and (a) now clears it.
+   WHAT IS NOT HONEST YET, declared rather than half-built: the toolbar counts an IN-FLIGHT layer as
+   placed, because `missing[key]` is falsy while a fetch is out. A strict count needs a third state
+   (`loaded` / `pending` / `failed`) and this pass does not invent one. */
+function loadImage(node, key, src, alt){
+  const settled = node.getAttribute('src') === src;      /* (b) same file already requested */
+  node.classList.remove('is-missing');
+  delete missing[key];
+  node.onload  = () => { node.classList.remove('is-missing'); delete missing[key]; paintLoad(); };
+  node.onerror = () => { node.classList.add('is-missing'); missing[key] = src; paintLoad(); };
+  node.alt = alt || '';
+  /* A settled box is not re-fetched, but its state IS repainted — that is the (a) fix reaching the
+     path that renders most often. */
+  if(settled){ paintLoad(); return; }
+  node.src = src;                                        /* (c) no `complete`/`naturalWidth` probe */
+}
+
+function renderFill(){
+  const g = state.glass, vb = VB.filling[FILL_FILE[g]], preset = FILL_PRESET[g];
+  /* OFF IS `display:none`, NOT `mask:none`. With no mask the layer is a plain coloured box and it
+     would paint the drink's colour over the whole 500×500 frame — a solid rectangle, not a drink.
+     The class is the same one the images use for a missing file, because the visible outcome is
+     the same: nothing is drawn. */
+  if(!state.on.fill || !vb || !preset){
+    el.fill.classList.add('is-missing');
+    el.fill.style.webkitMaskImage = 'none'; el.fill.style.maskImage = 'none';
+    delete missing.fill; return;
+  }
+  el.fill.classList.remove('is-missing');
+  const [k, ox, oy] = preset;
+  const src = "url('" + path.filling(FILL_FILE[g]) + "')";
+  /* THE SAME NON-IDEMPOTENCE `loadImage` CARRIED, ONE LAYER OVER — item 15(b). `render()` re-assigned
+     this URL on every view toggle, and a re-issued mask request can land as NO MASK AT ALL, which for
+     this layer is an UNMASKED 500x500 box of drink colour rather than an absence. The request is only
+     issued when the box does not already carry it; the geometry below is re-applied either way,
+     because that is the part a different glass actually changes. */
+  if(el.fill.style.webkitMaskImage !== src) el.fill.style.webkitMaskImage = src;
+  if(el.fill.style.maskImage !== src) el.fill.style.maskImage = src;
+  placeMask(el.fill, vb, k, ox, oy);
+  el.fill.style.background = state.color;
+  delete missing.fill;                   /* a mask exposes no error event; see the panel */
+}
+
+function renderIce(){
+  /* PARKED — item 9. `ICE_ENABLED` above carries the reason and the one-line revert. The early
+     return is the same body a hidden layer takes, so parking and hiding are one visible state. */
+  if(!ICE_ENABLED){ el.ice.classList.add('is-missing'); delete missing.ice; return; }
+  const on = state.on.ice && state.ice !== 'none';
+  if(!on){ el.ice.classList.add('is-missing'); delete missing.ice; return; }
+  const vb = VB.ice[state.ice], seat = GLASS_PRESET[state.glass];
+  if(!vb || !seat){ el.ice.classList.add('is-missing'); return; }
+  const iceOffset = ICE_OFFSET[state.glass] || ICE_OFFSET.__default__;
+  placeImage(el.ice, vb, iceOffset[1], 0, iceOffset[0]);
+  loadImage(el.ice, 'ice', path.ice(state.ice), '');
+}
+
+function renderGarnish(){
+  const on = state.on.garnish && !!state.garnish;
+  if(!on){ el.garnish.classList.add('is-missing'); delete missing.garnish; return; }
+  const vb = VB.garnish[state.garnish], seatBase = SEAT[state.glass] || SEAT.__default__;
+  if(!vb){ el.garnish.classList.add('is-missing'); return; }
+  /* THE SEAT IS ABSOLUTE — item 13. The engine writes it on a group at the composition ROOT, so it
+     is a point in the same frame the glass's layer transform lives in, at its OWN scale. Mounting
+     it on the glass (`gx + gk * seat.x`) is what put the garnish on the glass's left edge and
+     confined every reachable delta to the left third of the frame; item 13 has the full reading and
+     the proof, which is the authored `y=196.45` against this glass's own top edge at `y=187`.
+     THE DELTA IS THEREFORE ADDED UNMULTIPLIED — the same unit as the seat, and the same space the
+     drag converts through.
+     AND THE SIZE IS THE SEAT'S OWN SCALE, NOT THE GLASS'S — item 17. This line read
+     `GLASS_PRESET[glass][0] * seatBase[3]`, i.e. the GLASS's scale (0.34 for the Old Fashioned),
+     which is a 3x reduction nothing in the engine performs: the seat group is `scale(seatScale)`
+     with `seatScale = 1` for all fifteen, and a bare asset part carries IDENTITY (`garnish.ts`'s
+     `collect()`), so the artwork's viewBox units ARE canvas units — `combos.json`'s own part scales
+     cluster at 0.88..1.17 and its note measures a mint sprig at "~135-154 wide x 430-485 tall in
+     viewBox units". That is why the garnish read as "way too small". `state.garnishScale` is the
+     visitor's multiplier on top of the seat's own scale, and it defaults to 1. */
+  const k = seatBase[3] * state.garnishScale;
+  const ox = seatBase[0] + state.seat.x;
+  const oy = seatBase[1] + state.seat.y;
+  placeImage(el.garnish, vb, k, ox, oy);
+  /* ROTATION IS ABOUT THE CONTACT POINT, not about the box. Every garnish asset has its contact
+     point on its own local origin — `apply-garnish-normalisation.mjs` put it there — so the origin
+     is where viewBox (0,0) landed, which is `−k·minX, −k·minY` from the box's top-left. */
+  el.garnish.style.transformOrigin = (-k * vb[0]) + 'px ' + (-k * vb[1]) + 'px';
+  el.garnish.style.transform = 'rotate(' + (seatBase[2] + state.seat.rot) + 'deg)';
+  loadImage(el.garnish, 'garnish', path.garnish(state.garnish), '');
+}
+
+function renderGlass(){
+  const on = state.on.glass;
+  if(!on){ el.glass.classList.add('is-missing'); delete missing.glass; return; }
+  const vb = VB.glass[state.glass], preset = GLASS_PRESET[state.glass];
+  /* A GLASS THE TABLES CANNOT DESCRIBE IS A MISSING GLASS, NOT A SILENT ONE — item 15. The load
+     painter keys the placeholder on `missing.glass`, so this path raises it and names the file it
+     wanted, instead of leaving an empty pan with no explanation on screen. */
+  if(!vb || !preset){
+    el.glass.classList.add('is-missing');
+    missing.glass = path.glass(state.glass);
+    return;
+  }
+  const [k, ox, oy] = preset;
+  placeImage(el.glass, vb, k, ox, oy);
+  loadImage(el.glass, 'glass', path.glass(state.glass), '');
+}
+
+/* THE ICE SEAT, and note what it is NOT. `positions.json` gives every glass
+   `iceOffset { x, y, rotation, scale }`, and in all fifteen `x` and `rotation` are 0 — so it is
+   stored here as `[y, scale]` and the two zeroes are asserted rather than carried as fields that
+   would invite someone to change one and forget the other. `x` is passed as 0 at the call site.
+   Source: `positions.json → glasses[*].iceOffset`. */
+const ICE_OFFSET = {
+  coupe:[20,1], collins:[40,1], 'old-fashioned':[0,1], highball:[30,1],
+  flute:[50,0.8], goblet:[20,0.9], hurricane:[40,0.9], martini:[15,0.8],
+  'nic-and-nora':[20,0.8], pint:[40,1], shot:[0,0.7], snifter:[10,1],
+  'tiki-mug':[10,0.9], toddy:[0,0.9], wine:[30,0.8], __default__:[0,1]
+};
+
+/* NAMED `paintLoad`, NOT `paintPaths` — item 11. The path list this used to fill is deleted, and a
+   function named after a thing it no longer does is the same lie as a rule with no element. What
+   survives is the half that is load-bearing: the toolkit's status line, and below it the
+   placeholder — the state the page OPENS in until the assets are copied.
+
+   THE THREE NON-CONTRIBUTING CASES NOW CONTRIBUTE NOTHING INSTEAD OF PRINTING A LINE. `off` (the
+   visitor hid the layer with a view toggle), `parked` (this page does not carry it — item 9) and
+   `none` (no asset id) each used to append a sentence to the path list, and every one of those
+   sentences was addressed to a wiring pass. What they still owe the page is their absence from the
+   count, and that is all they do now. `parked` REMAINS DISTINCT FROM `off` in this function's
+   reasoning — the difference is real, it is simply no longer rendered here. */
+function paintLoad(){
+  const rows = [
+    ['glass',   path.glass(state.glass),   state.on.glass],
+    ['filling', path.filling(FILL_FILE[state.glass] || state.glass), state.on.fill],
+    /* `ICE_ENABLED` FIRST, so the parked row arrives as `wanted: false`. */
+    ['ice',     ICE_ENABLED && state.ice !== 'none' ? path.ice(state.ice) : null,
+                ICE_ENABLED && state.on.ice && state.ice !== 'none'],
+    ['garnish', state.garnish ? path.garnish(state.garnish) : null, state.on.garnish && !!state.garnish]
+  ];
+  let placed = 0, assumed = 0;
+  for(const [key, src, wanted] of rows){
+    if(!wanted || !src) continue;
+    /* THE FILLING CANNOT BE CHECKED, AND SAYS SO. A CSS mask exposes no `load` and no `error`, so
+       "placed" for that one row would be a claim this page has no evidence for. It counts as
+       `assumed` instead, which is what it is. The three <img> layers are checked for real. */
+    if(key === 'filling'){ assumed++; continue; }
+    if(!missing[key]) placed++;
+  }
+  el.toolmeta.textContent = 'layers · ' + placed + ' placed' + (assumed ? ' · ' + assumed + ' assumed' : '');
+  /* The placeholder is the LOAD-BEARING state: it is what the page opens in until the copy is
+     made. It names the one file the glass wants, because the glass is the layer that defines the
+     pan — without it there is no drink to look at. */
+  const glassMissing = state.on.glass && missing.glass;
+  el.absent.hidden = !glassMissing;
+  if(glassMissing) el.absentpath.textContent = path.glass(state.glass);
+}
+
+/* `paintCode()` STOOD HERE, AND IT IS DELETED — item 11. It rendered the `CocktailConfig` object
+   into `#code`, in two groups, with the notes `// from the recipe` and `// chosen here`. Its own
+   comment called that "the point of the page", and the argument for deleting it is in item 11:
+   NOTHING CONSUMES THE OBJECT. There is no save, no submit, and no route that reads a config back,
+   so the panel was a readout of a value nobody receives — bench furniture in a `<pre>`, whatever
+   the label said. The two facts it carried that a visitor CAN act on are already on the page and
+   stated twice over: what the recipe owns versus what this render decides is the read-only row's
+   whole sentence, and the colour and the seat each have their own value readout in their own row
+   (`#liquidval`, `#seatval`).
+   IT ALSO TOOK `RECIPE.filling`'s ONLY READER with it. That field stays, and item 11 says why. */
+
+function paintText(){
+  const seat = SEAT[state.glass] || SEAT.__default__;
+  const label = FILL_FILE[state.glass] || state.glass;
+  /* THE RECIPE IS READ IN ONE PLACE NOW — item 11 deleted the payload panel, which was the second.
+     The caption under the stage says what you are looking at: the glass, the liquid and the seat.
+     The three `r-*` writes that filled the recipe pan are DELETED with it (item 6), so the pan's
+     fields are not written twice here — and `el.recipeval` went the same way in item 16, with the
+     rowhead it filled: that readout said "3 fields read" beside a sentence that already named all
+     three of them. */
+  el.artmouth.textContent = 'glass · ' + state.glass.replace(/-/g,' ') +
+    ' · liquid ' + label + ' · seat ' + (seat[0] + state.seat.x) + ',' + (seat[1] + state.seat.y);
+  el.seatval.textContent = (seat[0] + state.seat.x) + ', ' + (seat[1] + state.seat.y) +
+    ' · ' + state.seat.rot + '° · ' + state.garnishScale.toFixed(2) + '×';
+  el.liquidval.textContent = state.color;
+  el.garnval.textContent = state.garnishLayer === 'front' ? 'in front of the glass' : 'behind the glass';
+  el.movable.textContent = 'drag: ' + (state.movable ? 'on' : 'off');
+  el.movable.setAttribute('aria-pressed', String(state.movable));
+  el.artpan.classList.toggle('movable', state.movable && state.on.garnish && !!state.garnish);
+}
+
+/* ═════════════════════════════════════════════════════════════════════════════════════════════
+   4b · WHERE THE GARNISH RIDES — item 18, re-pointed at the glass by item 19.
+   ═════════════════════════════════════════════════════════════════════════════════════════════ */
+
+/* DOM ORDER IS PAINT ORDER HERE, AND THAT IS THE WHOLE MECHANISM. Every layer is `position:absolute`
+   at `left:0;top:0` with `z-index:auto` and there is no `isolation` or `mix-blend-mode` anywhere near
+   `#canvas`, so positioned descendants paint in tree order. One `insertBefore` and one `appendChild`,
+   nothing else.
+   A `z-index` WAS REJECTED and would have been the worse repair: it is a second source of order, so a
+   later reader could change one while the DOM still said the other, and the two would disagree
+   silently in whichever direction the cascade fell. `order` WAS REJECTED TOO, and this one is worth
+   naming because it looks like it works: `order` only affects the layout of flex and grid ITEMS, and
+   these boxes are absolutely positioned at the canvas origin, so a flex reorder would paint exactly
+   as before.
+   MOVING THE NODE DOES NOT RELOAD THE IMAGE. Same element, same `src` — item 15 was about
+   RE-ASSIGNING `src`, which starts a new load. This function touches no `src` at all.
+   THE TWO TARGETS ARE THE GLASS, AND NEITHER IS AN INDEX — item 19. `behind` is `.garnish` before
+   `.glass`, which is `DEFAULT_LAYER_ORDER`'s own slot (between `ice` and `glass`) and the order the
+   markup ships in. `front` is `appendChild`, which MOVES the existing element to the end rather than
+   copying it, so the garnish ends up after `.glass` and nothing paints over it. Neither branch needs
+   a position, so both stay correct whatever else the canvas comes to hold — and the `ice` layer is
+   parked rather than deleted, so "second child" would have been a lie waiting to happen.
+   IT SET NO CLASS — item 19 deleted the `classList.toggle('veil', …)` call along with the
+   behind-the-drink state it served. There is no state in which the liquid covers the garnish now. */
+function renderGarnishOrder(){
+  if(state.garnishLayer === 'front') el.canvas.appendChild(el.garnish);
+  else el.canvas.insertBefore(el.garnish, el.glass);
+}
+
+function render(){
+  /* THE ORDER IS SETTLED BEFORE ANYTHING PAINTS, so no painter can read a stack mid-move. */
+  renderGarnishOrder();
+  renderFill(); renderIce(); renderGarnish(); renderGlass();
+  paintText(); paintLoad();
+}
+
+/* ═════════════════════════════════════════════════════════════════════════════════════════════
+   5 · THE CONTROL WIRING
+   ═════════════════════════════════════════════════════════════════════════════════════════════ */
+
+/* THE THREE SELECTS ARE GONE, and their option population and change handlers went with them.
+   They listed the preset table's keys and the artwork folder's 30 garnish files and let the
+   visitor swap any of it — which made this page a second, worse editor. A known cost of that
+   shape, recorded so it is not re-invented: `tiki-mug` had art and a seat and no preset, so
+   offering it drew a drink at a scale nobody measured. */
+
+function syncSeatInputs(){
+  el.gx.value = String(state.seat.x); el.gy.value = String(state.seat.y);
+  el.gr.value = String(state.seat.rot);
+  el.gx.setAttribute('aria-valuetext', String(state.seat.x));
+  el.gy.setAttribute('aria-valuetext', String(state.seat.y));
+  el.gr.setAttribute('aria-valuetext', state.seat.rot + ' degrees');
+  el.gs.value = String(Math.round(state.garnishScale * 100));
+  el.gs.setAttribute('aria-valuetext', state.garnishScale.toFixed(2) + ' times');
+}
+['gx','gy','gr'].forEach(function(id){
+  el[id].addEventListener('input', function(){
+    state.seat.x = Number(el.gx.value);
+    state.seat.y = Number(el.gy.value);
+    state.seat.rot = Number(el.gr.value);
+    syncSeatInputs();
+    renderGarnish(); paintText();
+  });
+});
+/* THE SIZE IS ITS OWN FIELD, not a fourth entry in the loop above: that loop writes all three
+   offsets from the DOM on every input, which is right for a shared model and wrong for a value
+   with a single control. Item 17. */
+el.gs.addEventListener('input', function(){
+  state.garnishScale = Number(el.gs.value) / 100;
+  syncSeatInputs(); renderGarnish(); paintText();
+});
+el.resetseat.addEventListener('click', function(){
+  state.seat = { x:0, y:0, rot:0 };
+  state.garnishScale = 1;
+  syncSeatInputs(); renderGarnish(); paintText();
+  el.gx.focus();
+});
+el.movable.addEventListener('click', function(){
+  state.movable = !state.movable; paintText();
+});
+
+/* ── where the garnish rides against the glass — item 19 ──────────────────────────────────────
+   TWO RADIOS, ONE STATE, AND THE ONLY WRITER OF IT — so there is no `syncGarnishInputs()`. Item 17's
+   seat needed one because the DRAG writes the seat as well; nothing but these two inputs writes the
+   order, and the markup's `checked` on `#garnbehind` already matches `state.garnishLayer`'s seed.
+   THE `checked` GUARD IS NOT DECORATION: a radio group fires `change` on the LOSING input too, so
+   without it, choosing `in front` would run the handler twice and the second run — reading the radio
+   that just went false — would write `behind` back over the choice.
+   IT CALLS `renderGarnishOrder()` AND NOT `render()`. Nothing about the four painters changes when
+   the order does — item 19 deleted the veil class this handler's neighbour used to set, so there is
+   not even a class to re-evaluate — and every layer's geometry, `src` and mask are the ones they
+   already hold. Re-running `renderFill()`/`renderGarnish()` would re-assert two `src` values and two
+   mask URLs for no gain, the exact non-idempotence item 15 spent a pass removing. */
+['garnbehind','garnfront'].forEach(function(id){
+  const radio = $(id);
+  radio.addEventListener('change', function(){
+    if(!radio.checked) return;
+    state.garnishLayer = radio.value;
+    renderGarnishOrder(); paintText();
+  });
+});
+
+document.querySelectorAll('[data-toggle]').forEach(function(box){
+  box.addEventListener('change', function(){
+    state.on[box.dataset.toggle] = box.checked;
+    render();
+  });
+});
+
+/* ── the liquid colour ───────────────────────────────────────────────────────────────────── */
+function setColor(value, source){
+  const normalized = normalizeSavedColor(value);
+  if(!normalized){
+    /* A refused value is a sentence, not a silent revert — lib/editor.ts's rule. */
+    el.hex.setAttribute('aria-invalid','true');
+    el.hex.title = 'Not a colour. Three or six hex digits, with or without the #.';
+    return;
+  }
+  el.hex.removeAttribute('aria-invalid'); el.hex.removeAttribute('title');
+  state.color = normalized;
+  el.hex.value = normalized;
+  if(source !== 'picker') el.pick.value = normalized;
+  renderFill(); paintText(); paintChips();
+}
+el.pick.addEventListener('input', e => setColor(e.target.value, 'picker'));
+el.hex.addEventListener('change', e => setColor(e.target.value));
+el.hex.addEventListener('keydown', function(e){
+  if(e.key === 'Enter'){ e.preventDefault(); setColor(el.hex.value); }
+});
+
+let slots = readSavedColors();
+function paintChips(){
+  el.chips.innerHTML = '';
+  el.noslots.hidden = slots.length > 0;
+  slots.forEach(function(slot, i){
+    const wrap = document.createElement('span'); wrap.className = 'chipwrap';
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'chip';
+    b.style.background = slot.color;
+    b.setAttribute('aria-pressed', String(slot.color === state.color));
+    b.setAttribute('aria-label', 'Use ' + slot.color);
+    b.addEventListener('click', () => setColor(slot.color, 'slot'));
+    const d = document.createElement('button');
+    d.type = 'button'; d.className = 'chipdel';
+    d.setAttribute('aria-label', 'Remove the slot ' + slot.color);
+    d.textContent = '\u00d7';
+    d.addEventListener('click', function(){
+      slots.splice(i,1); writeSavedColors(slots); paintChips();
+      el.savecolor.focus();
+    });
+    wrap.appendChild(b); wrap.appendChild(d); el.chips.appendChild(wrap);
+  });
+}
+el.savecolor.addEventListener('click', function(){
+  /* The same rule the compositor applies: the same colour cannot become two slots. */
+  if(!slots.some(s => s.color === state.color)){
+    slots.push({ color: state.color });
+    writeSavedColors(slots);
+  }
+  paintChips();
+});
+
+/* ── the drag. The pointer path is the fast one; the sliders are the accessible one, and this is
+      additive — it never becomes the only way to move the seat. ─────────────────────────── */
+(function(){
+  let from = null;
+  el.canvas.addEventListener('pointerdown', function(e){
+    if(!state.movable || !state.on.garnish || !state.garnish) return;
+    if(e.target !== el.garnish) return;
+    const box = el.canvas.getBoundingClientRect();
+    /* THE DELTA IS IN THE FRAME'S OWN UNITS — item 13. The seat is absolute, so nothing mounts it on
+       the glass's scale and one screen pixel is worth `1 / (box.width / 500)` frame units.
+       Multiplying by the glass's `k` here was the same defect as the composition had, one code path
+       over: the pointer and the garnish would disagree ~3x on the Old Fashioned. */
+    const scale = box.width / 500;
+    from = { px:e.clientX, py:e.clientY, x:state.seat.x, y:state.seat.y, scale };
+    el.canvas.setPointerCapture(e.pointerId);
+    e.preventDefault();
+  });
+  el.canvas.addEventListener('pointermove', function(e){
+    if(!from) return;
+    /* THE CLAMPS ARE THE SLIDERS' OWN — item 13. One range, two controls, or the two disagree. */
+    state.seat.x = Math.round(Math.max(-300, Math.min(300, from.x + (e.clientX - from.px) / from.scale)));
+    state.seat.y = Math.round(Math.max(-150, Math.min(250, from.y + (e.clientY - from.py) / from.scale)));
+    syncSeatInputs(); renderGarnish(); paintText();
+  });
+  function up(e){
+    if(!from) return;
+    from = null;
+    try{ el.canvas.releasePointerCapture(e.pointerId); }catch(_){}
+  }
+  el.canvas.addEventListener('pointerup', up);
+  el.canvas.addEventListener('pointercancel', up);
+})();
+
+/* ── the canvas scale. Read from the measured pan, so the 500-unit frame lands exactly on it and
+      no ratio is asserted in CSS that a media query could disagree with. ─────────────────── */
+function fitCanvas(){
+  const box = document.querySelector('.artstage').getBoundingClientRect();
+  if(box.width > 0) el.canvas.style.setProperty('--cs', String(box.width / 500));
+}
+window.addEventListener('resize', fitCanvas);
+
+/* ── THE TAB BAR — item 16. The ARIA is written here rather than in the markup because the roving
+      tabindex and the arrow keys ARE state; the markup's own `aria-selected="true"` and `hidden`
+      attributes are the no-script default, and the `selectTab(0,false)` at the end of this block
+      makes the script the single source of truth for both. THERE IS NO PER-PANEL STATE — nothing is
+      remembered between tabs and nothing is restored — so this really is the whole controller.
+
+      NO RE-MEASURE ON A TAB CHANGE, AND THAT IS CHECKED RATHER THAN ASSUMED. The pan the canvas is
+      fitted to lives in `.bay`, above the bar and outside every panel, and its width is
+      `min(232px,70%)` — a percentage of the PLATE, whose width no panel can change. So showing a
+      panel cannot invalidate `--cs`, and nothing here calls `fitCanvas()`. ------------------- */
+const tabs = Array.prototype.slice.call(document.querySelectorAll('[role="tab"]'));
+const panels = tabs.map(function(t){ return document.getElementById(t.getAttribute('aria-controls')); });
+
+function selectTab(i, focusIt){
+  tabs.forEach(function(t, n){
+    const on = n === i;
+    t.setAttribute('aria-selected', String(on));
+    /* THE ROVING TABINDEX. Only the selected tab stays in the page's tab order, so the whole bar
+       costs ONE stop instead of three; without it a keyboard user travelling toward the panel
+       would walk through the two tabs they did not choose. */
+    t.tabIndex = on ? 0 : -1;
+    if(panels[n]) panels[n].hidden = !on;
+  });
+  if(focusIt) tabs[i].focus();
+}
+tabs.forEach(function(t, i){
+  /* CLICKING SELECTS AND DOES NOT MOVE FOCUS, deliberately. The pattern splits on this choice and
+     it turns on cost: this panel is cheap to draw, so the visitor's focus stays where they put it
+     and a pointer user is not dragged into the panel they just revealed. THE ARROWS ARE THE HALF
+     THAT MUST MOVE FOCUS, because the keyboard has no other way to reach the other two tabs. */
+  t.addEventListener('click', function(){ selectTab(i, false); });
+  t.addEventListener('keydown', function(e){
+    const last = tabs.length - 1;
+    let next = -1;
+    if(e.key === 'ArrowRight') next = i === last ? 0 : i + 1;
+    else if(e.key === 'ArrowLeft') next = i === 0 ? last : i - 1;
+    else if(e.key === 'Home') next = 0;
+    else if(e.key === 'End') next = last;
+    if(next < 0) return;
+    /* `preventDefault` ON ALL FOUR. ArrowLeft/ArrowRight are also the document's scroll keys and
+       Home/End jump the page, so without this an arrow would select a tab AND scroll the page. */
+    e.preventDefault();
+    selectTab(next, true);
+  });
+});
+selectTab(0, false);
+
+/* ── the manual motion control. ITS RULES ARE THE MEDIA QUERY'S RULES, and both are the same two
+      declarations — silencng a CSS animation does nothing when the motion is JavaScript, and the
+      page's one animation IS CSS, so parity here is checkable rather than asserted. ──────── */
+const still = document.createElement('div');
+still.className = 'btns';
+still.style.marginTop = '16px';
+const stillBtn = document.createElement('button');
+stillBtn.type = 'button'; stillBtn.className = 'btn';
+function paintMotion(){
+  const on = document.documentElement.getAttribute('data-motion') === 'still';
+  stillBtn.setAttribute('aria-pressed', String(on));
+  stillBtn.textContent = 'motion: ' + (on ? 'still' : 'running');
+}
+stillBtn.addEventListener('click', function(){
+  const on = document.documentElement.getAttribute('data-motion') === 'still';
+  if(on) document.documentElement.removeAttribute('data-motion');
+  else document.documentElement.setAttribute('data-motion','still');
+  paintMotion();
+});
+still.appendChild(stillBtn);
+document.querySelector('[data-od-id="tools"]').appendChild(still);
+paintMotion();
+
+/* ═════════════════════════════════════════════════════════════════════════════════════════════
+   6 · GO
+   ═════════════════════════════════════════════════════════════════════════════════════════════ */
+
+paintChips();
+syncSeatInputs();
+fitCanvas();
+/* `fitCanvas` reads a rect, and the first layout is not necessarily painted when this runs; the
+   rAF is the second measurement, and the resize listener covers every later one. */
+requestAnimationFrame(fitCanvas);
+render();
+})();
+</script>
+</body>
+</html>

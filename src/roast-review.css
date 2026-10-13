@@ -1,0 +1,427 @@
+/* ══════════════════════════════════════════════════════════════════════════════
+   ROAST — /roast/review · "Review" in the menu, "The verdict" on the page.
+
+   THE WIRING PASS. The page existed before this file did — RoastVerdict.tsx, routed at both
+   /roast/review and /roast/verdict, and styled until now by the `.vd-*` block of roast.css.
+   §10's "no design exists at all" meant no design STUDY existed for it, which is exactly the
+   position the menu was in. So this is a wiring pass on a built, copy-bearing page: fetch,
+   hand rows to lib/verdict.ts, render what it returns. Not one line of that changed.
+
+   Scoped under `.roast.roast-review`, matching the app's per-room convention. The `.vd-*`
+   block in roast.css is DELETED in the same pass — it had exactly one consumer and this file
+   replaces it — and with it `.roast .hp` and `.roast .kick`, whose last un-scoped readers were
+   this page and the keep room. See roast.css's own note.
+
+   IT IS A READOUT, NOT AN OBJECT, and roast.css's line 544 is the governing sentence: "the
+   verdict is a readout, not an object, so nothing here is measured or cut. The card's control
+   idioms carry over — 3px black borders, hard offset shadows, a hand-placed rotation — so the
+   screen reads as the back of the same card rather than as a new surface." So: NO frame, NO
+   misregister plates, NO glass pans, NO card. Square printed plates on the wash.
+
+   ─────────────────────────────────────────────────────────────────────────────
+   THE COPY IS FROZEN AND NONE OF IT IS MINE. §7 lists lib/verdict.ts with nickname.ts and
+   roastWipe.ts. Every sentence this page prints comes out of that module or out of
+   RoastVerdict.tsx, verbatim — the six bucket lines ("nobody is called a loser, and that is
+   the whole tone"), NO_CLASSICS_LINE, fightLine, the four load states, the Submission empty
+   state. VERDICT_HINT and the four CROSS_LINES branches are marked DRAFT inside the module;
+   the study carried a `draft · awaiting approval` chip on the screen and it is kept, because a
+   screen that presents an unpicked draft as the design claims authority it has not got.
+
+   ─────────────────────────────────────────────────────────────────────────────
+   ONE TEXTURE PER ELEMENT — the author's 2026-10-09 ruling, applied literally:
+
+       the ground   HALFTONE only — 2x as the base, 3x in one loose bloom ("we can use them in
+                    different sizes in different places, no?"). ONE element per field, so no
+                    field carries two textures even though they are the same texture twice.
+       the plates   DITHER only, as a background LAYER under the glyph so it cannot touch the
+                    text.
+       NOT HERE     scanlines — those are the Menu's ("a light film on top")
+       NOT HERE     grain — that is the Enter page's ("losing signal")
+
+   THE HALFTONE IS LIGHT HERE AND DARK EVERYWHERE ELSE, and that is not a drift: the review
+   stands on the LAST OF THE SUN — a narrow lila band at the very top, then the fall to the
+   app's own ink floor. On a bright band the family's dark dot (`--tex-dot`) reads as dirt, so
+   this room states its own two fields with the study's values. Same law 13 reading as every
+   other room (the dark half is the ground), a different moment of the same evening.
+
+   ─────────────────────────────────────────────────────────────────────────────
+   THE FACTS THAT DECIDED THE LAYERING, all of them arithmetic:
+
+     --txt on --plate .................. 15.98:1   the verdict, the names, the states
+     --dim on --plate ..................  8.67:1   the counts, the captions, the beta door
+     --rim (.44 over --plate) ..........  4.36:1   the plate edges and the hairlines
+     #fff on --plate ................... 18.19:1   the verdict patch's ring
+     --plate on the ink floor ..........  1.12:1   ------ WHY THE HAIRLINE EXISTS ------
+     #000 edge on the ink floor ........  1.03:1   ------ and neither one draws ------
+     --rim on the ink floor ............  4.30:1   the one thing that does
+
+   THAT 1.12 / 1.03 PAIR IS THE WHOLE REASON EVERY PLATE CARRIES A 1px INSET HAIRLINE. The
+   ground's last stop is the ink floor, where a --plate fill and a #000 edge together draw
+   nothing at all. On the bright bands the fill draws the plate; on ink the hairline does.
+
+   --b IS NOT USED FOR TEXT ON THIS PAGE, and that is measured rather than budgeted. `--txt` is
+   15.98:1 in all four palettes; `--b` is 12.71 in heat, 12.90 in mag, 5.73 in amber and 4.55
+   in lime. The accent is spent on exactly two things: the page title's third print and the one
+   call to action. TWO, which is the budget.
+
+   ─────────────────────────────────────────────────────────────────────────────
+   TWO THINGS I DECIDED INSIDE THE STUDY'S INSTRUCTION, both one rule to revert:
+
+     THE TWO RATES LIVE IN ONE PLATE, STACKED. The app renders them side by side; at 360px that
+     is two 158px plates and the app's own CSS already needed `min-width: 0` to survive. One
+     full-width plate gives each rate 302px, every proportion on the page can share ONE block
+     scale, and the comparison the page exists to make happens inside one object.
+
+     A WAITING SPEC HAS NO BAR. lib/verdict.ts: "A spec reading 0 / 0 would be a claim the room
+     has not made." The app prints "waiting" AND draws twelve unlit blocks, which is exactly
+     that claim. Here the word takes the count slot and a dotted rule holds nothing. The row's
+     name stays --txt: dimming a name to signal a state is lowering contrast, which is the one
+     thing the state rules forbid.
+
+   AND NO ENTRANCE ANIMATION, deliberately: a readout that animates its own numbers is a screen
+   you wait for twice, and the second read is the one that matters. The only motion on this page
+   is the loading sweep, and it is a branch (see the reduced-motion block).
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+/* ── THE GROUND — the last of the sun, then the app's own floor. A narrow lila band at the very
+   top is the last light; everything below falls to ink. Copied from the study, which took it
+   from roast.css's `--gl-*` values. */
+.roast.roast-review {
+  position: relative;
+  min-height: 100vh;
+  padding: 22px 16px 48px;
+  overflow-x: clip;
+  background: linear-gradient(180deg,
+    #b8aed0 0%,
+    #7b5cff 7%,
+    #341f52 21%,
+    #170e29 43%,
+    #0a0714 64%,
+    var(--ink) 82%);
+}
+
+/* The two halftone fields, one texture each on one element each. Fixed, so the ground does not
+   scroll under the readout. z-index 0 with the content at 1, NOT negative: `.roast` is
+   `position: relative` with a background and no z-index, so a negative-index descendant paints
+   before ordinary block backgrounds and gets covered — the roster's recorded defect. */
+.roast.roast-review::before,
+.roast.roast-review::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-repeat: repeat;
+}
+.roast.roast-review::before {
+  background-image: radial-gradient(circle, rgba(255, 255, 255, .16) 1px, transparent 1.6px);
+  background-size: 4px 4px;
+  -webkit-mask-image: linear-gradient(180deg, #000 0, rgba(0, 0, 0, .5) 22%, transparent 46%, transparent 74%, rgba(0, 0, 0, .45) 100%);
+          mask-image: linear-gradient(180deg, #000 0, rgba(0, 0, 0, .5) 22%, transparent 46%, transparent 74%, rgba(0, 0, 0, .45) 100%);
+}
+.roast.roast-review::after {
+  opacity: .7;
+  background-image: radial-gradient(circle, rgba(255, 255, 255, .22) 1.5px, transparent 2.1px);
+  background-size: 6px 6px;
+  -webkit-mask-image: radial-gradient(115% 62% at 90% 2%, #000 0, transparent 60%);
+          mask-image: radial-gradient(115% 62% at 90% 2%, #000 0, transparent 60%);
+}
+
+/* The three columns are one column. `max-width` on the wrapper and no max-width on the root, so
+   the wash reaches both edges on a wide screen. */
+.roast.roast-review .col {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: var(--col);
+  margin: 0 auto;
+}
+
+/* ── THE WAY OUT. A patch, like the menu's exit chip and the keep room's — the same object,
+   because it is the same promise: this leaves the room, and it is reachable at rest. It carries
+   `--txt` on `--plate`, which is why it is a patch and not a bare link: `--dim` on the wash's
+   lila band is not a pair this file will print. ──────────────────────────────────────────── */
+.roast.roast-review .exit {
+  display: inline-flex; align-items: center;
+  min-height: 44px; padding: 0 13px; margin-bottom: 16px;
+  background-color: var(--plate);
+  color: var(--txt);
+  border: var(--edge) solid #000;
+  box-shadow: 3px 3px 0 #000;
+  outline: 2px solid #fff; outline-offset: 0;
+  font-family: var(--font-display); font-style: italic;
+  font-size: var(--fs-label); letter-spacing: .04em; text-transform: uppercase;
+  text-decoration: none;
+  transform: rotate(-.5deg);
+  /* THE STUDY'S AUTHORED DOT RECIPE, RESTORED — ITEM F9. Taken value for value from
+     roast-review.html:379-385, NOT re-derived: the family `--tex-dither` 45deg checkerboard that
+     sat here was a silent swap with no argument recorded. */
+  background-image: radial-gradient(rgba(255, 255, 255, .055) 1px, transparent 1px);
+  background-size: 5px 5px;
+  transition: box-shadow .15s var(--ease), transform .15s var(--ease);
+}
+.roast.roast-review .exit:hover {
+  transform: rotate(-.5deg) translate(-1px, -1px);
+  box-shadow: 4px 4px 0 #000;
+}
+.roast.roast-review .exit:active {
+  transform: rotate(-.5deg) translate(2px, 2px);
+  box-shadow: 1px 1px 0 #000;
+}
+
+.roast.roast-review .kick {
+  display: block;
+  font-family: var(--font-mono); font-size: var(--fs-label);
+  letter-spacing: .12em; text-transform: uppercase; color: var(--dim);
+}
+
+/* THE PAGE NAME. The author's three-print mark, value for value: runs/agent-skills/v1.html ·
+   .card-name. The -.6deg is the whole reason it does not read as a CSS drop shadow — a transform
+   rotates the glyph AND both plates together, so the two impressions tilt with the type.
+
+   ** CORRECTED, ITEM F6 — the contrast figure was taken at the wrong place. ** This comment used
+   to read "It sits on the wash at the top of the page, where the band is the lila — #fff there is
+   2.10:1, which FAILS — so it carries the same black key plate as the menu's name." Three things
+   were wrong with that sentence, and the third is the one that mattered:
+
+   (1) 2.10:1 is the contrast at the gradient's 0% STOP. This wash is the room root and it measures
+   ~2057px tall, so its 7% stop — the violet — lands at 144px, not at 7% of the viewport. The
+   title's box is y=102-136, i.e. 70-94% of the way from the lila to the violet. Its ACTUAL ground
+   is #8d74f1 to #7e60fc, where #fff measures 3.53-4.21:1 across the title's own height.
+
+   (2) The threshold is 3:1, not 4.5:1. This title computes to 30px (`--fs-display`) at every
+   measured viewport, and large text is measured at its own size — so it PASSES, in all three of
+   1280x900, 414x896 and 360x640. The 2.10 figure is real, but it belongs to the top of the page,
+   144px above this element, where nothing is written.
+
+   (3) THE BLACK IMPRESSION CANNOT BE THE REMEDY FOR A FILL, and citing it as one was the real
+   error. A `text-shadow` offset is a direction: 3px 3px is positive in x and y, so it paints the
+   glyph's right and bottom edges and NEVER its left or top. A drop impression edges one side; it
+   cannot supply contrast for the fill underneath the glyph. (The menu's name — the model this
+   cited — sits on --plate at 15.98:1, where the impression is decoration rather than rescue.)
+
+   WHAT IS STILL WORTH ASKING, and it is not a slip: this room puts its page name directly on the
+   ground, and the wiring contract's rule is "NO TEXT ON THE WASH — no exceptions. Text lives on
+   panels." The study at roast-review.html:399-404 does the same thing, value for value. So this is
+   the contract disagreeing with the approved study — an authority question for the author, not a
+   defect an agent settles. And the contrast clears its threshold either way, which removes the
+   urgency without removing the question. See item F6.
+
+   ACCENT BUDGET: this print is the first of two appearances; the CTA's fill is the second. */
+.roast.roast-review h1.title {
+  font-family: var(--font-display); font-style: italic; text-transform: uppercase;
+  font-size: var(--fs-display); line-height: .98; letter-spacing: -.01em; color: #fff;
+  margin: 9px 0 4px;
+  text-shadow: 3px 3px 0 #000, 6px 6px 0 var(--b);
+  transform: rotate(-.6deg); transform-origin: left center;
+}
+
+/* SECTION HEADINGS. The app's own two readings on one page (decided 2026-10-05): the moment you
+   submit you are both a Roaster and a Contender, so this screen answers both questions. */
+.roast.roast-review h2.sub {
+  font-family: var(--font-display); font-style: italic; text-transform: uppercase;
+  font-size: var(--fs-action); color: #fff;
+  text-shadow: 2px 2px 0 #000;
+  margin: 27px 0 9px;
+  transform: rotate(-.35deg); transform-origin: left center;
+}
+.roast.roast-review h2.sub:first-of-type { margin-top: 20px; }
+
+/* ── EVERY PLATE ON THIS PAGE — the readout idiom, and dither UNDER the glyph. ONE texture per
+   plate, and it is the dither — THE STUDY'S OWN RECIPE, RESTORED (ITEM F9): a 1px radial at .055
+   on a 5px cell, authored literally at roast-review.html:420-424 for `.rp` and :379-385 for
+   `.exit`. This sheet had silently swapped it for the family `--tex-dither` 45deg checkerboard
+   with NO ARGUMENT RECORDED — the opposite of roast-edit.css:42-47, which kept its own literal
+   recipe for its patches and said why. A note modifying a mark wins, and the study is the source
+   of truth for how it looks, so the authored recipe is back, value for value (and byte-identical
+   to the editor's, whose figures live in that file's record — no new contrast claim is made
+   here). The 45deg checkerboard token goes unreferenced in this room again.
+   The 1px inner hairline is load-bearing, not a flourish: see the 1.12:1 / 1.03:1 pair at the top
+   of this file. Inset, so it paints under the glyph. */
+.roast.roast-review .rp {
+  position: relative;
+  background-color: var(--plate);
+  border: var(--edge) solid #000;
+  box-shadow: inset 0 0 0 1px var(--rim), 4px 4px 0 #000;
+  background-image: radial-gradient(rgba(255, 255, 255, .055) 1px, transparent 1px);
+  background-size: 5px 5px;
+}
+
+/* THE VERDICT PATCH — the author's line about the visitor, and the loudest object on the page by
+   EDGE, not by colour. Its fill is --plate on a --plate ground: 1:1, so the only thing that draws
+   it is the paper ring (#fff, 18.19:1) over the black die-edge. Accent is NOT spent here. */
+.roast.roast-review .verdict { padding: 14px 15px 15px; transform: rotate(-.5deg); outline: 2px solid #fff; outline-offset: 0; }
+.roast.roast-review .verdict p { font-size: var(--fs-body); line-height: 1.5; color: var(--txt); }
+
+/* ── THE RECORD: both rates, one plate, full width. The comparison happens inside one object. ── */
+.roast.roast-review .record { transform: rotate(.35deg); overflow: hidden; }
+.roast.roast-review .rec-row { padding: 13px 14px 12px; }
+.roast.roast-review .rec-top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.roast.roast-review .rec-lab {
+  font-family: var(--font-body); font-size: var(--fs-label);
+  letter-spacing: .14em; text-transform: uppercase; color: var(--dim);
+}
+.roast.roast-review .rec-sam { flex-shrink: 0; font-size: var(--fs-label); color: var(--dim); font-variant-numeric: tabular-nums; }
+.roast.roast-review .rec-mid { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 7px; }
+/* White, not --b: 15.98:1 in all four palettes, where --b is 12.71 in heat and 4.55 in lime.
+   Display type is AA-large either way; white is the better floor and the accent is spent where it
+   is doing a job. */
+.roast.roast-review .rec-pct {
+  font-family: var(--font-display); font-style: italic;
+  font-size: var(--fs-display-sm); line-height: .9; color: var(--txt);
+  text-shadow: 2px 2px 0 #000; font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+/* .rec-mid is space-between with two children, so the bar already sits right. */
+.roast.roast-review .rule { height: 2px; background: rgba(255, 255, 255, .12); }
+.roast.roast-review .rec-cap { padding: 11px 14px 12px; }
+.roast.roast-review .rec-hint {
+  font-family: var(--font-body); font-size: var(--fs-micro);
+  letter-spacing: .14em; text-transform: uppercase; color: var(--dim);
+}
+/* The cross-comparison keeps the app's idiom: a remark, not a control. It is DRAFT copy and it
+   says so. Dashed is this project's provisional mark, and it spends no accent. */
+.roast.roast-review .rec-cross {
+  margin-top: 10px;
+  border: 2px dashed rgba(184, 174, 208, .55);
+  padding: 9px 11px;
+  font-size: var(--fs-small); line-height: 1.5; color: #c4bfdc;
+  transform: skewX(-5deg) rotate(.4deg);
+}
+.roast.roast-review .rec-cross > span { display: block; transform: skewX(5deg); }
+
+/* the DRAFT chip. Dashed and unfilled: a provisional mark spends no accent. */
+.roast.roast-review .draft {
+  display: inline-block; margin-top: 8px; padding: 2px 7px;
+  border: 1px dashed rgba(184, 174, 208, .6);
+  color: var(--dim);
+  font-family: var(--font-mono); font-size: var(--fs-micro);
+  letter-spacing: .14em; text-transform: uppercase;
+}
+
+/* ── THE BLOCK FIELD. The app's own healthbar block, kept as the app built it: 12 blocks, 8px,
+   2px black border, heights cycling hi/md/lo. That cycle is the low-fi rhythm of the deck's record
+   and is DECORATIVE — it repeats every three regardless of state, so it cannot be misread as data.
+   Position is the load-bearing channel (agreement always left of disagreement), the 5.92:1 black
+   seam between the runs is what survives greyscale, and the counts are printed as text beside every
+   bar. aria-hidden, which is the app's own decision: "the bar is the glance, the numbers are the
+   record." ──────────────────────────────────────────────────────────────────────────────── */
+.roast.roast-review .blk { display: flex; gap: 2px; align-items: flex-end; }
+.roast.roast-review .blk i { display: block; width: 8px; border: 2px solid #000; background: #1c1828; }
+.roast.roast-review .blk i.hi { height: 16px; }
+.roast.roast-review .blk i.md { height: 12px; }
+.roast.roast-review .blk i.lo { height: 9px; }
+.roast.roast-review .blk i.ag { background: var(--ok); }
+.roast.roast-review .blk i.dg { background: var(--a); }
+.roast.roast-review .blk--sm i { width: 7px; }
+
+/* ── THE SHEET: the room's split, GROUPED BY THE DECK'S OWN ROUNDS. Three groups of five, which
+   is the deck's own shape (lib/rounds.ts, SPECS_PER_ROUND) rather than a fifteen-row wall. The
+   group header's wording — "Round 1 of 3" — is the app's own phrasing for this fact: `recapLine`
+   opens every boundary sentence with it, so it is the deck's line and not a label invented here. */
+.roast.roast-review .fight { font-size: var(--fs-small); line-height: 1.45; color: var(--dim); margin: -4px 0 11px; }
+.roast.roast-review .fight b { color: var(--txt); font-weight: 600; }
+.roast.roast-review .sheet { margin-bottom: 11px; overflow: hidden; }
+.roast.roast-review .sheet-head {
+  display: flex; justify-content: space-between; align-items: baseline; gap: 10px;
+  padding: 9px 12px 9px;
+  border-bottom: 2px solid #000;
+  background: rgba(0, 0, 0, .28);
+}
+.roast.roast-review .sheet-head .kick { color: var(--txt); }
+.roast.roast-review .sheet-n {
+  flex-shrink: 0; font-family: var(--font-mono); font-size: var(--fs-micro);
+  letter-spacing: .14em; text-transform: uppercase; color: var(--dim);
+  font-variant-numeric: tabular-nums;
+}
+.roast.roast-review .rows { list-style: none; }
+.roast.roast-review .row { padding: 9px 12px 10px; border-bottom: 2px solid rgba(255, 255, 255, .16); }
+.roast.roast-review .row:last-child { border-bottom: 0; }
+.roast.roast-review .row-top { display: flex; justify-content: space-between; align-items: baseline; gap: 9px; flex-wrap: wrap; }
+.roast.roast-review .row-name { font-size: var(--fs-small); font-weight: 600; color: var(--txt); }
+.roast.roast-review .row-count {
+  flex-shrink: 0; font-size: var(--fs-label); color: var(--dim);
+  font-variant-numeric: tabular-nums;
+}
+.roast.roast-review .row .blk { margin-top: 7px; }
+/* A waiting spec: the word takes the count slot and a dotted rule holds nothing. The name stays
+   --txt — dimming a name to signal a state is lowering contrast, which the state rules forbid. */
+.roast.roast-review .row--wait .row-count {
+  font-family: var(--font-mono); font-size: var(--fs-micro);
+  letter-spacing: .2em; text-transform: uppercase;
+}
+.roast.roast-review .row-wait { display: flex; align-items: baseline; gap: 9px; margin-top: 9px; }
+.roast.roast-review .row-wait .fill { flex: 1 1 auto; height: 6px; border-bottom: 2px dotted rgba(184, 174, 208, .45); }
+
+/* ── THE SUBMISSION READING'S HONEST EMPTY STATE. Deliberately NOT dressed as a result: a promise
+   about what will land here rather than something that has. ──────────────────────────────── */
+.roast.roast-review .empty { padding: 14px; transform: rotate(-.3deg); }
+.roast.roast-review .empty p { font-size: var(--fs-small); line-height: 1.55; color: var(--dim); }
+
+/* ── THE FOUR LOAD STATES. The app's own three sentences, on the same plate idiom, so a state that
+   cannot show a verdict still looks like this room. ───────────────────────────────────────── */
+.roast.roast-review .state { padding: 15px; transform: rotate(-.4deg); }
+.roast.roast-review .state p { font-size: var(--fs-small); line-height: 1.55; color: var(--txt); }
+/* the one animated element on the page, and the only thing the reduced-motion block has to reach. */
+.roast.roast-review .sweep { display: block; height: 3px; margin-top: 12px; background: rgba(255, 255, 255, .1); overflow: hidden; }
+.roast.roast-review .sweep i { display: block; height: 100%; width: 34%; background: var(--dim); animation: review-sweep 1.4s linear infinite; }
+@keyframes review-sweep {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(320%); }
+}
+
+/* ── THE WAY ON. One primary on the page, and it is the funnel: "Now do the classics." is the
+   author's own copy for the Census door (plan §5). ───────────────────────────────────────── */
+.roast.roast-review .exits { margin: 30px 0 0; display: flex; flex-direction: column; gap: 12px; }
+.roast.roast-review .cta {
+  display: flex; align-items: center; justify-content: center;
+  min-height: 48px; padding: 12px 14px;
+  background: var(--b); color: #00131c;
+  border: var(--edge) solid #000;
+  box-shadow: 5px 5px 0 #000;
+  font-family: var(--font-display); font-style: italic; text-transform: uppercase;
+  font-size: var(--fs-action); text-align: center;
+  text-decoration: none;
+  transform: skewX(-8deg) rotate(-.6deg);
+  transition: box-shadow .15s var(--ease), transform .15s var(--ease);
+}
+.roast.roast-review .cta:hover { transform: skewX(-8deg) rotate(-.6deg) translate(-1px, -1px); box-shadow: 6px 6px 0 #000; }
+.roast.roast-review .cta:active { transform: skewX(-8deg) rotate(-.6deg) translate(3px, 3px); box-shadow: 2px 2px 0 #000; }
+/* The app's own note on this door: "The provisional door: a footnote, deliberately not a peer of
+   the Census button." So: no fill, no shadow, no solid edge — a dashed mark at rgba(255,255,255,.4),
+   which is 4.27:1 on the ink floor and therefore a real boundary. */
+.roast.roast-review .beta {
+  align-self: center; min-height: 44px; padding: 0 12px;
+  display: inline-flex; align-items: center;
+  background: none;
+  border: 1px dashed rgba(255, 255, 255, .4);
+  font-family: var(--font-mono); font-size: var(--fs-label);
+  letter-spacing: .2em; text-transform: uppercase; color: var(--dim);
+  text-decoration: none;
+  transition: color .15s var(--ease), border-color .15s var(--ease);
+}
+.roast.roast-review .beta:hover { color: var(--txt); border-color: rgba(255, 255, 255, .7); }
+
+/* ── FOCUS. The CTA's fill IS --b, so a --b ring on it would paint colour on colour: every focus
+   ring on this page is TWO-TONE (white outline over a black halo), and one of the two always clears
+   3:1 against a ground that runs from the lila band to the ink floor. ───────────────────── */
+.roast.roast-review :focus-visible { outline: 3px solid #fff; outline-offset: 2px; box-shadow: 0 0 0 6px #000; }
+.roast.roast-review .cta:focus-visible { outline: 3px solid #fff; outline-offset: 3px; box-shadow: 5px 5px 0 #000, 0 0 0 7px #000; }
+.roast.roast-review .exit:focus-visible { outline: 3px solid #fff; outline-offset: 2px; box-shadow: 3px 3px 0 #000, 0 0 0 6px #000; }
+
+/* ── REDUCED MOTION IS A BRANCH, NOT AN AFTERTHOUGHT. One animated element, so the job is
+   silencing one keyframe and leaving the bar VISIBLE as a resting state — it does not disappear.
+
+   THE STUDY CARRIED A SECOND COPY OF THESE RULES under `[data-motion="still"]`, for its manual
+   toggle, and the author's rule is that a manual control must carry the SAME rules as this query.
+   THE APP HAS NO SUCH CONTROL, so that block is not ported — it would be five dead declarations.
+   The roster and the editor made the same call for the same reason. When a manual motion control is
+   built, its rules are this list, stated a second time, and `html.rm *` comes with it. */
+@media (prefers-reduced-motion: reduce) {
+  .roast.roast-review .sweep i { animation: none; width: 100%; opacity: .5; }
+  .roast.roast-review .cta,
+  .roast.roast-review .exit,
+  .roast.roast-review .beta { transition: none; }
+  .roast.roast-review .cta:hover { transform: skewX(-8deg) rotate(-.6deg); }
+  .roast.roast-review .exit:hover { transform: rotate(-.5deg); }
+}

@@ -1,0 +1,722 @@
+/*
+ * ══════════════════════════════════════════════════════════════════════════════
+ * ROAST MENU — /roast · the arena's front desk. THE WIRING PASS, 2026-10-12.
+ *
+ * This file used to carry the OLD menu: a scrim (rgba(8,5,16,.55)), pixel notches
+ * cut with `clip-path`, a 1px keyline pseudo-element, `border-radius` panels and a
+ * two-thirds-luminance wash. Every one of those devices is a DON'T in the
+ * 2026-10-09 selection, and the approved mockup (roast-menu.html) had deleted all
+ * of them. So this is the pass that re-points the app at the vocabulary the author
+ * actually signed off. The page is the same page: `reload`, `rpc`, `saveHandle`,
+ * the `loaded` gate, the four RPCs, the exit, and the classes.
+ *
+ * IT IS MOSTLY A SUBSTITUTION, WHICH IS WHAT §11 PROMISED — `.rm-frame`,
+ * `.rm-strip`, `.rm-handle`, `.rm-entry`, `.name` and `.blurb` all already existed
+ * here, so the port re-points rules rather than inventing names. It is not ONLY a
+ * substitution: the frame needed plates, tapes and a film, and the strip's three
+ * facts needed grouping, so RoastMenu.tsx gained `.rm-stage`, `.plate`, `.rm-tape`,
+ * `.rm-film`, `.fact`, `.who-t` and `.pend`. Those are the mockup's own names,
+ * copied rather than coined.
+ *
+ * ─────────────────────────────────────────────────────────────────────────────
+ * THE TOKENS ARE NOT RESTATED. --a/--b/--c/--d, --ok, --txt, --dim, --plate,
+ * --edge (5px), --ink, --rim, the compact type ladder, the two font stacks and
+ * the three textures all come from `.roast` in roast.css. The wiring pass's first
+ * step hoisted them there precisely so six rooms would stop carrying six copies.
+ * What is declared below is only what is genuinely this room's.
+ *
+ * ─────────────────────────────────────────────────────────────────────────────
+ * CONTRAST — COMPUTED ARITHMETICALLY, NEVER FELT. Method: sRGB relative luminance
+ * per WCAG 2.x (linearise each channel, 0.2126/0.7152/0.0722, ratio = (L1+0.05)/
+ * (L2+0.05), lighter first). Composites are done per-pixel in sRGB and the
+ * resulting 8-bit value is what gets linearised — never an average of two ratios.
+ *
+ * REPRODUCED — the figures this project already published, recomputed from the
+ * hex values. They are the calibration: they are why a NEW figure means anything.
+ *
+ *   --txt  #f2eeff on --plate #151327 ..........  15.98:1   AAA
+ *   --dim  #b8aed0 on --plate ..................   8.67:1   AAA
+ *   #fff           on --plate ..................  18.19:1   AAA
+ *   #000           on --b #ffd400 ..............  14.67:1   AAA   the primary's ink
+ *   --rim  rgba(255,255,255,.44) on --plate ....   4.35:1   the family hairline
+ *   --plate on the ground's pink   #ff3366 .....   5.13:1
+ *   --plate on the ground's lila   #b8aed0 .....   8.67:1
+ *   --plate on the ground's violet #7b5cff .....   4.17:1
+ *   --plate on the ink floor #050409 ...........   1.12:1   NOTHING draws
+ *   --b lime #7b5cff on --plate ................   4.17:1   NAMED DEFECT
+ *   --b lime on --plate lime #0b0813 ...........   4.55:1   AA, no margin
+ *   --a vs --ok, lime ..........................   1.05:1   NAMED DEFECT
+ *   --a vs --ok, amber .........................   1.02:1   NAMED DEFECT
+ *
+ * NEW — same method, and the two that decided this pass:
+ *
+ *   #fff on #000 ...............................  21.00:1   the four .duo headers
+ *   --door-rim rgba(255,255,255,.50) on --plate    5.27:1   the door boundary
+ *   --txt on --plate + film ....................  15.85:1   the film costs 0.13
+ *   --dim on --plate + dither (bright cell) ....   8.13:1   the bounded worst case
+ *   --rim #fff .44 on --ink ....................   4.89:1   a rule that survives the foot
+ *
+ * THE TWO HALF-STRENGTH VALUES, AND WHY THEY ARE NOT THE FAMILY'S.
+ *   `--door-rim` is .50, not the family's .44 (4.35:1). Both clear the 3:1 a real
+ *   boundary needs; .50 is the value the approved menu measured and chose for the
+ *   DOOR's border specifically, and changing it would be editing an approved file
+ *   for nothing. The family `--rim` still draws every hairline in this room.
+ *
+ *   The three halftone bands below are this file's own gradients, NOT `--tex-dot`.
+ *   That token is the family's DARK-GROUND recipe, where a dot has to darken a
+ *   ground that is already dark. Here the dots have to make a shadow on a BRIGHT
+ *   wash, which is a different alpha for the same job — the recipe differs by
+ *   ground luminance, so the cells are shared and the alphas are not.
+ *
+ * ─────────────────────────────────────────────────────────────────────────────
+ * FOUR PLACES THIS PASS DID NOT FOLLOW THE MOCKUP STRICTLY, ALL DECLARED.
+ *
+ *   1. THE EYEBROW AND THE STANDFIRST STAY. §11 says the menu holds the strip and
+ *      the five entries "and nothing else", and the approved mockup builds neither
+ *      `.kick` nor `.rm-standfirst`. Both are the APP'S OWN COPY, and deleting real
+ *      copy is a content decision, not a styling one. So they keep their sentences
+ *      and take plates; the one-line revert is to delete the two rules below and
+ *      the two elements in RoastMenu.tsx.
+ *   2. NO LOADING BAR. The mockup carries `.bar` and `.is-loading` because its JS
+ *      simulated a route transition. The app navigates with <Link>, there is no
+ *      pending state to drive a bar, and inventing one would be inventing UI.
+ *   3. NO STUDY BAR, NO SAMPLE-DATA NOTE, NO SKIP LINK. The first two are bench
+ *      scaffolding, not product. The third is a real affordance the mockup has and
+ *      this page does not — flagged, not added, because a new control is the
+ *      author's call rather than a wiring detail.
+ *   4. THE EXIT KEEPS ITS OWN LABEL AND ITS OWN DESTINATION. The mockup's first chip
+ *      reads `← the lounge`; this room's reads `back to the hub`, with no arrow.
+ *      `ExitLink` is a SHARED component and its label and route travel together in
+ *      `EXITS` on purpose — its own header records why a changed word on an unchanged
+ *      route is "a lie the visitor discovers only by arriving" — so the RESTYLE
+ *      reaches the chip (`.rm-exitrow a`) and the WORD does not. The second chip is
+ *      this room's own markup and takes the mockup's label verbatim.
+ *
+ * ─────────────────────────────────────────────────────────────────────────────
+ * NOTHING HERE IS VERIFIED BY SIGHT. There is no shell and no renderer on this
+ * machine, so every claim above is source review plus arithmetic. THE BUILD HAS RUN
+ * CLEAN (`bun run build`, 2026-10-12): this file typechecks and its CSS parses, which
+ * is NOT the same as having been seen. Where this file predicts a browser — the
+ * rotated frame against `overflow-x: clip`, the exit row's two chips at 360px,
+ * `position: fixed` inside that clip — it is a reading of the spec, and the author
+ * remains the instrument.
+ */
+
+/* ══ the three alternative palettes ═══════════════════════════════════════════
+ * `data-pal` on the ROOM ROOT, which is the family convention: the arena's mockup
+ * documents it as "the menu writes this key, this room reads it". Restated rather
+ * than inherited, because a palette that silently inherits a colour it never chose
+ * is the kind of thing that reads as a rendering bug six months later.
+ *
+ * NOTHING SETS THIS ATTRIBUTE YET, and that is not an oversight. The switcher is a
+ * SETTING, not a menu control — the author's own ruling — so the seam is built and
+ * lives here until the settings layer exists. Until then `heat` is the default by
+ * the absence of the attribute, which is why there is no `[data-pal="heat"]` rule.
+ *
+ * ** CORRECTED, ITEM P2: ** this sentence read `arena`, which is NOT a palette name
+ * anywhere. `RoastPalette` is `heat | mag | lime | amber` (RoastSpecCard.tsx:72), and
+ * the string `"arena"` appeared exactly once in the entire stylesheet tree — in this
+ * sentence. The outcome the sentence argues for is unchanged: there is still no rule
+ * for the default, because the default IS the absence of the attribute.
+ */
+.roast.roast-menu[data-pal="mag"]   { --a: #ff2d95; --b: #00e5ff; --c: #00e5ff; --d: #00e5ff; --plate: #0b0813; }
+.roast.roast-menu[data-pal="lime"]  { --a: #39ff14; --b: #7b5cff; --c: #39ff14; --d: #7b5cff; --plate: #0b0813; }
+.roast.roast-menu[data-pal="amber"] { --a: #ffe600; --b: #ff2d95; --c: #ff2d95; --d: #ffe600; --plate: #0b0813; }
+
+/* ══ the room ═════════════════════════════════════════════════════════════════
+ * `overflow-x: clip` and NOT `hidden`: a hidden axis computes the other to auto
+ * and turns the page into a scroll container. The plate offsets and the tapes
+ * swing outside the frame's box, so something has to clip the horizontal overflow
+ * — and it has to be this element rather than `.rm-col` or `.rm-stage`, because
+ * clipping at either of those would cut the plates and the tapes themselves.
+ *
+ * padding-bottom is plain. The mockup carried `240px` to clear its own study bar;
+ * this page has no such bar, and carrying that value over would leave a screen of
+ * empty ground under the last door.
+ */
+.roast.roast-menu {
+  --door-r: 12px;
+  --door-rim: rgba(255, 255, 255, .50);
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+  padding: 22px 18px calc(28px + env(safe-area-inset-bottom, 0px));
+  overflow-x: clip;
+}
+
+/* ══ THE GROUND — law 13, bright is accent and dark is ground, except here the
+ * bright half IS the ground and no glyph ever touches it. The wash is the FULL
+ * STRENGTH five-stop sunset, which is the author's own ruling for this surface
+ * ("follow prompt and card"): the menu is the bright front desk and every room
+ * behind it is the dark half, so the walk into the arena is a darkening. The
+ * two-thirds version this file used to carry is recorded in roast-menu-design.md
+ * and was overruled. The safety on the luminance is that EVERY glyph here sits on
+ * --plate — that is the whole contract.
+ */
+.roast.roast-menu .rm-tex { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+.roast.roast-menu .rm-wash { position: absolute; inset: 0;
+  background: linear-gradient(135deg, #ffd400 0%, #ff8a1e 22%, #ff3366 48%, #b8aed0 72%, #7b5cff 100%); }
+
+/* The three halftone densities. "we can use them in different sizes in different
+   places, no?" — a 6px tight band at the head, a 12px base across the whole page,
+   and an 18px loose band at the foot. Each is its own element, so the
+   one-texture-per-element rule holds by construction and not by intent, and the
+   masks keep the middle of the page — where the doors are — clean. */
+.roast.roast-menu .rm-halftone { position: absolute; inset: 0; opacity: .5;
+  background-image: radial-gradient(rgba(20, 8, 40, .30) 1px, transparent 1.5px);
+  background-size: 12px 12px; }
+.roast.roast-menu .rm-halftone.tight { opacity: .42;
+  background-image: radial-gradient(rgba(20, 8, 40, .26) 1px, transparent 1.4px);
+  background-size: 6px 6px;
+  -webkit-mask-image: linear-gradient(180deg, #000 0 12%, transparent 26%);
+          mask-image: linear-gradient(180deg, #000 0 12%, transparent 26%); }
+.roast.roast-menu .rm-halftone.loose { opacity: .4;
+  background-image: radial-gradient(rgba(20, 8, 40, .22) 1px, transparent 1.5px);
+  background-size: 18px 18px; background-position: 9px 7px;
+  -webkit-mask-image: linear-gradient(0deg, #000 0 30%, transparent 58%);
+          mask-image: linear-gradient(0deg, #000 0 30%, transparent 58%); }
+
+/* ══ the column ═══════════════════════════════════════════════════════════════ */
+.roast.roast-menu .rm-col { position: relative; z-index: 1; width: 100%; max-width: 400px; margin: 0 auto; }
+
+/* ══ THE EXIT — law 8: above the frame, centred, where ExitLink puts it.
+ * ExitLink is a SHARED component and is not replaced; this rule reaches only the
+ * copy of it inside this room, which is why it is written against `.rm-exitrow a`
+ * and not against a menu class. The app's exit is lounge-styled (text-muted-
+ * foreground, no ground); here it takes a plate and arena type, so no glyph in
+ * this room sits on the wash. Presentation restyle only.
+ *
+ * THE ROW CARRIES TWO CHIPS NOW — the way back to the lounge, and the hop into the
+ * MINI COMPOSITOR (roast's own drink card, shipped from `public/roast/`; the page is
+ * the app's own markup, so it takes the mockup's label verbatim). The exit itself
+ * keeps `ExitLink`'s label and destination unchanged — see item 4 in this file's
+ * header — because a shared component's word is not a restyle.
+ */
+
+/* FLEX, and NOT the `text-align: center` this rule REPLACED: two chips have to sit
+ * beside each other without butting, and a `margin-left` on the second would
+ * LEFT-SHIFT the wrapped line at narrow widths. `justify-content: center` centres a
+ * single chip exactly as `text-align` did, so a one-chip row is unchanged;
+ * `flex-wrap` keeps both centred once the pair wraps.
+ *
+ * 360px ARITHMETIC — this is the widest thing above the frame, and it is TIGHT.
+ * `--fs-label` is 10.5px (the compact ladder), uppercase with .12em tracking: the
+ * advance is ~8.05px/char, DERIVED from the approved mockup's own two figures
+ * (`← the lounge` ~124px at 10 chars, `mini compositor →` ~166px at 15), which
+ * agree with each other.
+ *
+ *   "back to the hub"     14 chars → 113 + 30 (padding 24 + border 6)      = ~143px
+ *   "mini compositor →"   15 chars → 121 + 30 + 14 (arrow span + gap)      = ~165px
+ *   row gap 8 ................. TOTAL .................................... = ~316px
+ *
+ * against `.roast-menu`'s 360 − 36 (padding-inline 18) = 324px of column. So the pair
+ * fits by ~8px — which is INSIDE the error of a per-character estimate, so it may wrap
+ * at 360px. Below 359px the padding becomes 12px and the column is 296px at 320px, so
+ * there it DOES wrap: two centred lines, which is the backstop working, not a break.
+ * ONE-LINE LEVER if it reads cramped: delete the `→` span (saves ~14px, → ~302px).
+ */
+.roast.roast-menu .rm-exitrow {
+  display: flex; flex-wrap: wrap; justify-content: center; align-items: center;
+  gap: 8px; margin-bottom: 12px;
+}
+.roast.roast-menu .rm-exitrow a {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 12px;
+  background: var(--plate); border: var(--p-edge) solid #000; box-shadow: 3px 3px 0 #000;
+  color: var(--txt); text-decoration: none;
+  font-size: var(--fs-label); letter-spacing: .12em; text-transform: uppercase;
+  transition: box-shadow .15s var(--ease), transform .15s var(--ease);
+}
+/* hover raises the RIM and lifts the chip. The foreground never changes toward the
+   background, so the label's 15.98:1 never falls. */
+.roast.roast-menu .rm-exitrow a:hover { box-shadow: 3px 3px 0 #000, 0 0 0 2px var(--b); transform: translateY(-1px); }
+/* F2 — THE CHIP'S RING, which had NONE in this sheet: `.rm-exitrow a` fell through to
+   index.css's global `:focus-visible` (2px gold, (0,1,0)) — a tone measured against
+   nothing here, and a single one at that. Two-tone, in the house form roast-arena's
+   `.vbtn:focus-visible` carries: white on the chip's --plate ground is this sheet's own
+   18.19:1; the black halo takes the arc that leaves the plate and meets the wash, and
+   black is arithmetically DARKER than --plate, so the sheet's own 4.17–8.67:1 for
+   --plate against every wash hold for the halo too, with margin. The halo is APPENDED to the chip's existing hard shadow, not substituted:
+   box-shadow is a shorthand and a bare list would delete the 3px offset plate. Declared
+   AFTER the hover rule on purpose: both are (0,3,0) and a focused chip may also be
+   hovered, so source order is what keeps the halo from being overwritten by the hover's
+   2px --b rim. */
+.roast.roast-menu .rm-exitrow a:focus-visible {
+  outline: 3px solid #fff; outline-offset: 2px;
+  box-shadow: 3px 3px 0 #000, 0 0 0 5px #000;
+}
+
+/* ══ THE FRAME — the plain plate at frame scale: --plate fill, a 5px hard black
+ * edge, a 5px offset black plate, square and rotated. NO keyline, NO notch, NO
+ * pixel corners, NO soft radius, NO scrim, NO backdrop-filter: all six were in
+ * this file before this pass and all six are DON'T in the 2026-10-09 selection.
+ * `frame-edge` is 4-5px, and `--edge` is the family's 5px.
+ */
+.roast.roast-menu .rm-stage { position: relative; }
+.roast.roast-menu .plate { position: absolute; inset: 0; z-index: -1; pointer-events: none; }
+/* shadow-plates, capped by the author's defect report: TWO colours, TWO plates,
+   glow kept. Both offsets are down-right, so no corner of either can appear at the
+   bottom-left, and both are inset so a .6deg rotation cannot swing a corner past
+   the frame's own silhouette. */
+.roast.roast-menu .plate-a { inset: 3px; background: var(--a); transform: translate(9px, 12px) rotate(.6deg); }
+.roast.roast-menu .plate-b { inset: 6px; background: var(--b); opacity: .9; transform: translate(18px, 23px) rotate(-.6deg);
+  box-shadow: 7px 9px 16px color-mix(in srgb, var(--b) 55%, transparent),
+              0 0 9px  color-mix(in srgb, var(--b) 45%, transparent); }
+
+.roast.roast-menu .rm-frame {
+  position: relative; z-index: 2;
+  background: var(--plate);
+  border: var(--edge) solid #000;
+  transform: rotate(-.6deg);
+  padding: 13px 12px 14px;
+  display: flex; flex-direction: column; gap: 10px;
+  /* ONE shadow, and its second half is the plate's own edge where the fill cannot
+     draw one. --plate is 1.12:1 against the ink floor and 4.17:1 against the ground's
+     violet stop, so at the foot of the page the fill boundary is gone; the hairline is
+     4.35:1 on the plate and 4.89:1 on ink, so it draws the silhouette everywhere the
+     fill cannot. NOT `overflow: hidden` on this element: it would cut the doors' own
+     drop shadows at the plate's bottom edge, which is the whole reason the film drifts
+     on `background-position` instead of a transform. */
+  box-shadow: 5px 5px 0 #000, inset 0 0 0 1px var(--rim);
+  overflow: visible;
+}
+/* NO HALFTONE INSIDE THE FRAME. The card's dot fields used to live on this element,
+   and this is precisely where they collided with the film — the author's own
+   diagnosis, "if we have it all in the same element (menu card)". The plate's one
+   texture is the `.rm-film` child below; the ground keeps the dots. Nothing is
+   drawn on this element twice. */
+.roast.roast-menu .rm-frame > * { position: relative; z-index: 2; }
+
+/* THE FILM — the plate's texture, and the only one on it. A CHILD of the frame, so
+   the scanlines stop dead at the plate's edge and the wash behind keeps halftone
+   only. It sits ABOVE the doors — "a light film on top, gicing it like a old monitor
+   effect" — so every glyph on the plate is under it, and it is inert. The geometry
+   is the family token: 1px of light every 5px, the value the author tested against a
+   2px/6px alternative and kept.
+   The drift is `background-position` and NOT a transform, on purpose: a translated
+   layer needs overscan to avoid baring a 5px band at the plate's top edge, and the
+   frame cannot clip it — `overflow: hidden` would cut the doors' own drop shadows at
+   the bottom. The repaint cost is the honest price of a correct edge.
+   THE SELECTOR IS SCOPED because the base rule is `.rm-frame > .rm-film`; a bare
+   `.rm-film` in the reduced-motion block would lose to it on specificity no matter
+   that it comes later. Both blocks reach the same declaration. */
+.roast.roast-menu .rm-frame > .rm-film {
+  position: absolute; inset: 0; z-index: 3; pointer-events: none;
+  background-image: var(--tex-film);
+  background-position: 0 0;
+  animation: rm-film-drift 9s linear infinite;
+}
+@keyframes rm-film-drift { from { background-position: 0 0; } to { background-position: 0 5px; } }
+
+/* ══ THE TAPE. "just holding things up", placed at random. Four pieces, and their
+ * positions are relative to the STAGE rather than to any content, so they follow the
+ * frame's own box whatever it grows to: tapes 1 and 2 sit on its top edge and tapes 3
+ * and 4 straddle its bottom edge, at every viewport.
+ *
+ * WHY THEY CANNOT COLLIDE WITH A GLYPH. The frame's 5px border and 13px padding put its
+ * first in-flow child — the eyebrow — at y=18 from the stage's top, and tapes 1 and 2
+ * end at y=6 and y=7, so the top pair clears it by 11px. The two bottom tapes sit 13px
+ * BELOW the frame's bottom edge, under the last door's own 10px bottom padding, so
+ * nothing inside the plate can reach them. Rotation excursion is at most +-6px at 104px
+ * wide, which is inside both margins.
+ *
+ * THIS DIFFERS FROM THE MOCKUP'S OWN NOTE, which priced the title patch at y 17-59. The
+ * app's frame carries the eyebrow and the standfirst ABOVE that patch, so its content
+ * sits lower — which is exactly why this note measures against the FIRST child rather
+ * than against the title, and why the tape positions are tied to the stage's edges and
+ * not to a content offset.
+ */
+.roast.roast-menu .rm-tape {
+  position: absolute; z-index: 3; height: 26px; width: 104px; pointer-events: none;
+  background-image:
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, .06) 0 2px, transparent 2px 4px),
+    linear-gradient(180deg, rgba(255, 250, 235, .34), rgba(255, 250, 235, .18));
+  border-left: 1px solid rgba(255, 255, 255, .36);
+  border-right: 1px solid rgba(255, 255, 255, .36);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, .28);
+}
+.roast.roast-menu .rm-tape.t1 { right: -34px; top: -16px; height: 22px; transform: rotate(8deg); }
+.roast.roast-menu .rm-tape.t2 { left: 52%; top: -15px; height: 22px; transform: rotate(-5deg); margin-left: -41px; }
+.roast.roast-menu .rm-tape.t3 { left: -40px; bottom: -13px; transform: rotate(-7deg); }
+.roast.roast-menu .rm-tape.t4 { right: -30px; bottom: 0; width: 76px; transform: rotate(5deg); }
+
+/* ══ .duo — THE FOUR DARK DOORS' HEADERS, two prints. His mark, verbatim: "and
+ * here, 2 print, just a shadow on black, same for the rest of the headers in the
+ * menu (editor, drinks, your things, review)".
+ *
+ * WHY THE BLACK HAD TO BECOME A GROUND INSTEAD OF A TEXT-SHADOW. The door's fill is
+ * `--plate` mixed 88% with transparent, so 12% of a BRIGHT wash sits inside the
+ * panel. An offset black shadow therefore landed on a ground that was already dark
+ * maroon: the black impression read as black ink nowhere, and what the eye actually
+ * saw beside the white glyph was the wash's pink bleeding through — a third
+ * impression made of the background. A heavier shadow could not have fixed that,
+ * because the shadow was never the thing being seen.
+ *
+ * So the key plate is an OPAQUE #000 ground under the words: two impressions, in
+ * print order — the paper (the white glyph) and the black key. The asymmetry of the
+ * padding does the shadow's work without a second element (4px more ink right than
+ * left, 2px more below than above), which is how a plate laid down slightly off
+ * register reads. No fringe, no second colour: the accent's third impression stays
+ * on the page's own name, so the accent budget is still two.
+ *
+ * NO ROTATION HERE. The -0.6deg belongs to the page name, where it separates three
+ * impressions; at 17px inside a door's padding it would tilt four headers against
+ * the door's own clean edge and buy nothing. That is his own noise ruling.
+ *
+ * MEASURED: #fff on #000 = 21.00:1, and for the first time in this room that figure
+ * does not depend on what the wash is doing behind the door. The door remains the
+ * 44px target; the header is not a control and adds no hit area.
+ * `width: fit-content` so the plate hugs the words — a block-level span would paint
+ * a black band across the door's full inner width and cross its radius.
+ */
+.roast.roast-menu .rm-entry .name.duo {
+  display: block; width: fit-content; max-width: 100%;
+  background: #000; padding: 2px 9px 4px 5px;
+}
+
+/* ══ .triple — THE PAGE'S NAME, and only the page's name. His mark, verbatim: "i
+ * want a triple-print name here", with the source named —
+ * runs/agent-skills/v1.html · .card-name · text-shadow: 3px 3px 0 #000,
+ * 6px 6px 0 var(--b) · transform: rotate(-.6deg). Copied value for value.
+ *
+ * Three impressions of one set of words, laid down the way a misregistered press
+ * does it: the paper (the white glyph), the key plate in black at 3px, then --b
+ * alone at 6px. Shadow order is the card's — the first entry paints on top, so black
+ * sits over --b and --b is never covered by the black plate.
+ *
+ * WHY THE ROTATION IS PART OF IT, in his words: "The -0.6deg is what stops it
+ * reading as a CSS drop shadow — the second plate is rotated with the first." A
+ * transform rotates the painted glyph AND both impressions together; a shadow alone
+ * would leave two axis-aligned copies, which is the box-shadow tell.
+ *
+ * NO BRIGHT PLATE UNDER TEXT: neither impression overlaps the glyph, so --b carries
+ * no text and law 13 is untouched.
+ */
+.roast.roast-menu .triple { text-shadow: 3px 3px 0 #000, 6px 6px 0 var(--b); }
+
+/* ══ tf-plate — a --plate panel under a display line. "we need those plate baby."
+ * Here it reads as a printed patch: the frame is already --plate, so the patch shows
+ * as its own black edge and hard shadow.
+ *
+ * THE 2px PAPER OUTLINE — his mark, verbatim: "can we get some outline here for
+ * better definition? make it 2 px to begin with". WHY IT WAS UNDEFINED, MEASURED:
+ * the patch's fill IS the frame's ground (the same --plate token, so 1:1) and both
+ * its edge and its hard shadow are #000, which is 1.15:1 against #151327. The patch
+ * was a shape the eye had to infer from the glyph inside it.
+ *
+ * The outline is the file's own paper — #fff, the same value as the doors' key plate
+ * — so no colour enters the palette and no ratio is invented: #fff on --plate is
+ * 18.19:1, the figure already published for this element's TEXT, now carrying its
+ * EDGE too. `outline-offset: 0` keeps it flush against the black border so the ring
+ * reads as ONE pressed edge, and an outline never affects layout, so nothing moves.
+ *
+ * SCOPE, and the author's revision: the mark named the title patch, and this class
+ * has exactly three instances — the title, and the strip's two readouts — all three
+ * of which carried the identical 1.15:1 edge. One ringed patch beside two unringed
+ * ones on the same line is the mixed statement, so the note holds for the class.
+ */
+.roast.roast-menu .tf-plate {
+  display: inline-block; max-width: 100%;
+  border: 3px solid #000;
+  box-shadow: 3px 3px 0 #000;
+  padding: 2px 7px 3px;
+  outline: 2px solid #fff; outline-offset: 0;
+  background-color: var(--plate);
+  /* THE DITHER, as a background LAYER on the patch itself and never a pseudo-element
+     over the glyph: a background layer always paints under the text, so the plate's
+     contrast is untouched by construction and no z-index has to be invented. The cell
+     and the alphas are the family tokens from roast.css. */
+  background-image: var(--tex-dither);
+  background-size: var(--dither-cell) var(--dither-cell), var(--dither-cell) var(--dither-cell);
+  background-position: 0 0, calc(var(--dither-cell) / 2) calc(var(--dither-cell) / 2);
+}
+/* `.big` is used by ONE element — the page's name. This padding is the patch's
+   clearance for the third impression: a 6px offset needs 6px of padding-box to land
+   inside it, and 9px/6px left the --b plate flush against the 3px black edge, which
+   reads as a clip rather than a print. +3px right, +4px bottom. Nothing else moves:
+   tapes 1 and 2 sit entirely above the title's band. */
+.roast.roast-menu .tf-plate.big { padding: 5px 12px 10px; box-shadow: 4px 4px 0 #000; }
+
+/* ══ THE HEAD ═════════════════════════════════════════════════════════════════ */
+.roast.roast-menu .rm-title { font-size: var(--fs-display-xs); line-height: 1; margin: 0; }
+.roast.roast-menu .rm-title .t {
+  font-family: var(--font-display); font-style: italic; text-transform: uppercase;
+  letter-spacing: -.012em; font-size: var(--fs-display-xs); line-height: 1; color: #fff;
+  display: inline-block; transform: rotate(-.6deg); transform-origin: 50% 50%;
+}
+/* THE TWO ELEMENTS the approved mockup does not build. They are the app's own copy,
+   they stay, and they take the plate: `.kick` is roast.css's own class (sans,
+   --fs-label, .16em) and is only narrowed here; `.rm-standfirst` is this file's. Both
+   read --dim on --plate at 8.67:1. Delete these two rules and their two elements to
+   go strict with §11. */
+.roast.roast-menu .rm-title + .rm-standfirst { margin-top: 8px; }
+.roast.roast-menu .kick { font-size: var(--fs-micro); letter-spacing: .14em; margin: 0; }
+.roast.roast-menu .rm-standfirst { margin: 0; font-size: var(--fs-small); line-height: 1.45; color: var(--dim); }
+
+/* ══ THE STANDING STRIP — exactly three facts, one line at 414 and two at 360.
+ * The groups wrap as UNITS, so a wrap can never split a label from its number.
+ * Each fact group is min-height 44px: the handle is a control, and a text-sized
+ * target is not one.
+ */
+.roast.roast-menu .rm-strip { display: flex; align-items: center; flex-wrap: wrap; gap: 2px 10px; min-height: 44px; }
+.roast.roast-menu .fact { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; }
+.roast.roast-menu .rm-strip .lbl { font-size: var(--fs-micro); letter-spacing: .12em; text-transform: uppercase; color: var(--dim); }
+.roast.roast-menu .rm-strip .num {
+  font-family: var(--font-display); font-style: italic; font-size: var(--fs-action);
+  line-height: 1; color: #fff; font-variant-numeric: tabular-nums; padding: 1px 6px 3px;
+}
+
+/* ── THE HANDLE'S PRESSED EDGE — his mark, verbatim: "Give the strip's handle the
+ * same pressed edge". The handle is the third fact on this line and the only
+ * CONTROL on it, and it was the only one the press had not touched: the two readouts
+ * carry the black plate, the paper ring and the dither, and the handle sat as bare
+ * white type on a dashed underline — its ink on the frame's --plate ground with NO
+ * boundary at all, 1:1. That is the same defect the mark before it named on the
+ * title patch, so it takes the same recipe, and the three facts on the line now read
+ * as three impressions off one press.
+ *
+ * `.rm-handle` IS IN THE SAME SELECTOR LIST, and it has to be: it stands in the
+ * handle's place while the editor is open, so its box must match the button's or the
+ * strip jumps — the one thing that function promises it will not do. Same border,
+ * same ring, same plate, same padding, same 44px minimum.
+ *
+ * THE BLACK OFFSET IS GONE WITH IT — the old `text-shadow: 2px 2px 0 #000`. It
+ * became invisible the moment the plate arrived: black on --plate is the file's own
+ * REJECTED figure, 1.15:1, so it painted nothing. The patch IS the impression now.
+ *
+ * 360px ARITHMETIC, since this is the strip's widest control: the 32-char handle
+ * (the app's ceiling — lib/nickname.ts is frozen) measures ~224px of Impact italic
+ * at 15px, + 18px padding + 6px border = ~248px, inside ~328px of strip at 360px and
+ * ~296px at 320px. `max-width: 100%` is the backstop, not the plan.
+ */
+.roast.roast-menu .who,
+.roast.roast-menu .rm-handle {
+  border: 3px solid #000; box-shadow: 3px 3px 0 #000;
+  outline: 2px solid #fff; outline-offset: 0;
+  background-color: var(--plate);
+  background-image: var(--tex-dither);
+  background-size: var(--dither-cell) var(--dither-cell), var(--dither-cell) var(--dither-cell);
+  background-position: 0 0, calc(var(--dither-cell) / 2) calc(var(--dither-cell) / 2);
+  padding: 6px 9px 7px;
+  transition: box-shadow .15s var(--ease), transform .15s var(--ease);
+}
+/* the handle IS the edit control. The dashed underline is the whole hint, and the
+   target is the width of the word rather than a separate edit link beside it. The
+   hint rides the NAME alone, INSIDE the patch: the patch's own edge is the pressed
+   edge, and a dashed border on the element would be a second, competing edge.
+   THE `edit` CHIP THE MOCKUP CARRIES IS NOT BUILT — it is micro-copy, and this pass
+   does not add copy to the app. The button keeps its existing `title` instead, which
+   is where the hint already lived. */
+.roast.roast-menu .who {
+  min-height: 44px; display: inline-flex; align-items: center; max-width: 100%;
+  cursor: pointer;
+  font-family: var(--font-display); font-style: italic; text-transform: uppercase;
+  font-size: var(--fs-body); letter-spacing: -.012em; color: #fff; line-height: 1;
+}
+.roast.roast-menu .who-t {
+  border-bottom: 1px dashed color-mix(in srgb, var(--dim) 55%, transparent);
+  padding-bottom: 2px;
+}
+/* THE STATE GESTURE — hover LIFTS, active PRESSES. Shadow and position only, so the
+   ground never moves and 18.19:1 holds in every state. A colour-only hover was
+   rejected on measurement: darkening --plate by 20% moves OKLch L from 0.200 to
+   0.180 — 0.02, under the 0.06 the state rule asks for, so it would read as nothing. */
+.roast.roast-menu .who:hover,
+.roast.roast-menu .who:focus-visible { box-shadow: 4px 4px 0 #000; transform: translate(-1px, -1px); }
+.roast.roast-menu .who:hover .who-t,
+.roast.roast-menu .who:focus-visible .who-t { border-bottom-color: var(--b); }
+.roast.roast-menu .who:active { box-shadow: 1px 1px 0 #000; transform: translate(2px, 2px); }
+/* F2 — THE FOCUS RING, REWRITTEN. ** SUPERSEDED BY ITEM F2 ** — the rule this replaces
+   read `outline: 3px solid var(--b)`: single-tone, and --b-on-plate is this sheet's own
+   NAMED DEFECT at 4.17:1 in the default palette (worse in `lime`, where the accent sits
+   nearest the wash). The replacement is the project's two-tone paper/black ring, the
+   form roast-keep gives `.primary` and roast-arena gives `.vbtn`: #fff on the patch's
+   --plate ground is this sheet's 18.19:1; the black halo covers the arc over the wash
+   (black is darker than --plate, so at every stop the sheet measured ≥4.17:1 holds for
+   it by arithmetic) and fills the 2px offset gap against the patch's own black border.
+   The halo is appended PER ELEMENT because `.who` and `.rm-handle` hold different shadow
+   lists — the handle's carries its `--b` inset — and one shorthand restatement for the
+   pair would delete the other's list. The old comment's other half stays true and is
+   kept: these rules at (0,3,0) beat both index.css's global gold ring and this file's
+   (0,2,0) base paper ring, so the outline shorthand cannot be stolen from them by any
+   later rule in this sheet. */
+.roast.roast-menu .who:focus-visible {
+  outline: 3px solid #fff; outline-offset: 2px;
+  box-shadow: 4px 4px 0 #000, 0 0 0 5px #000;
+}
+.roast.roast-menu .rm-handle:focus-visible {
+  outline: 3px solid #fff; outline-offset: 2px;
+  box-shadow: 3px 3px 0 #000, inset 0 -2px 0 var(--b), 0 0 0 5px #000;
+}
+/* the input: a FIELD, so its width is the field's width by design. Its live rule is
+   an INSET and not the old 2px --b border-bottom — the patch's edge is the pressed
+   edge now, and a bright bottom border would have replaced the plate's own black edge
+   with a lit one. The inset paints above the plate and BELOW the glyph, so no text
+   sits on --b (law 13), and the open state is signalled beyond colour by the field
+   itself (law 5). */
+.roast.roast-menu .rm-handle {
+  font-family: var(--font-display); font-style: italic; text-transform: uppercase;
+  letter-spacing: -.012em; font-size: var(--fs-body); line-height: 1; color: #fff;
+  box-shadow: 3px 3px 0 #000, inset 0 -2px 0 var(--b);
+  width: 22ch; max-width: 100%; min-height: 44px;
+}
+/* NO FLASH OF ZERO. The number slot is reserved by a hatch, never by a 0. The hatch
+   is the record bars' own "not yet" idiom, so it is the same hand. The patch's own
+   3px black edge and paper ring frame it — no second border. It is aria-hidden and
+   the STRIP carries aria-busy, which is the correct primitive for "this container is
+   still loading". */
+.roast.roast-menu .pend {
+  display: inline-block; width: 30px; height: 17px; vertical-align: middle;
+  background: repeating-linear-gradient(45deg,
+    color-mix(in srgb, var(--dim) 30%, transparent) 0 2px, transparent 2px 5px);
+}
+.roast.roast-menu .rm-strip[aria-busy="true"] .lbl { opacity: .72; }
+
+/* ══ THE FIVE ROOMS. Each door takes the CARD'S PAN RIM — a lit 1px edge, a real
+ * radius, inner bevels, a drop shadow — because a --plate plate on a --plate frame
+ * has a 1.15:1 boundary and vanishes. That is the same finding the patch above was
+ * cured for, and the fix is the same shape.
+ */
+.roast.roast-menu .rm-entries { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.roast.roast-menu .rm-entry {
+  display: block; position: relative; text-decoration: none;
+  background: color-mix(in srgb, var(--plate) 88%, transparent);
+  border: 1px solid var(--door-rim); border-radius: var(--door-r);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .34),
+              inset 0 -1px 0 rgba(255, 255, 255, .10),
+              0 5px 16px rgba(0, 0, 0, .42);
+  padding: 9px 11px 10px; min-height: 44px;
+  transition: border-color .15s var(--ease), transform .15s var(--ease), box-shadow .15s var(--ease);
+}
+/* F2 — THE HOVER HALF, split off the old shared block so the focus half can carry a
+   ring. Hover's appearance is byte-identical to what it was; it never lowers contrast —
+   the foreground does not move and the boundary only brightens. */
+.roast.roast-menu .rm-entry:hover {
+  border-color: var(--b); transform: translateY(-1px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .40),
+              inset 0 -1px 0 rgba(255, 255, 255, .12),
+              0 8px 20px rgba(0, 0, 0, .48);
+}
+/* F2 — THE FOCUS RING, and the note that supersedes the old shared block.
+   ** SUPERSEDED BY ITEM F2 ** — this was ONE `:hover, :focus-visible` rule ending in
+   `outline: none`; at runtime that computed to `outline-style: none` on all five doors,
+   so keyboard focus was invisible and the state rested on border-color plus a 1px lift
+   — and `prefers-reduced-motion` kills the lift, leaving colour alone (law 5).
+   Focus now carries the project's TWO-TONE ring — white paper outside, black halo
+   inside — because no single tone clears 3:1 on both grounds the ring's arc meets: #fff
+   on the frame's --plate is this sheet's own 18.19:1, while the halo is black and black
+   is arithmetically darker than --plate, so the sheet's ≥4.17:1 against every wash stop
+   holds for it, and 14.67:1 at the wash's yellow stop. The halo is APPENDED to the
+   door's shadow list — box-shadow is a shorthand, so a bare restatement would drop the
+   inset bevels and the drop shadow and flatten the door. Same recipe as roast-arena's
+   `.vbtn:focus-visible` and roast-keep's `.primary`. CASCADE: this rule is (0,3,0) and
+   no later rule in this sheet sets `outline` on `.rm-entry`; the primary restates its
+   own ring below at (0,4,0) because its shadow list differs. */
+.roast.roast-menu .rm-entry:focus-visible {
+  border-color: var(--b); transform: translateY(-1px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .40),
+              inset 0 -1px 0 rgba(255, 255, 255, .12),
+              0 8px 20px rgba(0, 0, 0, .48),
+              0 0 0 5px #000;
+  outline: 3px solid #fff; outline-offset: 2px;
+}
+.roast.roast-menu .rm-entry:active {
+  transform: translateY(1px); border-color: var(--b);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, .45),
+              inset 0 -1px 0 rgba(255, 255, 255, .10),
+              0 2px 6px rgba(0, 0, 0, .40);
+}
+.roast.roast-menu .rm-entry .name {
+  display: block;
+  font-family: var(--font-display); font-style: italic; text-transform: uppercase;
+  letter-spacing: -.012em; font-size: var(--fs-action);
+  line-height: 1.05; color: #fff;
+}
+/* The blurb is a footnote on --dim and takes NO plate: the mark named the headers,
+   and a second black patch on the same door is the redundancy the author has already
+   rejected twice. --dim on --plate is 8.67:1, and the film costs it 0.07. */
+.roast.roast-menu .rm-entry .blurb {
+  display: block; margin-top: 4px; font-size: var(--fs-label); line-height: 1.38;
+  color: var(--dim); text-wrap: pretty; -webkit-hyphens: none; hyphens: none;
+}
+
+/* THE ONE PRIMARY. "start must be the easiest action on the screen" — position 1, a
+   full --b fill, #000 text at 14.67:1, and the heaviest shadow. One solid primary per
+   viewport; the other four are peers. No fringe here at all: a coloured edge on a
+   solid fill is noise, so the Arena's name is exempt from `.duo` — its ground is the
+   accent fill, opaque already, and #000 on --b has no room for a black plate. */
+.roast.roast-menu .rm-entry--primary {
+  background: var(--b); border-color: #000;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .55),
+              0 5px 18px rgba(0, 0, 0, .45),
+              5px 5px 0 #000;
+}
+.roast.roast-menu .rm-entry--primary .name { color: #000; text-shadow: none; }
+.roast.roast-menu .rm-entry--primary .blurb { color: #000; }
+.roast.roast-menu .rm-entry--primary:hover {
+  background: color-mix(in srgb, var(--b) 82%, #fff);
+  border-color: #000; transform: translateY(-1px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .6),
+              0 9px 22px rgba(0, 0, 0, .5),
+              6px 6px 0 #000;
+}
+/* F2 — THE PRIMARY'S RING, restated in full rather than left to
+   `.rm-entry:focus-visible` above: this element matches that (0,3,0) rule AND this
+   file's (0,3,0) `:hover, :focus-visible` block, and one more class plus later source
+   make this the deciding rule — the outline-stealing trap in its box-shadow form: a
+   focused primary left under a pointer would otherwise take the halo-less hover list.
+   The ring is the same two-tone; on this door the black does the inside work (the
+   #000 border continues unbroken into the halo-filled 2px gap against the fill, whose
+   ink this sheet measures at 14.67:1) and the white reads against the plate and wash
+   beyond, at the sheet's 18.19:1 and its ≥4.17:1. The same reason roast-keep gives
+   `.primary` the paper/black ring: the ground IS --b, so no accent tone can ring it. */
+.roast.roast-menu .rm-entry--primary:focus-visible {
+  background: color-mix(in srgb, var(--b) 82%, #fff);
+  border-color: #000; transform: translateY(-1px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .6),
+              0 9px 22px rgba(0, 0, 0, .5),
+              6px 6px 0 #000,
+              0 0 0 5px #000;
+  outline: 3px solid #fff; outline-offset: 2px;
+}
+/* :active arrives while :hover is still true, so the primary's black edge has to be
+   restated here or a pressed Arena door loses its edge against its own fill. */
+.roast.roast-menu .rm-entry--primary:active {
+  transform: translateY(1px); border-color: #000;
+  box-shadow: inset 0 2px 5px rgba(0, 0, 0, .30), 3px 3px 0 #000;
+}
+
+/* ══ REDUCED MOTION — a branch, not an afterthought. The effect opted out of is the
+ * MOVEMENT, not the colour: the wash, the three halftone bands, the dither on the
+ * patches, the film on the plate, the tape and the two shadow plates are the page
+ * and they all stay. Only motion stops, and the film stops VISIBLE AND STILL — it
+ * does not disappear.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .roast.roast-menu .rm-frame > .rm-film { animation: none; }
+  .roast.roast-menu .rm-entry,
+  .roast.roast-menu .rm-exitrow a,
+  .roast.roast-menu .who { transition: none; }
+  .roast.roast-menu .rm-entry:hover,
+  .roast.roast-menu .rm-entry:focus-visible,
+  .roast.roast-menu .rm-entry:active,
+  .roast.roast-menu .rm-exitrow a:hover,
+  .roast.roast-menu .who:hover,
+  .roast.roast-menu .who:focus-visible,
+  .roast.roast-menu .who:active { transform: none; }
+  /* the handle patch keeps its resting shadow pinned, so a press cannot look like a
+     state change that never happened. FOCUS KEEPS ITS HALO, split off below (F2): the
+     pin predates the two-tone ring, and its one-shadow-for-all would strip the black
+     tone back out under reduced motion — leaving the single tone law 5 forbids. The
+     lift is already silenced by `transform: none` above; only the position is pinned. */
+  .roast.roast-menu .who:hover,
+  .roast.roast-menu .who:active { box-shadow: 3px 3px 0 #000; }
+  .roast.roast-menu .who:focus-visible { box-shadow: 3px 3px 0 #000, 0 0 0 5px #000; }
+}
+
+/* The narrow branch. 320px is the last viewport where the strip's widest control
+   still fits on one line; below the 360px canvas the blurb drops a step rather than
+   wrapping to four lines. */
+@media (max-width: 359px) {
+  .roast.roast-menu { padding-inline: 12px; }
+  .roast.roast-menu .rm-entry .blurb { font-size: var(--fs-micro); }
+}

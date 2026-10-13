@@ -9,8 +9,13 @@
  *
  * Wave 6 (UI/UX): the card gained an animated conic edge, a bottom-up illustration reveal, deck
  * ghosts behind it, a commit stamp at the 40% threshold, a haptic pulse on threshold crossing,
- * and a 3D tilt toward the thumb. The gesture itself — 40% threshold, 250ms fly-off,
- * react-swipeable, `trackMouse: false`, the `flyingRef` mutex — is deliberately untouched.
+ * and a 3D tilt toward the thumb. ** SUPERSEDED BY ITEM F16 ** the commit path is no longer
+ * wholly untouched: `handleSwiped` now branches on `prefersReducedMotion()`, because the
+ * global CSS guard in index.css zeroes the fly-off animation but not the setTimeout that
+ * names the same duration — a reduced-motion visitor would otherwise eat a dead 250ms pause.
+ * Under reduced motion the vote commits instantly and no fly-off state is ever set. The 40%
+ * threshold, the 250ms fly-off itself, react-swipeable, `trackMouse: false` and the
+ * `flyingRef` mutex remain deliberately untouched.
  *
  * Annotation Convention: data-section attributes map to DevTools → grep
  *   - data-section="swipe-container" → outermost swipeable wrapper
@@ -26,6 +31,7 @@ import type { Cocktail } from "@/types/cocktail";
 import { RecipeDetails } from "./RecipeDetails";
 import { useSwipeable } from "react-swipeable";
 import { cocktailArt } from "@/lib/cocktailArt";
+import { prefersReducedMotion } from "@/lib/motion";
 
 /** Duration of the fly-off animation in ms — synchronized with SWIPE_FLYOFF_DURATION_MS in Census.tsx (Wave 4) */
 export const SWIPE_FLYOFF_DURATION_MS = 250;
@@ -81,6 +87,22 @@ export const CocktailCard = ({
     (direction: "left" | "right") => {
       if (flyingRef.current) return;
       flyingRef.current = true;
+
+      // Reduced motion: index.css zeroes the fly-off animation, but nothing zeroes the
+      // setTimeout below — waiting it out would be a dead pause with no movement in it. So
+      // the vote commits immediately and the fly-off transient state is never set. The
+      // `flyingRef` claim above stays first on BOTH paths: the instant path makes it more
+      // load-bearing, since it is what stops the second handler react-swipeable fires in the
+      // same tick from double-voting. Hub.tsx's `goTo` is the reference shape for this branch.
+      if (prefersReducedMotion()) {
+        onVote(
+          cocktail.id,
+          cocktail.standardRecipe.id,
+          direction === "right" ? "agree" : "disagree"
+        );
+        return;
+      }
+
       setIsFlying(true);
       setSwipeDirection(direction);
 

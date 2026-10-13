@@ -1,0 +1,85 @@
+{
+  "version": "bcb-2026-10-12.v1",
+  "noticeVersion": "notice-2026-10-12.v1",
+  "media": "email",
+  "controller": {
+    "name": "Bernardo Pingarrón",
+    "email": "barnerd_info@proton.me"
+  },
+  "purposes": [
+    "rm-beta",
+    "roast-beta",
+    "news"
+  ],
+  "noticeLabel": {
+    "de": "Datenschutzhinweise",
+    "en": "Privacy notice"
+  },
+  "de": {
+    "sha256": "b640a9a1c845353caa3ca3229e120ff74cd2b130f54f1762aadf015b04b133aa",
+    "textLines": [
+      "Verantwortlicher: Bernardo Pingarrón, __CONTROLLER_EMAIL__",
+      "",
+      "Ich willige ein, dass BarNerd mir per E-Mail Informationen zu den von mir",
+      "ausgewählten Themen sendet. Rechtsgrundlage ist Art. 6 Abs. 1 lit. a DSGVO.",
+      "Zur Auswahl stehen:",
+      "",
+      "  [ ] Beta des Recipe Managers",
+      "  [ ] Beta von ROAST",
+      "  [ ] Neuigkeiten zu BarNerd",
+      "",
+      "Ich kann diese Einwilligung jederzeit ohne Angabe von Gründen formlos",
+      "widerrufen, per E-Mail an __CONTROLLER_EMAIL__. Der Widerruf wirkt für die",
+      "Zukunft. Danach lösche ich die E-Mail-Adresse; den Nachweis, dass und worin",
+      "ich eingewilligt habe, bewahre ich für die Dauer der gesetzlichen Fristen",
+      "(3 Jahre) auf, auf Grundlage von Art. 6 Abs. 1 lit. c und lit. f DSGVO.",
+      "",
+      "Zur Bestätigung sende ich einmalig eine E-Mail mit einem Bestätigungslink",
+      "(Double-Opt-In). Diese Bestätigungs-E-Mail enthält keine Werbung. Erst nach",
+      "der Bestätigung sende ich weitere Nachrichten.",
+      "",
+      "Weitere Informationen zu Empfängern, Speicherdauer und meinen Rechten:"
+    ]
+  },
+  "en": {
+    "sha256": "9cc8dfd32a16b5f4e2abac62d4517700904e8df429a979f38b4f873c6c35ca90",
+    "textLines": [
+      "Controller: Bernardo Pingarrón, __CONTROLLER_EMAIL__",
+      "",
+      "I consent to BarNerd sending me email about the topics I select below. The",
+      "legal basis is Art. 6(1)(a) GDPR. The topics are:",
+      "",
+      "  [ ] Recipe Manager beta",
+      "  [ ] ROAST beta",
+      "  [ ] News about BarNerd",
+      "",
+      "I can withdraw this consent at any time, without giving reasons, informally",
+      "by email to __CONTROLLER_EMAIL__. Withdrawal applies going forward. After",
+      "that I delete the address; I keep the proof of what I consented to for the",
+      "statutory limitation period (3 years), on the basis of Art. 6(1)(c) and (f)",
+      "GDPR.",
+      "",
+      "To confirm, I send one email with a confirmation link (double opt-in). That",
+      "confirmation email contains no advertising. Only after confirmation do I send",
+      "further messages.",
+      "",
+      "More information on recipients, retention and my rights:"
+    ]
+  },
+  "labels": {
+    "rm-beta": {
+      "de": "Beta des Recipe Managers",
+      "en": "Recipe Manager beta"
+    },
+    "roast-beta": {
+      "de": "Beta von ROAST",
+      "en": "ROAST beta"
+    },
+    "news": {
+      "de": "Neuigkeiten zu BarNerd",
+      "en": "News about BarNerd"
+    }
+  },
+  "_hashConvention": "sha256 over textLines.join(\"\\n\"), UTF-8, no trailing newline. Computed by scripts/check-consent-ready.mjs; never authored by hand.",
+  "_versioningNote": "v1, edited in place on 2026-10-12 — no v2 and no version registry. v1 never reached a data subject: add-waitlist-consent-evidence.sql had not been run, the consent_version column did not exist, and the code that writes it was undeployed, so no stored row points at the old wording and a registry would only describe versions nobody saw. Two things changed in the news topic: 'und dem Blog' / 'and the blog' is gone (it named a medium the notice already names — email), and labels.news follows the same edit. Nothing else in either block was touched; the wording is otherwise frozen. (The session-id sentence this pass also removes is NOT in these blocks — it was in the Art. 13 notice's list of collected data, src/legal/datenschutz.template.html section 2, DE and EN, and it is removed there, because the id is no longer written beside an address and the notice never gave a purpose for it.) The sha256 values were recomputed over the edited textLines and replaced in all four places that hold them: de/en.sha256 here, the $$-quoted seed in add-waitlist-consent-evidence.sql, FROZEN_SHA256 in scripts/build-bcb-standalone.mjs, and FROZEN_SHA256 in scripts/check-consent-ready.mjs. A future wording change still gets a new version instead of another edit here."
+}

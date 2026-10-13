@@ -33,6 +33,25 @@ export interface RoastSpec {
    * makes the aggregate cross-comparison possible without any new column.
    */
   id: string;
+  /**
+   * THE ILLUSTRATION KEY, AND IT IS NOT ALWAYS `id`.
+   *
+   * `cocktailArt` is keyed by the Census slug — that is what `src/assets/cocktails/<slug>.svg` is named
+   * after, and what `CocktailCard` already passes it on the Census side. For RUNG 1'S STATIC DECK this
+   * field is ABSENT and `id` is that slug already, which is why the deck's ids and the illustration file
+   * names lined up for free: see the `id` comment above, and the fifteen slugs it matches.
+   *
+   * A DEALT SPEC IS NOT THAT CASE. `public.specs.id` is `gen_random_uuid()`, and the Census slug lives in
+   * `specs.cocktail_slug` beside it — so `cocktailArt(spec.id)` looked up a uuid, missed the map, and
+   * returned the placeholder. Every card dealt from the Pool showed it; every card from the static fifteen
+   * did not, which is what made the defect look like an intermittent image failure rather than an id
+   * written for the wrong column.
+   *
+   * So there are two ids and they are not interchangeable: `id` is `spec_ref`, WHAT WAS VOTED ON, and must
+   * stay the row uuid for a dealt spec; `art` is WHICH DRINK IT LOOKS LIKE. Optional because the static
+   * deck does not need it, and required to be unnamed when the two agree.
+   */
+  art?: string;
   name: string;
   ingredients: RoastIngredient[];
   glass: string;

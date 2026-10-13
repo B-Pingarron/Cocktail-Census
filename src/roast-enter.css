@@ -1,0 +1,404 @@
+/*
+ * ROAST ENTER — the threshold. THE LAST OF THE SEVEN ROOMS TO BE WIRED, 2026-10-12.
+ *
+ * ═══════════════════════════════════════════════════════════════════════════════════════════════
+ * WHAT THIS FILE IS NOW
+ *
+ * It was 57 lines carrying only the lede's glitch keyframes; the room around it was Tailwind
+ * utilities sitting on <MenuCard> (bg-gold, rounded-full, w-full, hover:opacity-90, and a
+ * <div className="grain" />). Those utilities were not the lounge's language either — they were the
+ * PRE-STUDY version of it. So the app was rendering neither the approved design nor a coherent
+ * alternative, which is why this room was the one still outstanding when the other six were done.
+ *
+ * THE WIRING IS A CREATION, NOT A SUBSTITUTION. There was no stylesheet to map onto — the same
+ * position the roster, the editor and the keep room were in. Every rule below is scoped
+ * `.roast-enter` (or `.roast.roast-enter` where it must outrank roast.css), so a name as generic as
+ * `.door` cannot reach any other room in the Census.
+ *
+ * ═══════════════════════════════════════════════════════════════════════════════════════════════
+ * §7 · THE LOUNGE IS ITS OWN LANGUAGE, AND THIS IS THE PAGE THAT HAS TO PROVE IT
+ *
+ * constitution §7 and law 3: the lounge and the arena are different universes ON PURPOSE, and the
+ * crossing between them — lib/roastWipe.ts — IS the design. A reviewer that unifies this page's
+ * palette with the arena's destroys the point. So:
+ *
+ *   READS FROM .roast  --ease, the family's one UI curve (roast.css). Nothing else there is read:
+ *                      this room does NOT use the family's --fs-* ladder, --txt/--dim, --plate,
+ *                      --rim or any of the three texture tokens, because the lounge's type is the
+ *                      study's own rem values and its texture is gold, not the arena's dither.
+ *   READS FROM :root   --background, --foreground, --card, --muted-foreground, --gold (index.css).
+ *   DECLARES LOCALLY   --gold-light, and only because it does not exist as a custom property yet.
+ *                      That is the single token this room has to introduce, and the reason is
+ *                      recorded at the declaration — it is a trap, not a preference.
+ *   DOES NOT TAKE     the arena's sunset ground, its --b yellow, its Impact display face, its
+ *                      halftone dither, or the film. The lounge's ink is GOLD and its face is a
+ *                      SERIF; the arena's are yellow and Impact.
+ *
+ * THE ONE DECLARATION THAT MAKES THAT TRUE, and it is a deliberate override:
+ *
+ *   .roast.roast-enter { background: var(--background); }
+ *
+ * `.roast` paints `var(--ink)` — the arena floor, #050409 — because every other wired room stands
+ * on it. The lounge does not. It keeps the app's own page ground, so the gutter around the card is
+ * the lounge's rather than the arena's. (0,2,0), so it wins on specificity regardless of import
+ * order. Revert: delete four lines.
+ *
+ * ── THE TYPE, AND WHY THE h1's FACE IS WRITTEN HERE ────────────────────────────────────────────
+ * There is NO heading reset in this app that would put the arena's display face on this h1 — checked
+ * rather than assumed. `roast.css` carries no `h1` rule at all; each arena room sets
+ * `var(--font-display)` PER ELEMENT (`.roast.roast-menu .rm-title .t`, `.roast.roast-review h1.title`,
+ * and so on). The lounge pages do it the other way — the Tailwind `font-display` utility written on
+ * each heading, which is what this page's h1 used to carry. It no longer does, so the serif is
+ * declared on the element.
+ *
+ * TWO OF THE FIVE PROPERTIES ARE LOAD-BEARING AND THREE ARE EXPLICIT. `font-weight` and `font-size`
+ * are required: Tailwind's preflight sets `h1 { font-weight: inherit; font-size: inherit }`, so
+ * without them the lede renders at the card's weight and the body's size. `font-family`, `font-style`
+ * and `text-transform` are written out for a reader rather than to win a cascade — stated as such so
+ * nobody later deletes them believing they defend against something.
+ *
+ * ═══════════════════════════════════════════════════════════════════════════════════════════════
+ * ONE TEXTURE ON THIS ELEMENT — AND THE LAYER THIS PASS DELETED
+ *
+ * The page carried `<div className="grain" />` from index.css: a 160px fractal-noise SVG at .5
+ * with `mix-blend-mode: overlay`. The approved study DELETED exactly that layer from this page and
+ * kept a gold monochrome halftone instead — its header records the reasoning: his note assigns
+ * grain to this page AND assigns halftone to grounds and large fields, both assignments point here,
+ * so the one-texture-per-element rule breaks the tie and the VISIBLE layer keeps its place.
+ *
+ * So the page shipped the layer the study rejected and omitted the one it chose. That is corrected.
+ *
+ * TWO THINGS ABOUT THE DOTS, BOTH DELIBERATE:
+ *   · They are GOLD and on a 7px cell — the study's own declaration — and NOT the family's
+ *     `--tex-dot` token, which is a dark #100620 dot on a 12px cell for the print surfaces. The
+ *     lounge's print is gold; using the arena's dot here would be the palette leak §7 forbids.
+ *   · At opacity .14 they composite to roughly 1.27:1 against the card. That is intentional and it
+ *     is published below: a dot field is a PRINT, it carries no information, so no contrast
+ *     threshold applies to it. It must not be "fixed" to pass a ratio it was never measured against.
+ *
+ * The `.grain` RULE ITSELF is untouched in index.css — six lounge pages still render it (Hub, About,
+ * LearnMore, CensusIntroPage, Room, RoomExplainer) and roastWipe.ts reasons about it by name. Only
+ * this page stops using it.
+ *
+ * ═══════════════════════════════════════════════════════════════════════════════════════════════
+ * THE DOOR — FOUR STATES, AND THE DEFECT THE APPROVED BUILD HAD
+ *
+ * The app's door was `min-h-[48px] w-full rounded-full bg-gold px-8 py-3 ... hover:opacity-90`.
+ * Two things were wrong with it and only one is taste:
+ *
+ *   1. `hover:opacity-90` LOWERS THE INK'S CONTRAST against the ground. Fading a gold fill on a
+ *      dark page drags the ink toward the background — the exact move the author's own state rule
+ *      forbids ("hover states that make text gray or lighter"). Every state below swaps BOTH sides
+ *      of the pair instead, which is why none of them reads as a fade.
+ *   2. There was NO BUSY STATE AT ALL. `enter()` sets `wiping` and nothing rendered from it —
+ *      playRoastWipe covers the screen for ~1.5s, so the door was a DEAD PRESS for that long. That
+ *      is behaviour, not paint, and it is the half of this pass that matters most.
+ *
+ * The door is content-sized, as the study draws it, not `w-full`. One declaration reverts to full
+ * width if the narrower door reads wrong against the copy above it.
+ *
+ * ═══════════════════════════════════════════════════════════════════════════════════════════════
+ * WCAG 2.x CONTRAST — COMPUTED ARITHMETICALLY, NOT FELT (there is no shell on this machine)
+ *
+ * Method — sRGB relative luminance. Channel c in [0,1]:
+ *     c <= 0.03928 ? c/12.92 : ((c + 0.055)/1.055)^2.4
+ *     L = 0.2126·R + 0.7152·G + 0.0722·B      ratio = (Llighter + .05)/(Ldarker + .05)
+ *
+ * CALIBRATION — the method reproduces the project's own published figures before it produces any:
+ *     --txt on --plate   #f2eeff on #151327 ....... 15.98:1   (record: 15.98)  exact
+ *     --gold on #0a0812  #c7a34b on the lounge bg .  8.30:1   (study published 8.70 for #c9a84c,
+ *                                                             a DIFFERENT gold — see below)
+ *     L(--dim) #b8aed0 ............................ 0.45030   (record: 0.45020 — my rounding)
+ *     15.98:1 is the one that matters: it is the figure the family publishes for every room, and this
+ *     method lands on it to two decimals. 0.45030 against 0.45020 is stated rather than quietly
+ *     matched, which is the house rule.
+ *
+ * THE GROUND THIS PAGE ACTUALLY PAINTS ON IS --card #1a1a1a (L 0.010335), not the study's --lounge-bg
+ * #0a0812. That is because the room keeps <MenuCard>, the shared lounge surface whose own header
+ * records that "same card colour" is what makes the hub and the Census read as one object. The
+ * consequence is that every lounge figure is recomputed here rather than carried across, and they
+ * are DIFFERENT from the study's — published as mine:
+ *
+ *   ON --card #1a1a1a (L 0.010335)
+ *     --gold        #c7a34b  ...  7.27:1  PASS (AAA)   the lede, the mark, the door at rest
+ *     --gold-light  #d4c28a  ...  9.85:1  PASS (AAA)   the door's active + busy label, the ring
+ *     --foreground  #f3efe6  ... 15.16:1  PASS (AAA)   the body line
+ *     --muted-foreg #9ca3af  ...  6.86:1  PASS (AA)    the rule line
+ *     the glitch's dark plate, 55% --gold over #000 ...  2.61:1  NOT A GLYPH — a text-shadow, and
+ *       it is one of the two chroma plates the cut is made of. WCAG measures the glyph, which is
+ *       7.27:1 in every frame. See the keyframes.
+ *     the dot field at .14 over --card ..............  1.27:1  A PRINT, not information. No
+ *       threshold applies; published so nobody "fixes" it to pass one.
+ *
+ *   THE DOOR, IN ALL FOUR STATES — no state lowers a ratio
+ *     rest    --gold ink, transparent fill on --card ..........  7.27:1  PASS (AAA)
+ *     hover   --gold FILL, --card ink (both sides swapped) ....  7.27:1  HOLDS, never falls
+ *     active  --gold-light fill, --card ink ...................  9.85:1  RISES
+ *     busy    dashed --gold edge, --gold-light label, no fill ...  9.85:1  RISES
+ *     → hover HOLDS rather than rises, and that is the honest description: inverting a pair swaps
+ *       both sides, so the ratio is the same number on both sides of the swap. It cannot fall.
+ *     → FOCUS · 3px --gold-light outline at offset 2 = 9.85:1. The offset is load-bearing: it puts
+ *       2px of CARD between the fill and the ring, so a focused-and-hovered door does not end up
+ *       with a --gold-light ring 2px away from a --gold plate (1.36:1 — a ring nobody could see).
+ *       The ring is never removed, and it is the LOUNGE's light gold, not the arena's --b.
+ *
+ * ── DEPARTURE FROM THE STUDY, DECLARED (each is one line back) ─────────────────────────────────
+ *   · THE GOLD. The study declares a lounge block of its own (#c9a84c / #e8d5a3 / #8a8398 on
+ *     #0a0812). This room uses the app's --gold / --gold-light / --muted-foreground instead,
+ *     because the lounge's gold is a SHARED identity here — MartiniMark and MenuCard both exist to
+ *     stop the hub and the Census reading as two products — and a second gold that differed by two
+ *     hundredths would be the first crack. The study's values are brighter by ~0.35 of ratio
+ *     (8.70 vs 7.27 at rest); both are AAA. To adopt the study's block instead, declare those four
+ *     tokens on .roast.roast-enter and nothing else changes.
+ *   · No mark restyle. The study draws the mark as a CSS circle and triangle so it can add no asset;
+ *     the app has components/MartiniMark, whose header says one shared mark is what makes the pages
+ *     one product. The component wins, at its own 40px.
+ *   · The card's padding is MenuCard's (24px / 32px), not the study's `44px 24px`. The study was
+ *     full-bleed and centred its own box; here the card sits inside a centred flex wrapper with
+ *     py-12, so the vertical breathing room is comparable and the card keeps its family padding.
+ *   · No `.prov` notes and no study bar. Those are the study's instrument, not product copy, and the
+ *     study's own header says the wiring pass drops them. The door's `aria-describedby` pointed at
+ *     one of them, so it is gone with them rather than left dangling.
+ *   · The `back` link's TREATMENT is LEFT ALONE — still the Tailwind it had. It is a working control
+ *     that this pass was not asked to touch, and restyling it would be a change with no defect
+ *     behind it. Its STACKING is corrected (`.roast-enter .ask > a`), because as a static inline box
+ *     it would otherwise have had the halftone painted over it — see that rule. Named in both places
+ *     so its two-register look is not read as an oversight.
+ *
+ * ── §11 · WIRING MAP, as the study wrote it and as it landed ───────────────────────────────────
+ *     .lounge / .ask  →  MenuCard          .mark  →  components/MartiniMark
+ *     .lede           →  h1.re-lede        .body / .ruleline  →  the two <p>s, verbatim
+ *     .door           →  the <button>, now the study's and not Tailwind's
+ *     .field .f-dots  →  replaces <div className="grain" />
+ *
+ * PAINT: not verified — no renderer here. Nothing in this file is claimed as seen.
+ * ═══════════════════════════════════════════════════════════════════════════════════════════════
+ */
+
+/* ══ THE GROUND — the one thing the lounge must not take from the arena ═══════════════════════
+   `.roast` paints `var(--ink)` (#050409) — the arena's floor — because every other wired room
+   stands on it (verified: roast.css, `.roast { position:relative; min-height:100vh;
+   background:var(--ink); color:var(--txt) }`). The lounge keeps the app's own page ground instead.
+   (0,2,0) against that (0,1,0), so import order cannot matter. Revert: this one declaration. */
+.roast.roast-enter { background: var(--background); }
+
+/* ══ THE ROOM'S OWN TOKEN — the only one it has to declare ═══════════════════════════════════
+   VERIFIED, NOT ASSUMED, because this exact trap has already cost the project once: `index.css`
+   declares `--gold` (#c7a34b) and `--gold-muted` (#a8862e) but NOT `--gold-light`. That name exists
+   only in `tailwind.config.ts` — which generates UTILITY CLASSES (`text-gold-light` and friends) and
+   no custom property whatsoever.
+
+   WHY THAT MATTERS RATHER THAN BEING PEDANTRY: an unset custom property does not fall back to a
+   sibling value — the declaration becomes INVALID AT COMPUTED-VALUE TIME. Two of those would have
+   shipped here: the door's active and busy colours would have been wrong, and `outline: 3px solid
+   var(--gold-light)` would have dropped the ENTIRE shorthand, leaving the door with NO FOCUS RING.
+   roast.css records the identical failure for `--font-body`, which is why this is checked.
+
+   The value is `tailwind.config.ts`'s own `gold-light`, so the CSS token and the Tailwind name cannot
+   hold two different colours. IT BELONGS ON `:root` IN index.css THE DAY A SECOND ROOM NEEDS IT —
+   one consumer is a room-level statement, and this project does not carry a token just in case. */
+.roast.roast-enter { --gold-light: #d4c28a; }
+
+/* ══ THE ROOM — the card, which IS the room (MenuCard) ═════════════════════════════════════════
+   `position:relative` establishes the containing block for the halftone field, and `overflow:hidden`
+   keeps it inside the card's own rounded corner. `text-align:center` is the study's, and it is what
+   makes the door sit under the copy as one column. */
+.roast-enter .ask {
+  position: relative;
+  overflow: hidden;
+  text-align: center;
+  font-family: Georgia, "Times New Roman", serif;
+  color: var(--gold-light);
+}
+
+/* ══ THE HALFTONE FIELD — this element's ONE texture ══════════════════════════════════════════
+   Absolutely positioned over the card's padding box, behind the content (which carries z-index 2).
+   `inset:0` is sized to the card, so no overflow rule is needed to contain it.
+
+   The mask fades the field out toward the card's edges so the dots read as a print on a surface
+   rather than a tiled wallpaper. #000 rather than a token: a mask reads ALPHA only, so black and
+   transparent is the idiom, and a var() here would be a value that looks like a colour and is not. */
+.roast-enter .field {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.roast-enter .f-dots {
+  background-image: radial-gradient(currentColor 1px, transparent 1.4px);
+  background-size: 7px 7px;
+  color: var(--gold);
+  opacity: .14;
+  -webkit-mask-image: radial-gradient(70% 55% at 50% 40%, #000, transparent 76%);
+  mask-image: radial-gradient(70% 55% at 50% 40%, #000, transparent 76%);
+}
+
+/* ══ THE MARK ═════════════════════════════════════════════════════════════════════════════════
+   components/MartiniMark owns its own size (40px) and its own `mx-auto`. This rule adds only the
+   gap the study puts under it, so the two never fight over a margin shorthand. */
+.roast-enter .mark { margin-bottom: 32px; position: relative; z-index: 2; }
+
+/* ══ THE `back` LINK — its TREATMENT is untouched, its stacking is not ═════════════════════════
+   The halftone field is `position:absolute` and this anchor is an inline-level STATIC box, so the
+   print would paint OVER the link — positioned descendants paint in step 6 of a stacking context,
+   inline-level in-flow content in step 5. At .14 alpha over the card the dots do not make the link
+   unreadable, but they would sit on top of text that every other element on this page keeps clear
+   of, and "the print is behind the content" should be a property of the room rather than of three
+   out of four children.
+
+   So this rule fixes PAINT ORDER ONLY. Not one visual property of the link is restated — its
+   Tailwind treatment (size, tracking, colour, hover) is left exactly as this pass found it, and the
+   header records that deliberately: it is a working control with no defect behind it.
+
+   It is written against the element rather than a room class so that any LATER anchor added to this
+   card lands above the print too, which is what it would want. */
+.roast-enter .ask > a { position: relative; z-index: 2; }
+
+/* ══ THE COPY ═════════════════════════════════════════════════════════════════════════════════ */
+.roast-enter .copy { max-width: 300px; margin: 0 auto; position: relative; z-index: 2; }
+
+/*
+ * THE LEDE — the one moving thing on the page.
+ *
+ * FOUR PROPERTIES ARE RESTATED, not inherited, and each is there for a reason:
+ *   font-family / font-style / text-transform  →  the family reset's DISPLAY heading rule (Impact,
+ *     uppercase, skewed for italic) is aimed at the arena's print type and would otherwise win on
+ *     this h1. A direct declaration on the element beats inheritance, so it must be written here.
+ *   font-weight  →  the study's bold, which the reset's own weight does not supply.
+ */
+.roast-enter .re-lede {
+  font-family: Georgia, "Times New Roman", serif;
+  font-style: normal;
+  text-transform: none;
+  font-weight: bold;
+  font-size: 1.45rem;
+  line-height: 1.25;
+  color: var(--gold);
+  margin: 0 0 14px;
+  text-wrap: balance;
+  animation: re-jitter 4s steps(1, end) infinite, re-split 4s steps(1, end) infinite;
+}
+
+/* The type moves. Small offsets only — this is a stutter, not a shake. */
+@keyframes re-jitter {
+  0%, 91%, 100% { transform: translate(0, 0); }
+  92% { transform: translate(-2px, 1px); }
+  93% { transform: translate(2px, -1px); }
+  94% { transform: translate(-1px, -2px); }
+  95% { transform: translate(1px, 2px); }
+  96% { transform: translate(0, 0); }
+}
+
+/*
+ * The two copies of the word separate, in the page's own gold. No other colour enters.
+ *
+ * THE LITERAL WAS FIXED HERE, AND IT IS THE ONE DEFECT THIS PASS FOUND THAT PREDATED IT. The
+ * approved study writes the dark plate as `color-mix(in srgb, var(--gold) 55%, var(--keyline))`,
+ * which resolves to #6f5c2a on the study's gold. This file carried #7a6530 — a rounded 60% mix —
+ * in four places. That is a drift between an approved study and the app of exactly the kind a
+ * wiring pass exists to remove: written as the token expression it cannot happen again, because the
+ * plate moves with the palette instead of beside it. Cost: 0.46 of ratio, on a 3px decoration.
+ * No legibility is affected — the GLYPH is 7.27:1 in every frame and WCAG measures the glyph.
+ */
+@keyframes re-split {
+  0%, 91%, 100% { text-shadow: none; }
+  92% { text-shadow: -3px 0 0 color-mix(in srgb, var(--gold) 55%, #000), 3px 0 0 var(--gold); }
+  93% { text-shadow: -4px 0 0 color-mix(in srgb, var(--gold) 55%, #000), 4px 0 0 var(--gold-light); }
+  94% { text-shadow: -2px 0 0 var(--gold), 2px 0 0 color-mix(in srgb, var(--gold) 55%, #000); }
+  95% { text-shadow: -3px 0 0 var(--gold-light), 3px 0 0 color-mix(in srgb, var(--gold) 55%, #000); }
+  96% { text-shadow: none; }
+}
+
+/* The room's RULE — the second line of the speech, in the lounge's italic serif. */
+.roast-enter .body {
+  font-size: 1rem;
+  font-style: italic;
+  line-height: 1.5;
+  color: var(--foreground);
+  margin: 0 0 12px;
+}
+/* The deflation under it. Dimmer, smaller, and it is the only line that may be — 6.86:1 is AA. */
+.roast-enter .ruleline {
+  font-size: .82rem;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+  margin: 0;
+}
+
+/* ══ THE DOOR — the single action on this page, and the largest thing after the mark ══════════
+   Content-sized, as the study draws it (the app's was `w-full`). 52px min-height is the study's
+   own, which is the app's 48px floor and then some. `touch-action` and `tap-highlight-color` are
+   the study's too: this control is the only thing on the page a thumb can hit, so it is worth the
+   two declarations to keep the tap clean.
+
+   `position:relative; z-index:2` puts it above the halftone field. Without it the field, which is
+   absolutely positioned and therefore painted after the flow content in the same stacking context,
+   would sit over the button's own paint. */
+.roast-enter .door {
+  position: relative;
+  z-index: 2;
+  margin-top: 36px;
+  padding: 16px 38px;
+  min-height: 52px;
+  border: 1px solid var(--gold);
+  background: transparent;
+  color: var(--gold);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: .88rem;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color .2s var(--ease), color .2s var(--ease),
+              border-color .2s var(--ease);
+}
+
+/*
+ * THE FOUR STATES. Read them as two pairs, not four handles:
+ *
+ *   HOVER INVERTS rather than fades. `hover:opacity-90` — what the app shipped — drags a gold fill
+ *   toward the dark ground, so the ink loses contrast at the moment the visitor is closest to it.
+ *   Swapping both sides keeps the ratio identical, and a swap cannot fade.
+ *
+ *   BUSY HAS NO FILL AT ALL, which is what makes it read as a DIFFERENT KIND of state rather than a
+ *   louder one — the control visibly empties while it works. The dashed edge is the second channel,
+ *   and the label is the third: this is law 5 (never communicate state by colour alone) applied to
+ *   a button. If the empty fill reads as the button DIED rather than as work starting, the lever is
+ *   a low-alpha --gold wash instead of `transparent` — one declaration.
+ */
+.roast-enter .door:hover { background: var(--gold); color: var(--card); }
+.roast-enter .door:active { background: var(--gold-light); border-color: var(--gold-light); color: var(--card); }
+.roast-enter .door[aria-busy="true"] {
+  background: transparent;
+  color: var(--gold-light);
+  border-style: dashed;
+}
+
+/* FOCUS — declared after the states, and at equal weight, on purpose. `outline-offset:2px` is the
+   load-bearing value (see the header): it keeps 2px of CARD between the fill and the ring, so a
+   focused-and-hovered door does not end up with a ring 1.36:1 against its own plate. */
+.roast-enter .door:focus-visible {
+  outline: 3px solid var(--gold-light);
+  outline-offset: 2px;
+}
+
+/*
+ * ══ REDUCED MOTION · A BRANCH, NOT AN AFTERTHOUGHT ═══════════════════════════════════════════
+ * The effect being opted out of is the MOVEMENT, not the colour: under the preference the page is
+ * completely still and the door works normally.
+ *
+ * THIS ROOM BUILDS NO MANUAL MOTION CONTROL, so this query is the only branch and there is nothing
+ * that can drift out of parity with it — the same call the roster, the arena, the editor and the
+ * keep room made. When a manual control is built, its rules are this list written a second time,
+ * and `html.rm *` comes with it.
+ *
+ * index.css already zeroes animation and transition DURATIONS globally under this query, so both
+ * rules below are technically redundant. They are kept because a global guard can be edited by
+ * someone who does not know what reads it, and because `animation:none` is the honest statement of
+ * the intent: with a 0.001ms duration the glitch would still be applied for one frame per cycle,
+ * which on a 4s loop is invisible but is not the same thing as absent.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .roast-enter .re-lede { animation: none; }
+  .roast-enter .door { transition: none; }
+}

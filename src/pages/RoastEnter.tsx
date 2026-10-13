@@ -1,159 +1,172 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { generateHandles } from "@/lib/handleGenerator";
-
-/**
- * How many handles the rail offers. Five, plus Anonymous: the author's read was that
- * eighteen chips is a decision the visitor has to make before they can make the one they
- * came for. A short rail is a suggestion; a long one is a menu.
- */
-const HANDLE_COUNT = 5;
-import { clearNickname, setNickname } from "@/lib/nickname";
 import { prefersReducedMotion } from "@/lib/motion";
-import { cn } from "@/lib/utils";
 import MenuCard from "@/components/MenuCard";
 import MartiniMark from "@/components/MartiniMark";
 import { playRoastWipe } from "@/lib/roastWipe";
+import "@/roast-enter.css";
 
 /**
- * The roast entry step: what to call the visitor.
+ * The roast's threshold — what the room says before it lets you in.
  *
- * ONE QUESTION, AND IT IS OPTIONAL:
- *   The roast is a judgement of the visitor's own specs, so it needs a name to attach
- *   to it — but not an identity. There is no role question, no city, no demographics,
- *   no account and no network call here. The value is written to localStorage and
- *   nowhere else.
+ * NO FORM, AND THAT IS THE REDESIGN (2026-10-06).
+ *   This page used to ask for a name before the visitor had seen anything at all. The name now lives
+ *   on the menu, where it is displayed — the form and the display became one thing, and what is left
+ *   here is the brief: what the room is, in the room's own voice, and one door.
  *
- * WHY "ANONYMOUS" AND "SKIP" ARE THE SAME ACTION:
- *   They are the same intent reached from two places: the chip is the option sitting
- *   among the alternatives, the skip link is the escape hatch for someone who has
- *   already decided. Both clear the nickname and move on, so neither can leave a
- *   half-filled name behind.
+ *   It keeps the LOUNGE'S LANGUAGE on purpose — dark, gold, serif, the same card every other page of
+ *   the menu is. This is the last moment before the arena; the wipe is the crossing and the menu's
+ *   sunset is what is on the other side. The contrast between the two surfaces IS the change of scene,
+ *   which is why this page must not borrow the arena's colours.
+ *
+ * WIRED 2026-10-12 — THE SEVENTH AND LAST ROOM. roast-enter.css carried only the lede's glitch and
+ *   the room around it was Tailwind utilities: `bg-gold`, `rounded-full`, `w-full`, `hover:opacity-90`
+ *   and a `<div className="grain" />`. That is the PRE-STUDY treatment, not the lounge's language —
+ *   so the app was rendering neither the approved design (roast-enter.html) nor a coherent
+ *   alternative. This file now renders the approved design. The vocabulary and the measurements live
+ *   in roast-enter.css; what changed HERE is four things:
+ *
+ *     1. THE ROOT carries `roast roast-enter`, the family convention the other six rooms follow. It
+ *        also joins the root to `.roast` (roast.css) — which is where the shared tokens live — with
+ *        one deliberate override: `.roast.roast-enter` keeps the app's own page ground rather than
+ *        the arena's `--ink` floor. The lounge is a different universe (constitution §7, law 3).
+ *     2. THE HALFTONE REPLACED THE GRAIN. `<div className="grain" />` is gone from this page; the
+ *        study's gold monochrome dot field took its place as the card's ground. The study's header
+ *        records the ruling: his note assigns grain here AND assigns halftone to grounds, both point
+ *        here, so one-texture-per-element breaks the tie and the VISIBLE layer stays. The page had
+ *        been shipping the layer the study deleted and omitting the one it kept.
+ *     3. THE DOOR IS THE STUDY'S. It was `hover:opacity-90`, which LOWERS the ink's contrast at the
+ *        moment the visitor is closest to it — a fade on a fill drags the ink toward the ground. The
+ *        study's door inverts both sides of the pair instead, so no state can fall.
+ *     4. THE BUSY STATE EXISTS NOW, and it is the half of this pass that is behaviour rather than
+ *        paint. `enter()` has always set `wiping`; nothing rendered from it, so while playRoastWipe
+ *        covered the screen for ~1.5s the door was a DEAD PRESS. It now carries `aria-busy` and says
+ *        "Lighting the grill" for exactly that window.
+ *
+ * WHAT WAS NOT CHANGED, and each for a reason:
+ *   · `<MenuCard>` stays. It is the shared lounge surface — its own header says the same card is what
+ *     makes the hub and the Census one object rather than two products. The study is full-bleed
+ *     because a standalone study has no app around it; its §11 maps `.lounge / .ask → MenuCard`.
+ *   · `<MartiniMark>` stays, at its own 40px. The study draws the mark in CSS so it could add no
+ *     asset; here the shared component does that job, and its header says one mark is what keeps the
+ *     pages one product. The study drew it that way for a reason it did not have.
+ *   · The `back` link is untouched. It is a working control with no defect behind it, and this pass
+ *     was not asked to restyle it — so its Tailwind treatment is left beside the room's CSS rather
+ *     than quietly rewritten. Named in roast-enter.css too, so it does not read as an oversight.
+ *   · `space-y-6` came OFF the card. The halftone field is now the card's first child, and Tailwind's
+ *     `space-y-*` puts a top margin on every child but the first — so keeping it would have shifted
+ *     the mark down by 1.5rem the moment the field moved inside. The study's own spacing (32px under
+ *     the mark, 14px under the lede, 36px above the door) is what the room uses instead, and it is
+ *     declared in roast-enter.css rather than split across two systems.
+ *
+ * THE GLITCH IS THE ANTICIPATION, and it is small on purpose: one line of type, cutting. What it is,
+ * what it deliberately is not, and what is parked for a revision all live in roast-enter.css. This
+ * pass fixed one thing in it: the dark chroma plate was a hardcoded #7a6530 while the approved study
+ * derives it from the palette — a drift of the kind a wiring pass exists to remove.
+ *
+ * THE COPY IS PICKED (2026-10-12). Four options were drafted for this page
+ * (01_BarNerd/docs/design/roast/menu/intro-menu-v3.html); this is option B, and the pick is recorded
+ * rather than left as a caption. Option A ("You're going to roast them. They're going to roast you
+ * back." / "The first rule of the Roast is simple: no mercy.") is retired, and the author's own lines
+ * from the page this replaced — "ROAST is the arena where specs get measured…" and "My specs, your
+ * taste. No mercy." — stay in the design doc §1 as the seed they always were.
+ *
+ * The pick changed the page's shape, not just its words: A stated the premise twice and put the rule
+ * third, B states the rule first and makes the third line the joke that closes it ("there is no
+ * second rule"). So the h1 still carries the visitor's own line, the middle line is now the room's
+ * RULE rather than its description, and the last line is the rule's own deflation — which is the
+ * tone the rest of the room has.
+ *
+ * THE DOOR'S LABEL IS PICKED TOO: "get roastin'". Retired: "join the roast" and "Light the grill".
+ * The busy label — "Lighting the grill" — is the study's, and it is a different thing: not a label
+ * for the door but a statement of what the door is doing. That is why the retired alternative can
+ * now appear INSIDE the control without contradicting the pick.
  */
-
-const chipClass = (selected: boolean) =>
-  cn(
-    "inline-flex min-h-[44px] items-center rounded-full border px-4 font-body text-sm transition-colors",
-    selected
-      ? "border-gold bg-gold/15 text-gold"
-      : "border-concrete/25 text-muted-foreground hover:border-gold/40 hover:text-cream"
-  );
-
 const RoastEnter = () => {
   const navigate = useNavigate();
-  const [value, setValue] = useState("");
-  const [handles, setHandles] = useState<string[]>(() => generateHandles(HANDLE_COUNT));
+
   /*
-   * The DoubleCircle wipe, out to the deck. Started by the two handlers below and by nothing else in
-   * the app: not by the router, not by the deck, not on the way back.
+   * THE WIPE, and why it is started here rather than at the router.
    *
-   * WHY IT LIVES HERE AND NOT AT THE ROUTER:
    *   A page change in this product is a page of the menu arriving, and that already belongs to
-   *   MenuCard, which turns itself in on mount. This is a different gesture and it belongs to a
-   *   different thing: ONE deliberate press of "Let's go", the single action on this page that
-   *   commits the visitor to the room, arriving at a loud card. It is a transition between two
-   *   specific surfaces, and a router-level wrapper could only have expressed it as "every route
-   *   change" — including the ones where it would be wrong. Card to card, back to the hub, the
-   *   verdict out to anywhere.
+   *   MenuCard, which turns itself in on mount. This is a different gesture: ONE deliberate press, the
+   *   single action on this page, arriving at a loud card. A router-level wrapper could only have
+   *   expressed it as "every route change" — including the ones where it would be wrong.
    *
-   *   The router-level version was written and cut twice; App.tsx lines 12-19 are the record of it.
-   *   The reason is not taste. A sheet laid over a route change freezes a blank full-screen rectangle
-   *   for the length of the turn, and a blank rectangle during a page change reads as LOADING. That
-   *   sheet covered the wrong thing, for the wrong length, over the wrong number of navigations.
-   *   Here it covers a page that is deliberately being left, for about a second and a half, once.
-   *   And the black it ends on is the black the deck opens ON, not the black it opens after: the
-   *   wipe closes, changes the page underneath itself while it is fully closed, and then reopens.
-   *   The deck arrives out of black instead of appearing after a pause on it, so there is no frame
-   *   anywhere in the sequence a visitor could read as a stall — which is the same reading that
-   *   killed the router sheet, arrived at from the other direction.
+   *   The router-level version was written and cut twice. The reason is not taste: a sheet laid over a
+   *   route change freezes a blank full-screen rectangle for the length of the turn, and a blank
+   *   rectangle during a page change reads as LOADING. Here it covers a page that is deliberately
+   *   being left, once. And the black it ends on is the black the menu opens ON, not the black it
+   *   opens after — the wipe closes, changes the page underneath itself while it is fully closed, and
+   *   then reopens. So there is no frame anywhere in the sequence a visitor could read as a stall.
    *
-   *   WHICH IS WHY THE OVERLAY IS NOT PART OF THIS TREE, and why that is not an implementation
-   *   detail. A wipe that reopens has to still be on screen after the navigation, and a component
-   *   mounted here is unmounted by that navigation — the reveal would have had nothing to reveal.
-   *   So the overlay is appended to `document.body` by a plain module (`lib/roastWipe.ts`) and
-   *   outlives the route change by construction: React's reconciler can only remove nodes that are
-   *   reachable from its roots, and that one is above them. What this page does is hand the
-   *   transition the page change to make, not render it.
+   *   WHICH IS WHY THE OVERLAY IS NOT PART OF THIS TREE. A wipe that reopens has to still be on screen
+   *   after the navigation, and a component mounted here is unmounted by exactly that navigation. So
+   *   the overlay is appended to `document.body` by a plain module (lib/roastWipe.ts) and outlives the
+   *   route change by construction. This page hands the transition the page change to make; it does
+   *   not render it.
    *
-   *   `prefersReducedMotion` is the same call the hub's cover makes (see pages/Hub.tsx, `goTo`): the
-   *   effect being opted out of is the wipe itself, and holding the page for a second and a half with
-   *   nothing on it is a stall rather than a transition. So the reduced path is a plain navigate,
-   *   below, and `wiping` is never set at all — not set and then immediately cleared, which would be
-   *   the same stall with a wasted render attached. `playRoastWipe` checks the setting itself too and
-   *   returns without creating an overlay; the check is repeated here because this one is what stops
-   *   the page starting a transition that will not run, and the transition cannot do that for itself.
+   *   The destination is `/roast` — the menu — and not the deck. A visitor who has just been told what
+   *   the room is deserves to be shown the room rather than dropped into a card.
    */
   const [wiping, setWiping] = useState(false);
 
-  /** Persist a name (or the absence of one). Never throws — see lib/nickname.ts. */
-  const save = (raw: string) => {
-    const trimmed = raw.trim();
-    if (trimmed) setNickname(trimmed);
-    else clearNickname();
-  };
-
-
   /*
-   * THE GUARD, and the reason it is here rather than only on the buttons.
+   * THE GUARD, and the reduced-motion path.
    *
-   * The wipe's canvas covers the screen for about a second and a half and takes pointer events, so
-   * in practice a second press cannot reach this page at all. But the canvas is the mitigation for
-   * the click, and the click is not the only way to get here: a keyboard on the button, a script, or
-   * a stylesheet that failed to load all arrive at these handlers directly. If `wiping` is true the
-   * intent has already been acted on, and acting on it twice would run a second transition and push
-   * a history entry the visitor never made — which on a browser back button means leaving the roast
-   * and having to come back in. The cheapest check that cannot be wrong.
+   *   The wipe's canvas covers the screen for about a second and a half and takes pointer events, so in
+   *   practice a second press cannot reach this page. But the canvas is the mitigation for the click,
+   *   and the click is not the only way here: a keyboard on the button, a script, or a stylesheet that
+   *   failed to load all arrive at this handler directly. If `wiping` is true the intent has already
+   *   been acted on, and acting on it twice would run a second transition and push a history entry the
+   *   visitor never made. The cheapest check that cannot be wrong.
    *
-   * `wiping` no longer decides whether anything is rendered — there is nothing of the transition in
-   * this tree to render. It is purely a latch now: set once, and never cleared, because the page it
-   * belongs to is unmounted about a second and a half later by the navigation the transition makes
-   * itself. It stays state rather than becoming a ref because a ref is not a latch a render can see,
-   * and a latch a render can see is one that survives anything a future render might do to the page.
+   *   `wiping` is purely a latch: set once and never cleared, because the page it belongs to is
+   *   unmounted about a second and a half later by the navigation the transition makes itself. It
+   *   stays state rather than becoming a ref because a ref is not a latch a render can see — and since
+   *   this pass it is ALSO what the button renders from, which a ref could not drive at all.
    *
-   * Both handlers, and both buttons, because skip and commit are the same action: the same page, the
-   * same destination, the same second and a half. A guard on one of them would leave the other open.
-   *
-   * PERSISTENCE IS BEFORE THE ANIMATION, in both, and that ordering is the load-bearing part of
-   * this block rather than a style preference. `setNickname` is the only write on this page and it
-   * happens before a single frame is painted, so a visitor whose tab dies, whose battery gives out
-   * or whose browser throws away the transition's promise has still told the room who they are. The
-   * animation is the one part of this action that is allowed to fail; the name is not.
+   *   Under reduced motion the effect being opted out of is the wipe itself, and holding the page for a
+   *   second and a half with nothing on it is a stall rather than a transition. So the reduced path is
+   *   a plain navigate and `wiping` is never set at all — not set and then immediately cleared, which
+   *   would be the same stall with a wasted render attached. The BUSY STATE IS THEREFORE SKIPPED
+   *   RATHER THAN SHORTENED: there is no wipe for it to stand in for, so announcing one would be the
+   *   lie the study's header also refuses. `playRoastWipe` checks the setting itself too and returns
+   *   without creating an overlay; the check is repeated here because this one is what stops the page
+   *   starting a transition that will not run.
    */
-  const commit = () => {
+  const enter = () => {
     if (wiping) return;
-    save(value);
     if (prefersReducedMotion()) {
-      navigate("/roast/deck");
+      navigate("/roast");
       return;
     }
     setWiping(true);
-    // Fire-and-forget, deliberately. Nothing on this page renders from the resolution — the page
-    // change is made BY the transition, mid-sequence, not by this promise — so there is nothing to
-    // await and nothing to store. The `void` says so out loud, because a floating promise that
-    // cannot reject (see lib/roastWipe.ts) is otherwise the first thing a reviewer would ask about.
-    void playRoastWipe(() => navigate("/roast/deck"));
-  };
-
-  const skip = () => {
-    if (wiping) return;
-    setValue("");
-    save("");
-    if (prefersReducedMotion()) {
-      navigate("/roast/deck");
-      return;
-    }
-    setWiping(true);
-    // Same three steps as commit, same order, same reasons. The cleared name is written before the
-    // transition starts, so a half-finished animation cannot leave behind a nickname the visitor
-    // meant to drop.
-    void playRoastWipe(() => navigate("/roast/deck"));
+    // Fire-and-forget, deliberately. Nothing on this page renders from the resolution — the page change
+    // is made BY the transition, mid-sequence, not by this promise — so there is nothing to await and
+    // nothing to store. The `void` says so out loud, because a floating promise that cannot reject
+    // (see lib/roastWipe.ts) is otherwise the first thing a reviewer would ask about.
+    void playRoastWipe(() => navigate("/roast"));
   };
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-x-clip px-6 py-12">
-      <div className="grain" />
-      <MenuCard className="mx-auto w-full max-w-md space-y-6">
-        <MartiniMark />
+    <div className="roast roast-enter relative flex min-h-screen items-center justify-center overflow-x-clip px-6 py-12">
+      {/*
+        * THE CARD IS THE ROOM. `aria-labelledby` points at the h1, so the region announces itself by
+        * the line it opens on rather than as an unnamed section. `space-y-6` is off — see the header;
+        * the spacing is the study's and lives in roast-enter.css.
+        */}
+      <MenuCard className="ask mx-auto w-full max-w-md" aria-labelledby="enter-lede">
+        {/*
+          * ONE texture on this ground: the gold monochrome halftone, absolutely positioned behind the
+          * content. It replaced `<div className="grain" />` from index.css — the layer the approved
+          * study deleted from this page and the reason it shipped the wrong texture. The `.grain` rule
+          * itself is untouched; six other lounge pages still render it.
+        */}
+        <div className="field f-dots" aria-hidden="true" />
+
+        <MartiniMark className="mark" />
+
         <Link
           to="/"
           className="inline-flex min-h-[44px] items-center font-body text-xs uppercase tracking-widest text-muted-foreground transition-colors hover:text-gold"
@@ -162,94 +175,41 @@ const RoastEnter = () => {
         </Link>
 
         {/*
-          * WHAT AND HOW, then WHY A NAME, then the question.
+          * THE BRIEF. Three lines and no question: the page used to open on "What should we call you?"
+          * at 24px, which made the form the largest thing on it and the subject of the page the
+          * smallest. Now the loudest thing is what the room is, and there is nothing to fill in.
           *
-          * The page opened straight into "What should we call you?" at 24px — the largest thing on
-          * the page was the form, and the subject of the page was the smallest. The title below is an
-          * h1 now and the question is an h2, so the document outline matches what the eye sees.
-          * The two middle lines are the author's own, verbatim.
+          * The lede carries the glitch (`.re-lede`, see roast-enter.css).
           */}
-        <div className="space-y-3">
-          <h1 className="font-display text-3xl font-bold text-gold">The roast</h1>
-          <p className="font-body text-base leading-relaxed text-cream">
-          ROAST is the arena where specs get measured — by peers, not some office dude.
-          </p>
-          <p className="font-display text-xl font-bold text-gold">
-          My specs, your taste. No mercy.
-          </p>
-        {/*
-          * WHY A NAME IS ASKED FOR, in one line, BEFORE the question it answers.
-          * TODO(copy session): this one is mine, not the author's — it says what the code does (the
-          * name rides along with the verdicts and never leaves the device) and it is written to be
-          * replaced.
-          */}
-          <p className="font-body text-sm leading-relaxed text-muted-foreground">
-          The name goes on your verdicts so the room knows whose taste it was. No account, no
-          email — it stays on this device.
-          </p>
+        <div className="copy">
+          <h1 className="re-lede" id="enter-lede">Here are my specs.</h1>
+          <p className="body">The first rule of the Roast: you do not hold back.</p>
+          <p className="ruleline">The second rule: there is no second rule. There's only the grill.</p>
         </div>
 
-        <h2 className="font-body text-base font-semibold text-cream">What should we call you?</h2>
-
-        <input
-          type="text"
-          value={value}
-          onChange={(event) => setValue(event.target.value)}
-          placeholder="Your name, or a handle"
-          maxLength={32}
-          className="min-h-[48px] w-full rounded-xl border border-gold/20 bg-card px-4 font-body text-cream transition-colors placeholder:text-muted-foreground focus:border-gold/50 focus:outline-none"
-        />
-
-        <section className="space-y-3">
-          <p className="font-body text-xs uppercase tracking-widest text-muted-foreground">
-            Or pick a handle
-          </p>
-
-          <div className="flex flex-wrap gap-2">
-            {handles.map((handle) => (
-              <button
-                key={handle}
-                type="button"
-                onClick={() => setValue(handle)}
-                className={chipClass(value === handle)}
-              >
-                {handle}
-              </button>
-            ))}
-
-            {/* Reads as selected while the input is empty, because empty IS anonymous. */}
-            <button
-              type="button"
-              onClick={() => setValue("")}
-              className={chipClass(value.trim() === "")}
-            >
-              Anonymous
-            </button>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => setHandles(generateHandles(HANDLE_COUNT))}
-            className="inline-flex min-h-[44px] items-center font-body text-xs uppercase tracking-widest text-gold transition-colors hover:text-gold-light"
-          >
-            roll again
-          </button>
-        </section>
-
+        {/*
+          * THE DOOR. The study's outlined serif door, not the app's `rounded-full bg-gold`. Three
+          * channels carry the busy state, only one of them colour: the empty fill, the dashed edge,
+          * and the label — law 5, on a button.
+          *
+          * `aria-busy={wiping || undefined}` rather than `={wiping}`: React renders a false boolean
+          * aria-* value as the STRING "false", and `[aria-busy="false"]` is not `[aria-busy="true"]`,
+          * so the stylesheet would not match — but "false" would still sit in the DOM claiming a state
+          * the control is not in. `undefined` omits the attribute entirely, which is what "not busy"
+          * means here.
+          *
+          * The label swaps rather than a spinner appears: the button says what it is doing, and the
+          * control cannot grow or shift while it does. A `disabled` was considered and rejected — the
+          * wipe takes pointer events anyway, and disabling would drop focus off the control for the
+          * second and a half a keyboard user is most likely to be waiting on it.
+          */}
         <button
           type="button"
-          onClick={commit}
-          className="min-h-[48px] w-full rounded-full bg-gold px-8 py-3 font-body font-medium text-[var(--background)] transition-opacity hover:opacity-90"
+          onClick={enter}
+          className="door"
+          aria-busy={wiping || undefined}
         >
-          Let's go
-        </button>
-
-        <button
-          type="button"
-          onClick={skip}
-          className="mx-auto block min-h-[44px] font-body text-sm text-muted-foreground underline underline-offset-2 transition-colors hover:text-gold"
-        >
-          skip
+          {wiping ? "Lighting the grill" : "get roastin'"}
         </button>
       </MenuCard>
     </div>

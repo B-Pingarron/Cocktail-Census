@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500">
+  <g>
+    <!-- Crushed ice pieces -->
+    <polygon points="200,280 220,265 240,275 225,295" fill="rgba(255,255,255,0.7)" stroke="#999" stroke-width="1"/>
+    <polygon points="230,260 255,250 260,270 240,280" fill="rgba(255,255,255,0.7)" stroke="#999" stroke-width="1"/>
+    <polygon points="250,285 270,270 285,290 265,300" fill="rgba(255,255,255,0.6)" stroke="#aaa" stroke-width="1"/>
+    <polygon points="215,250 230,240 240,255 225,265" fill="rgba(255,255,255,0.5)" stroke="#aaa" stroke-width="1"/>
+    <polygon points="265,245 285,235 295,250 275,260" fill="rgba(255,255,255,0.6)" stroke="#aaa" stroke-width="1"/>
+    <polygon points="240,300 255,290 270,305 255,315" fill="rgba(255,255,255,0.5)" stroke="#aaa" stroke-width="1"/>
+    <polygon points="270,275 285,265 295,280 280,290" fill="rgba(255,255,255,0.5)" stroke="#aaa" stroke-width="1"/>
+  </g>
+</svg>
