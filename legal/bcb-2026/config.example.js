@@ -32,7 +32,7 @@ window.BCB_CONFIG = {
   supabaseAnonKey: "REPLACE_WITH_SUPABASE_ANON_KEY",
 
   // OPTIONAL. The Edge Function that sends the double-opt-in confirmation email
-  // (`waitlist-confirm-request`, deployed from this repo, needs Resend).
+  // (`waitlist-confirm-request`, deployed from this repo, needs Brevo).
   // Leave as "" to use the default:
   //     <supabaseUrl>/functions/v1/waitlist-confirm-request
   // If this is unset/unreachable the page still STORES the contact and then

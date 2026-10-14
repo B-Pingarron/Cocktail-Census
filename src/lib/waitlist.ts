@@ -11,7 +11,7 @@ import type { AskOptionId } from "@/data/roomCopy";
  *   exists — and it would spend Supabase's built-in 2-per-hour email quota that a hall on
  *   shared wifi shares with everyone else in it. The insert itself costs nothing, sends
  *   nothing, and has no quota. The confirmation email below is a separate, explicit
- *   request to a separate mail path (an Edge Function + Resend), not a side effect of
+ *   request to a separate mail path (an Edge Function + Brevo), not a side effect of
  *   the insert and not Supabase Auth.
  *
  * WHY THERE IS A CONFIRMATION EMAIL AT ALL NOW:

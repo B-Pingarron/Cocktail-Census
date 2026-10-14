@@ -39,7 +39,7 @@
  *      public/datenschutz.html is the APP's short notice about the session identifier
  *      (the app captures no addresses, ADR-036). Each is still diffed against its own
  *      shipped file, so the check covers both documents.
- *   5. No Supabase key, JWT (eyJ…), Resend key or bare service_role string in any
+ *   5. No Supabase key, JWT (eyJ…), Resend or Brevo key, or bare service_role string in any
  *      committed-or-to-be-committed file under legal/bcb-2026/ or supabase/ (both paths
  *      relative to the census repo root).
  *
@@ -301,12 +301,15 @@ try {
 }
 
 // ---------------------------------------------------------------------------
-// 5. No Supabase key / JWT / Resend key / bare service_role in the shipping trees.
+// 5. No Supabase key / JWT / Resend or Brevo key / bare service_role in the shipping trees.
 // ---------------------------------------------------------------------------
 const SECRET_PATTERNS = [
   { name: "JWT (Supabase key or token)", re: /\beyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{4,}/ },
   { name: "new-style Supabase secret key", re: /\bsb_secret_[A-Za-z0-9]{6,}/ },
   { name: "Resend API key", re: /\bre_[A-Za-z0-9]{20,}/ },
+  // Brevo keys carry their own prefix (xkeysib-). Added when the mail transport moved
+  // from Resend to Brevo: an unscanned key format is the one that leaks unnoticed.
+  { name: "Brevo API key", re: /\bxkeysib-[A-Za-z0-9]{20,}/ },
   // The platform's own env-var name is not a secret; anything else wearing these words is.
   { name: "service_role string", re: /service_role/i, strip: "SUPABASE_SERVICE_ROLE_KEY" },
 ];

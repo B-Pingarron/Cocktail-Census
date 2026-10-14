@@ -194,11 +194,11 @@ files, all inside the census repo: `legal/bcb-2026/index.html`,
 document, not a copy). Then re-run the
 pre-flight list (or `node scripts/check-consent-ready.mjs`).
 
-## Fallback — when Resend is not configured (no automatic double opt-in)
+## Fallback — when the mail path is not configured (no automatic double opt-in)
 
 The confirmation mail goes through an Edge Function
-(`waitlist-confirm-request`) that needs a Resend account, API key and a
-verified sending domain (SPF/DKIM). If any of that is missing on the day, the
+(`waitlist-confirm-request`) that needs a Brevo account, an API key and a
+verified sender address. If any of that is missing on the day, the
 page still **stores** every contact and honestly reports "stored, confirmation
 not sent". Capture never depends on the mail path being up.
 

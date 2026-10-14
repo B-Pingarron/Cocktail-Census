@@ -27,7 +27,6 @@
 //   this function and by nothing else (see src/db/add-waitlist-consent-evidence.sql).
 
 type WaitlistRow = {
-  id: string;
   confirmed_at: string | null;
   confirm_expires_at: string | null;
 };
@@ -251,8 +250,14 @@ Deno.serve(async (request) => {
   }
 
   // 1. Look the row up by token.
+  //
+  //    NOTE ON THE KEY: this table has NO `id` column. Its identity is the address it
+  //    holds, and `confirm_token` is the unique single-use value minted at insert — which
+  //    is what the URL carries, so it is also the only safe key here. A previous version
+  //    selected `id`, PostgREST answered 400, and every confirmation link rendered the
+  //    "technical error" page while the deploy looked perfectly healthy.
   const lookup = await fetch(
-    `${supabaseUrl}/rest/v1/waitlist?select=id,confirmed_at,confirm_expires_at&confirm_token=eq.${encodeURIComponent(token)}`,
+    `${supabaseUrl}/rest/v1/waitlist?select=confirmed_at,confirm_expires_at&confirm_token=eq.${encodeURIComponent(token)}`,
     {
       headers: {
         apikey: serviceKey,

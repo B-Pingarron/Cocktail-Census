@@ -35,13 +35,29 @@
   and is rendered by the app. This page is the Art. 13 disclosure around it: who, why,
   on what basis, how long, who else touches the data, and every right.
 
-  THIRD-COUNTRY DISCLOSURE (operator-confirmed 2026-10-12): the Supabase project runs
-  in West EU (Ireland) — EU-hosted, so there is NO third-country transfer for the
-  database. Supabase and Resend BOTH remain processors under Art. 28 DSGVO and both stay
-  named as recipients; the EU standard-contractual-clauses / EU-US Data Privacy
-  Framework basis attaches to Resend (US-based) ALONE. Do not "restore" a blanket
-  transfer sentence covering both providers — that was the inaccuracy, and correcting
-  it makes the notice more accurate, not more permissive.
+  THIRD-COUNTRY DISCLOSURE (operator-confirmed 2026-10-12; revised 2026-10-14 when the
+  mail processor changed): the Supabase project runs in West EU (Ireland) — EU-hosted,
+  so there is NO third-country transfer for the database. Supabase and Brevo BOTH
+  remain processors under Art. 28 DSGVO and both stay named as recipients.
+
+  WHY THE MAIL PROCESSOR IS BREVO AND NOT RESEND: Resend will not send to anyone except
+  the account owner until a DOMAIN is verified, and this operator has none. Brevo (Sendinblue
+  SAS, France) sends without one. The change is recorded here because the reasoning is
+  not obvious from the markup.
+
+  WHY THE TRANSFER SENTENCE IS NOT "none": Brevo's own DPA (Terms of Service, version
+  2025-10-01, Appendix 3, Annex 2) lists OVH (France) and Google Cloud (Belgium) as the
+  hosting sub-processors — EU server locations — but ALSO Cloudflare (US), Zendesk (US)
+  and Brevo Inc. (US), with DPF/SCC safeguards; and its section 9 states plainly that
+  customer data "may at times require the Processing ... outside the EEA" where Brevo,
+  its Affiliates or its Sub-processors maintain operations.
+
+  Therefore: do NOT write "kein Drittlandtransfer" / "no third-country transfer" for the
+  mail path. That claim would be false, and Brevo's own DPA contradicts it. The basis is
+  named per recipient instead — EU-hosted databases, and SCC with supplementary measures
+  plus the EU-US DPF where a recipient is certified. This is a STRICTLY BETTER position
+  than Resend's, not a looser one: the primary hosting is now inside the EU rather than
+  in the United States. Do not "restore" the old US-only paragraph either.
 -->
 <html lang="de">
 <head>
@@ -117,7 +133,7 @@
   <main>
     <h1>Datenschutzhinweise</h1>
     <p class="meta">
-      BarNerd-Warteliste, Bar Convent Berlin 2026 · Fassung <code>notice-2026-10-12.v1</code> ·
+      BarNerd-Warteliste, Bar Convent Berlin 2026 · Fassung <code>notice-2026-10-14.v1</code> ·
       <a href="./">Zur Anwendung / back to the app</a>
     </p>
 
@@ -197,16 +213,18 @@
             (Irland); ein Drittlandtransfer findet für die Datenbank nicht statt.
           </li>
           <li>
-            <strong>Resend</strong> als Versanddienst für die Bestätigungs- und
-            Beta-E-Mails. Resend sitzt in den Vereinigten Staaten.
+            <strong>Brevo</strong> (Sendinblue SAS, Frankreich) als Versanddienst für die
+            Bestätigungs- und Beta-E-Mails. Brevo betreibt seine Datenbanken auf Servern
+            innerhalb der Europäischen Union (OVH, Frankreich; Google Cloud, Belgien).
           </li>
         </ul>
         <p>
-          Soweit Daten an Resend in die Vereinigten Staaten übermittelt werden, geschieht
-          dies auf Grundlage von Standardvertragsklauseln der EU-Kommission; soweit
-          Resend unter dem EU-US Data Privacy Framework zertifiziert ist, zusätzlich auf
-          Grundlage dieser Zertifizierung. Ein automatisierter Abgleich mit anderen
-          Datenbeständen findet nicht statt.
+          Brevo kann Daten auch außerhalb des EWR verarbeiten lassen — über
+          Konzernunternehmen (Brevo Inc., USA) und Unterauftragsverarbeiter wie
+          Cloudflare und Zendesk (beide USA). Diese Übermittlungen stützen sich auf
+          Standardvertragsklauseln der EU-Kommission mit ergänzenden Maßnahmen und,
+          soweit der Empfänger zertifiziert ist, auf das EU-US Data Privacy Framework.
+          Ein automatisierter Abgleich mit anderen Datenbeständen findet nicht statt.
         </p>
       </section>
 
@@ -346,16 +364,17 @@
             there is no third-country transfer for the database.
           </li>
           <li>
-            <strong>Resend</strong> as the mail-sending service for the confirmation and
-            beta emails. Resend is based in the United States.
+            <strong>Brevo</strong> (Sendinblue SAS, France) as the mail-sending service
+            for the confirmation and beta emails. Brevo hosts its databases on servers
+            within the European Union (OVH, France; Google Cloud, Belgium).
           </li>
         </ul>
         <p>
-          Where data is transferred to Resend in the United States, it is transferred on
-          the basis of the European Commission's Standard Contractual Clauses; where
-          Resend is certified under the EU-US Data Privacy Framework, additionally on the
-          basis of that certification. There is no matching of your data against other
-          datasets.
+          Brevo may also process data outside the EEA, through group companies (Brevo
+          Inc., USA) and sub-processors such as Cloudflare and Zendesk (both USA). Those
+          transfers rely on the European Commission's Standard Contractual Clauses with
+          supplementary measures and, where the recipient is certified, on the EU-US Data
+          Privacy Framework. There is no matching of your data against other datasets.
         </p>
       </section>
 
@@ -425,7 +444,7 @@
 
     <footer>
       <p>
-        Fassung / version <code>notice-2026-10-12.v1</code>. Änderungen werden hier
+        Fassung / version <code>notice-2026-10-14.v1</code>. Änderungen werden hier
         veröffentlicht / changes are published here. ·
         <a href="./">Zur Anwendung / back to the app</a>
       </p>

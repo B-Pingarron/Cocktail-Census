@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex" />
+  <title>BarNerd — Bestätigung / Confirmation</title>
+  <style>
+    body { margin: 0; background: #14110d; color: #ece4d6;
+           font: 16px/1.65 Georgia, "Times New Roman", serif;
+           padding: 2.5rem 1.25rem; }
+    main { max-width: 40rem; margin: 0 auto; }
+    p { color: #a89f8f; }
+  </style>
+</head>
+<body>
+  <main>
+    <p>Bestätigung wird geladen … / Loading the confirmation …</p>
+  </main>
+
+  <script>
+    /*
+      WHY THIS PAGE EXISTS AT ALL.
+
+      The confirmation itself is done by an Edge Function
+      (waitlist-confirm), and that function renders a complete, self-contained, styled
+      HTML page. But *.supabase.co will NOT serve it as HTML: the gateway rewrites
+      Content-Type to `text/plain`, adds `X-Content-Type-Options: nosniff` and a
+      `Content-Security-Policy: default-src 'none'; sandbox` header. So a confirmation
+      link pointed straight at the function renders the SOURCE of a nicely written page.
+
+      That is a deliberate safety decision on Supabase's side — nobody should be able to
+      host a phishing page on their domain — and it is not going to change.
+
+      So the link lands here instead, on a host we control, and this wrapper fetches the
+      function's own HTML and writes it into this document. The function is unchanged and
+      remains the single place the confirmation page is authored. If the fetch fails the
+      reader still gets a plain sentence, in both languages, telling them nothing was
+      confirmed and to try again — never a blank page.
+
+      No framework, no dependencies, no build step: this file ships as-is and runs in a
+      stripped-down webview on conference wifi.
+    */
+    (function () {
+      var SUPABASE_URL = "https://kmkgovzuosixyiconpzq.supabase.co";
+      var token = new URLSearchParams(location.search).get("token") || "";
+      var url = SUPABASE_URL + "/functions/v1/waitlist-confirm?token=" + encodeURIComponent(token);
+
+      fetch(url)
+        .then(function (r) { return r.text(); })
+        .then(function (html) {
+          document.open();
+          document.write(html);
+          document.close();
+        })
+        .catch(function () {
+          document.querySelector("main").innerHTML =
+            '<p>Die Bestätigung konnte gerade nicht geladen werden. Ihre Adresse wurde NICHT '
+            + 'bestätigt. Bitte versuchen Sie es später erneut.</p>'
+            + '<p>The confirmation could not be loaded right now. Your address was NOT '
+            + 'confirmed. Please try again later.</p>';
+        });
+    })();
+  </script>
+</body>
+</html>

@@ -4,7 +4,7 @@ Two Edge Functions complete the double opt-in:
 
 | Function | Method | What it does |
 |---|---|---|
-| `waitlist-confirm-request` | `POST { token }` | Looks the waitlist row up by its confirm token and sends exactly **one ad-free** confirmation email via Resend. Called by the app (`src/lib/waitlist.ts`) and by the standalone BCB page right after a successful insert. |
+| `waitlist-confirm-request` | `POST { token }` | Looks the waitlist row up by its confirm token and sends exactly **one ad-free** confirmation email via Brevo. Called by the app (`src/lib/waitlist.ts`) and by the standalone BCB page right after a successful insert. |
 | `waitlist-confirm` | `GET ?token=...` | The link in that email. Sets `confirmed_at` (idempotent — a second click succeeds and re-sends nothing) and shows a small standalone bilingual page. |
 
 Both are plain Deno/TypeScript with no npm dependencies. The confirmation mail body is
@@ -54,8 +54,8 @@ set.
 Required — the mail-sending path (`waitlist-confirm-request`) needs both:
 
 ```bash
-npx supabase@2.120.0 secrets set RESEND_API_KEY   # the re_… key from the Resend dashboard
-npx supabase@2.120.0 secrets set RESEND_FROM="BarNerd <bestaetigung@YOUR-VERIFIED-DOMAIN>"
+npx supabase@2.120.0 secrets set BREVO_API_KEY   # the xkeysib-… key from the Brevo dashboard
+npx supabase@2.120.0 secrets set MAIL_FROM="Bernardo Pingarrón <the-address-you-verified-in-Brevo>"
 ```
 
 Optional:
@@ -83,18 +83,38 @@ npx supabase@2.120.0 secrets set CONTROLLER_EMAIL # only for the waitlist-confir
   secret set it shows the address, and without it the page still confirms and points at the
   confirmation email's sender instead. It is not needed to send the mail, so forgetting it
   cannot break the double opt-in.
-- **`RESEND_FROM` must not be a no-reply address** and must sit on the verified sending
-  domain. The function refuses a `RESEND_FROM` matching /no-?reply/i with **503
-  `no-reply-sender-forbidden`**.
+- **`MAIL_FROM` must not be a no-reply address** and must be an address you have verified
+  as a sender in Brevo. The function refuses a `MAIL_FROM` matching /no-?reply/i with **503
+  `no-reply-sender-forbidden`**. It accepts both `Name <addr>` and a bare address, and
+  splits them into the two fields Brevo's API wants separately; a bare address simply
+  carries no display name rather than inventing one from the local part.
 
-## Verified sending domain (SPF/DKIM) — required before the first real send
+## Verified sender — required before the first real send
 
-In the Resend dashboard: add your domain, publish the DNS records (SPF, DKIM, and the
-return-path MX), wait for the green "Verified" state, and only then set `RESEND_FROM` to
-an address on that domain. A confirmation email from an unverified domain lands in spam
-or is rejected outright — and a DOI email nobody receives is a DOI that never happens.
-Test with your own mailbox first and check the received message's headers actually show
-SPF/DKIM pass.
+WHY BREVO AND NOT RESEND: Resend refuses to deliver to anyone but the account owner until
+its own DOMAIN is verified, and this operator has no domain. Brevo's free tier sends after
+verifying a SINGLE SENDER ADDRESS. Both are HTTP APIs, so the swap stayed inside one
+`fetch` and changed nothing about the status contract the client routes on.
+
+To set it up:
+
+1. Brevo → **Senders, Domains & Dedicated IPs → Senders** → add the address and click the
+   verification link Brevo mails you.
+2. Brevo → **API Keys** → create one. It starts with `xkeysib-`.
+3. Set `BREVO_API_KEY` and `MAIL_FROM` from that address and that key.
+
+The creation and API-key steps now happen in the BREVO console, and a directory named
+`supabase/functions/README.md` cannot see either.
+
+WHAT IT COSTS TO HAVE NO DOMAIN: the sender is a mailbox on a domain this operator does
+not own. Brevo sends it from Brevo's own infrastructure, so the message does not carry
+SPF/DKIM aligned to the sender's domain — a pattern spam filters know. It delivers, and it
+is materially better than nothing, but it is weaker than a domain-authenticated sender. If
+a domain ever becomes available, verify it in Brevo and point `MAIL_FROM` at an address on
+it; nothing else in the function changes.
+
+Test with your own mailbox first, and check that the message actually arrived, from the
+verified address.
 
 ## What happens while the secrets are unset (today)
 
@@ -102,8 +122,8 @@ Nothing fails silently, and nothing pretends:
 
 1. Capture still works. The row is inserted first, with `consent_version`, `source`,
    `confirm_token`, `confirm_sent_at`, `confirm_expires_at`.
-2. The app then POSTs the token to `waitlist-confirm-request`. Until `RESEND_API_KEY` and
-   `RESEND_FROM` are set it answers **503 `{"error":"mail-not-configured", ...}`**, naming
+2. The app then POSTs the token to `waitlist-confirm-request`. Until `BREVO_API_KEY` and
+   `MAIL_FROM` are set it answers **503 `{"error":"mail-not-configured", ...}`**, naming
    the missing variables; if the row's `consent_version` does not resolve to a filled
    `controller_email` it answers the same 503, naming
    `waitlist_consent_texts.controller_email`. Either way the client treats it as exactly

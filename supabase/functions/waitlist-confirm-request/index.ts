@@ -2,7 +2,7 @@
 //
 // WHAT THIS DOES:
 //   POST { token } → looks the waitlist row up by its confirm token (service role) and
-//   sends exactly one confirmation email to the stored address via Resend. It is not
+//   sends exactly one confirmation email to the stored address via Brevo. It is not
 //   Supabase Auth, not a magic link, not a session — the token was minted client-side at
 //   insert (src/lib/waitlist.ts); this function only spends it.
 //
@@ -11,7 +11,7 @@
 //   sent" and "stored + not sent" purely by this function's HTTP status. A 200 while the
 //   mail did not leave would make the app tell a stranger their confirmation is on its
 //   way — the exact lie this whole feature exists to prevent. So: unconfigured → 503 with
-//   a machine-readable reason, Resend failure → 502, and 200 is reserved for "the
+//   a machine-readable reason, a provider failure → 502, and 200 is reserved for "the
 //   provider accepted the mail" or "already confirmed" (where no mail is due at all).
 //
 // WHY THE CONFIRMATION MAIL CONTAINS NO ADVERTISING (the hardest rule here):
@@ -38,7 +38,7 @@
 //   home, and a second home is precisely the thing that silently fails to be set. A row
 //   whose consent_version resolves to an empty or still-marker controller_email fails as
 //   loudly as a missing API key — this function never sends to a placeholder, and a
-//   RESEND_FROM that looks like a no-reply address is refused outright.
+//   MAIL_FROM that looks like a no-reply address is refused outright.
 //
 // CORS, AND THE TRADEOFF ACCEPTED:
 //   This endpoint is called from the app (GitHub Pages) and from the standalone BCB page
@@ -117,7 +117,6 @@ const pruneRateWindow = () => {
 };
 
 type WaitlistRow = {
-  id: string;
   email: string;
   interests: string[] | null;
   consent_version: string | null;
@@ -137,6 +136,26 @@ const serviceHeaders = (key: string, extra: Record<string, string> = {}) => ({
 
 /** Format the expiry for the mail: unambiguous UTC, no locale guessing in a legal mail. */
 const formatExpiry = (iso: string) => new Date(iso).toISOString().replace("T", " ").replace(/\.\d+Z$/, " UTC");
+
+/**
+ * Parse MAIL_FROM into the two fields Brevo wants SEPARATELY.
+ *
+ * WHY THIS EXISTS AT ALL: Resend accepted the whole `"Name <addr>"` string in one `from`
+ * field. Brevo's transactional API takes `sender: { name, email }` as an object, so the
+ * shape the operator writes in the secret has to be split here rather than passed through.
+ * Accepts both `Name <addr>` and a bare address; a bare address simply carries no name —
+ * it is NOT guessed from the local part, because a wrong display name in a confirmation
+ * mail is worse than none.
+ */
+const parseFrom = (raw: string): { name?: string; email: string } => {
+  const angled = raw.match(/^\s*(.*?)\s*<([^>]+)>\s*$/);
+  if (angled) {
+    const name = angled[1].trim().replace(/^"|"$/g, "");
+    const email = angled[2].trim();
+    return name ? { name, email } : { email };
+  }
+  return { email: raw.trim() };
+};
 
 /**
  * The confirmation email body, in full. Bilingual (German, then English), plain text,
@@ -223,9 +242,14 @@ Deno.serve(async (request) => {
   //    waitlist and may never select it — a readable waitlist is other people's addresses.
   //    consent_version is selected too: it is the join key to the consent text, which is
   //    where the controller address (one home) is read from below.
+  //
+  //    NOTE ON THE KEY: this table has NO `id` column. A previous version selected `id`,
+  //    PostgREST answered 400, and every call returned 502 before it could even check
+  //    whether the mail path was configured — which is why this failed at every stage of
+  //    setup without ever naming the real cause.
   const lookup = await fetch(
     postgrestUrl(
-      `waitlist?select=id,email,interests,consent_version,confirmed_at,confirm_sent_at,confirm_expires_at&confirm_token=eq.${encodeURIComponent(token)}`,
+      `waitlist?select=email,interests,consent_version,confirmed_at,confirm_sent_at,confirm_expires_at&confirm_token=eq.${encodeURIComponent(token)}`,
     ),
     { headers: serviceHeaders(serviceKey) },
   );
@@ -271,11 +295,17 @@ Deno.serve(async (request) => {
   //    (deploy uploads only this directory), so it reads the seeded row back, joined on the
   //    waitlist row's consent_version. A missing or still-marker address is reported in the
   //    same 503, by the DB column name, and nothing is sent to a placeholder.
-  const apiKey = Deno.env.get("RESEND_API_KEY");
-  const from = Deno.env.get("RESEND_FROM");
+  //    The mail transport is Brevo, not Resend, and the reason is worth recording because
+  //    it is a constraint on the OPERATOR, not a preference: Resend refuses to deliver to
+  //    anyone but the account owner until a DOMAIN is verified, and this operator has no
+  //    domain. Brevo's free tier sends after verifying a SINGLE SENDER ADDRESS. Both are
+  //    HTTP APIs, which is why this swap is confined to one fetch below and needed no
+  //    change to the status contract the client routes on.
+  const apiKey = Deno.env.get("BREVO_API_KEY");
+  const from = Deno.env.get("MAIL_FROM");
   const missing = [
-    !apiKey ? "RESEND_API_KEY" : null,
-    !from ? "RESEND_FROM" : null,
+    !apiKey ? "BREVO_API_KEY" : null,
+    !from ? "MAIL_FROM" : null,
   ].filter((name): name is string => name !== null);
   if (missing.length > 0) {
     return json(503, {
@@ -317,12 +347,13 @@ Deno.serve(async (request) => {
         "the waitlist row's consent_version does not resolve to a filled controller_email; the confirmation email's withdrawal route cannot be named, so nothing is sent (seed the address from src/legal/consent.v1.json — see supabase/functions/README.md)",
     });
   }
-  if (/no-?reply/i.test(from as string)) {
+  const sender = parseFrom(from as string);
+  if (/no-?reply/i.test(sender.email)) {
     // DSK OH Direktwerbung § 5.3: a no-reply sender cuts off the withdrawal route.
     return json(503, {
       ok: false,
       error: "no-reply-sender-forbidden",
-      detail: "RESEND_FROM must be a reachable address on the verified domain; withdrawal lives in reply_to",
+      detail: "MAIL_FROM must be a reachable address you have verified as a sender in Brevo; withdrawal lives in replyTo",
     });
   }
 
@@ -353,7 +384,19 @@ Deno.serve(async (request) => {
   }
 
   // 7. Send exactly one ad-free confirmation email.
-  const confirmUrl = `${supabaseUrl}/functions/v1/waitlist-confirm?token=${encodeURIComponent(token)}`;
+  //
+  //    THE LINK DOES NOT POINT AT THE FUNCTION. It used to, and that was wrong: *.supabase.co
+  //    rewrites Content-Type to text/plain and adds `X-Content-Type-Options: nosniff` plus a
+  //    sandboxed CSP to anything an Edge Function returns, so the page rendered as raw HTML
+  //    source in the recipient's browser. The confirmation itself worked (confirmed_at was
+  //    written) but it looked broken — which for a consent flow is its own kind of broken.
+  //
+  //    So the link points at a wrapper on a host we DO control, which fetches this same
+  //    function and writes its HTML into the document. The function stays the single place
+  //    the page is authored.
+  const confirmPage = Deno.env.get("CONFIRM_PAGE_URL") ||
+    "https://b-pingarron.github.io/Cocktail-Census/confirm.html";
+  const confirmUrl = `${confirmPage}?token=${encodeURIComponent(token)}`;
   const noticeUrl = Deno.env.get("NOTICE_URL") || "https://b-pingarron.github.io/Cocktail-Census/datenschutz.html";
   const topics = TOPIC_ORDER.filter((id) => (row.interests ?? []).includes(id)).map((id) => TOPIC_LABELS[id]);
   const email = buildConfirmationEmail({
@@ -364,31 +407,61 @@ Deno.serve(async (request) => {
     noticeUrl,
   });
 
-  const resend = await fetch("https://api.resend.com/emails", {
+  const send = await fetch("https://api.brevo.com/v3/smtp/email", {
     method: "POST",
-    headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+    headers: {
+      // Brevo authenticates with its own header name, not a Bearer token.
+      "api-key": apiKey as string,
+      "Content-Type": "application/json",
+      accept: "application/json",
+    },
     body: JSON.stringify({
-      from,
-      to: [row.email],
+      sender,
+      to: [{ email: row.email }],
       // The withdrawal route, always one reply away. Never a no-reply address.
-      reply_to: controllerEmail,
+      replyTo: { email: controllerEmail },
       subject: email.subject,
-      text: email.text,
+      // Plain text on purpose: this mail carries no HTML by design, and Brevo takes the
+      // text body under its own key name.
+      textContent: email.text,
     }),
   });
 
-  if (!resend.ok) {
+  if (!send.ok) {
+    // Brevo says WHY in the response body (an unverified sender, an unactivated account,
+    // a bad key). That reason is the difference between a five-minute fix and an hour of
+    // guessing.
+    //
+    // It goes BOTH to the function log and into this response. The status code alone
+    // cannot tell "key not found" from "sender not valid" from "account not activated",
+    // and all three are 401/400 here — so a caller who only sees the number is stuck. The
+    // provider's message carries no secret. The key's SHAPE is logged (length and prefix)
+    // and never the key itself: a truncated paste is invisible from the status alone.
+    const providerDetail = (await send.text()).slice(0, 300);
+    const keyShape = `${(apiKey as string).length} chars, starts "${(apiKey as string).slice(0, 8)}"`;
+    console.error("brevo rejected the send", send.status, `key looks like: ${keyShape}`, providerDetail);
     // Revert the claim so an honest retry is not locked out for the whole window, and
     // report the failure as exactly what it is. The client will say "stored, not sent".
     await fetch(
-      postgrestUrl(`waitlist?id=eq.${encodeURIComponent(row.id)}&confirm_sent_at=eq.${encodeURIComponent(claimed[0].confirm_sent_at as string)}`),
+      // Keyed on confirm_token, not on an `id` this table does not have — and on the
+      // exact confirm_sent_at we claimed, so a later attempt is not clobbered.
+      postgrestUrl(`waitlist?confirm_token=eq.${encodeURIComponent(token)}&confirm_sent_at=eq.${encodeURIComponent(claimed[0].confirm_sent_at as string)}`),
       {
         method: "PATCH",
         headers: serviceHeaders(serviceKey),
         body: JSON.stringify({ confirm_sent_at: row.confirm_sent_at }),
       },
     );
-    return json(502, { ok: false, error: "mail-provider-failed", provider: "resend", providerStatus: resend.status });
+    return json(502, {
+      ok: false,
+      error: "mail-provider-failed",
+      provider: "brevo",
+      providerStatus: send.status,
+      // The provider's own words, so the next person does not have to open a dashboard to
+      // learn which of the four different 401s this is. Brevo's messages are specific
+      // ("Key not found", "sender not valid") and carry no secret.
+      providerDetail,
+    });
   }
 
   // Only a real send starts the rate-limit window. A failed send never locks a retry out.

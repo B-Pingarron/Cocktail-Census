@@ -22,6 +22,14 @@ dist-ssr/
 
 !.env.example
 
+# Local-only source for `supabase secrets set --env-file`. Holds the LIVE Brevo API key,
+# so it must never be tracked. Listed explicitly because the `.env` rules above match
+# `.env`, `.env.local` and `.env.*.local` — NOT a file named `.env.secrets`.
+supabase/.env.secrets
+
+# The Supabase CLI's own scratch directory (link state, temporary bundles). Not source.
+supabase/.temp/
+
 #
 
 # NOT listed, deliberately: `.env.production`. The deploy workflow has no `env:` block, so
