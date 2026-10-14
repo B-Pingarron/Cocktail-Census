@@ -228,7 +228,21 @@ const renderPage = (kind: PageKind): Response => {
 
   return new Response(html, {
     status: PAGE_STATUS[kind],
-    headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" },
+    headers: {
+      "Content-Type": "text/html; charset=utf-8",
+      "Cache-Control": "no-store",
+      // REQUIRED, and it is not obvious: the confirmation link lands on a wrapper page on a
+      // host we control (public/confirm.html on GitHub Pages) which FETCHES this function
+      // cross-origin and writes its HTML into the document. A cross-origin fetch whose
+      // response carries no Access-Control-Allow-Origin is unreadable by script, so the
+      // browser drops it and the reader sees the fallback sentence instead of their
+      // confirmation — with the server having done everything right.
+      //
+      // `*` is correct here: the body is a public notice about a single-use token, the
+      // endpoint takes no credentials, and the request half of this pair already allows a
+      // broad origin for the same reason.
+      "Access-Control-Allow-Origin": "*",
+    },
   });
 };
 
