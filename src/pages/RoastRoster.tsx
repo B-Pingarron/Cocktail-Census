@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import ExitLink from "@/components/ExitLink";
+import FeedbackDoor from "@/components/FeedbackDoor";
 import { getSessionId } from "@/lib/session";
 import { supabase } from "@/lib/supabase";
 import {
@@ -309,6 +310,11 @@ const RoastRoster = () => {
       <main className="page">
         <div className="exitrow">
           <ExitLink where="menu" />
+          {/* THE FEEDBACK DOOR, beside the law-8 exit. The room's `.exitrow a` rule reaches it
+              exactly as it reaches ExitLink. It is mounted on the loaded page only — the
+              loading/failure branch's exitrow is deliberately untouched, because a door to a form
+              on a page whose own library cannot load adds a second voice to a one-line state. */}
+          <FeedbackDoor where="roster" className="exit" />
         </div>
 
         <section className="frame" aria-labelledby="roster-title">

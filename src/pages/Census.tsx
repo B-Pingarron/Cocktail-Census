@@ -281,8 +281,10 @@ const Census = () => {
           )}
           {/* Replaces the old GitHub-issues link: a stranger will type a sentence, but will
               not open a GitHub account. Deliberately NOT fail-soft — a silently lost message
-              is worse than an error, so this one reports failure and keeps the text. */}
-          <FeedbackForm />
+              is worse than an error, so this one reports failure and keeps the text.
+              `from="census"` is this mount's provenance: FeedbackForm prefixes the origin slug
+              onto the message, in the one place both of its mount modes share. */}
+          <FeedbackForm from="census" />
           <div className="flex flex-col items-center gap-3" data-section="completion-actions">
             <button
               onClick={handleReset}

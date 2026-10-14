@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import FeedbackDoor from "@/components/FeedbackDoor";
 import { recapLine, recapSubline, type RoundRecap } from "@/lib/rounds";
 import type { RoastSide } from "@/types/roast";
 
@@ -120,6 +121,16 @@ const RoundEnd = ({
         <Link to={withMode("/roast")} className="rd-exit">
           back to the menu
         </Link>
+        {/*
+          THE FEEDBACK DOOR, inside the boundary's exit cluster — this screen IS the room's exit
+          cluster at the boundary (the deck's HUD exit hides here for exactly that reason), so the
+          door sits beside the two links rather than anywhere new, and the boundary replaces the
+          card entirely, so nothing here is inside the deck's swipe surface. It wears `rd-exit`
+          rather than a bare `exit` because the arena's own exit rule IS `.rd-exit` — there is no
+          `.exit` rule in this room's stylesheet, so `exit` here would be an inert class and the
+          door would fall back to the shared Tailwind default instead of inheriting the room.
+        */}
+        <FeedbackDoor where="round-end" className="rd-exit" />
       </div>
     </section>
   );

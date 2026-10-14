@@ -5,6 +5,7 @@ import LoungeEntry from "@/components/LoungeEntry";
 import PartyAsk from "@/components/PartyAsk";
 import MartiniMark from "@/components/MartiniMark";
 import MenuCard from "@/components/MenuCard";
+import FeedbackDoor from "@/components/FeedbackDoor";
 import { HUB_ENTRIES, HUB_STANDFIRST } from "@/data/hubEntries";
 import { getIntroHidden } from "@/lib/intro";
 import { prefersReducedMotion } from "@/lib/motion";
@@ -270,6 +271,16 @@ const Hub = () => {
         <p className="mt-5 font-body text-[15px] leading-relaxed text-gold-light">
           {HUB_STANDFIRST}
         </p>
+
+        {/*
+          THE FEEDBACK DOOR, in the preamble's quiet register. The lounge has no ExitLink — it is
+          the root — so the door takes the one above-the-fold spot that is neither a seat nor a
+          form: one underlined line under the standfirst, before the list starts. It is a LINK, not
+          a form, so it does not inherit the objection PartyAsk's own header makes against a form
+          above the list — the lounge's job is still the first thing after it. The lounge register
+          is ExitLink's own Tailwind vocabulary; there is no `.exit` rule to wear here.
+        */}
+        <FeedbackDoor where="hub" className="mt-2" />
 
         {/* The rules between rows are the only lines on the list: `divide-y` draws them, so no
             row owns a border of its own. */}

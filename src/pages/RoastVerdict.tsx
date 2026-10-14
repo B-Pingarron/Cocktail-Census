@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
 import ExitLink from "@/components/ExitLink";
+import FeedbackDoor from "@/components/FeedbackDoor";
 import { noteById, roastNotes } from "@/data/roastNotes";
 import { ROAST_LIST_ID, roastSpecs } from "@/data/roastSpecs";
 import { getSessionId } from "@/lib/session";
@@ -305,6 +306,10 @@ const RoastVerdict = () => {
     <div className="roast roast-review">
       <div className="col">
         <ExitLink where="menu" className="exit" />
+        {/* THE FEEDBACK DOOR, beside the law-8 exit at the top of the column — and inside `shell`,
+            so it is present in every state, including the two that cannot show a verdict. The
+            review room's `.exit` patch is the rule it wears: same object as the exit beside it. */}
+        <FeedbackDoor where="roast-review" className="exit" />
         <span className="kick">Roast · the review</span>
         <h1 className="title">The verdict</h1>
         {children}

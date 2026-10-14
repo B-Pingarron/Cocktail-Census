@@ -3,6 +3,7 @@ import About from "@/pages/About";
 import Census from "@/pages/Census";
 import Hub from "@/pages/Hub";
 import CensusIntroPage from "@/pages/CensusIntroPage";
+import Feedback from "@/pages/Feedback";
 import LearnMore from "@/pages/LearnMore";
 import RoastDeck from "@/pages/RoastDeck";
 import RoastEnter from "@/pages/RoastEnter";
@@ -72,6 +73,15 @@ const App = () => {
         <Route path="/room/:room" element={<Room />} />
         {/* About is reachable from the lounge, never from the cover. */}
         <Route path="/about" element={<About />} />
+        {/*
+         * The feedback page, added 2026-10-13. Every room's feedback door leads here; `?from=`
+         * carries the origin slug, which FeedbackForm prefixes onto the message (no schema change
+         * — the provenance rides inside the text, in one place). It sits beside About because it
+         * is the same KIND of destination: a page reachable from everywhere, owned by no room —
+         * and it carries its own ExitLink for the reason ExitLink's own header gives: a reachable
+         * page with no way out repeats the sin that made the exit necessary.
+         */}
+        <Route path="/feedback" element={<Feedback />} />
       </Routes>
     </HashRouter>
   );

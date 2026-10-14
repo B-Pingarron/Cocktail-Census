@@ -6,6 +6,7 @@ import { composeAmount, formatQuantity, orderUnits, parseAmount, type Unit } fro
 import { defaults, matchElements, search, type Alias, type Candidate, type GarnishElement, type Ingredient, type Usage } from "@/lib/picker";
 import { buildPayload, validate, type Draft, type DraftGarnish, type DraftIngredient } from "@/lib/editor";
 import { compositorUrl, garnishAssetOf } from "@/lib/compositor";
+import FeedbackDoor from "@/components/FeedbackDoor";
 import "@/roast.css";
 import "@/roast-edit.css";
 
@@ -562,6 +563,12 @@ const SpecEditor = () => {
         <a href={compositorHref} target="_blank" rel="noopener noreferrer">
           mini compositor <span aria-hidden="true">→</span>
         </a>
+        {/* THE FEEDBACK DOOR, last in the exitrow — the most peripheral link in the room's quiet
+            row. The room's `.exitrow > a` rule styles it, exactly as it styles the two anchors
+            beside it (that rule is scoped to the anchor, so no class is needed for the room's
+            vocabulary; `exit` is kept for uniformity with the other ROAST mounts).
+            NOT on the card: the exitrow is above the plate and outside any gesture surface. */}
+        <FeedbackDoor where="editor" className="exit" />
       </div>
 
       <div className="card-wrap">

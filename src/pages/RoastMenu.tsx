@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import ExitLink from "@/components/ExitLink";
+import FeedbackDoor from "@/components/FeedbackDoor";
 import { getSessionId } from "@/lib/session";
 import { supabase } from "@/lib/supabase";
 import { getNickname, setNickname } from "@/lib/nickname";
@@ -200,6 +201,10 @@ const RoastMenu = () => {
             one folder hop. */}
         <div className="rm-exitrow">
           <ExitLink />
+          {/* THE FEEDBACK DOOR, beside the exit as the placement rule requires. The room's
+              `.rm-exitrow a` chip rule reaches it for the same reason it reaches ExitLink — the
+              wrapper is the room's, and the anchor is what the rule is written against. */}
+          <FeedbackDoor where="roast-menu" className="exit" />
           <a href="./roast/roast-drink-card.html">
             mini compositor <span aria-hidden="true">→</span>
           </a>
